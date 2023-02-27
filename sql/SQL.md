@@ -92,3 +92,50 @@ SQL\ startup
 ORACLE instance started
 ```
 
+
+
+#### oracle 插入数据 根据字段新增or更新
+
+oracle 插入数据 根据字段新增or更新useGeneratedKeys只针对insert 语句, 默认为false
+
+当设置为 true 时，表示如果插入的表以自增列为主键，则允许 JDBC 支持自动生成主键，并可将自动生成的主键返回。
+
+```xml
+<insert id = "insert" parameterType = "java.util.ArrayList" useGeneratedKeys = "false">
+merge into table_name_1 t1 
+using(
+  <foreach collection="list" item = "item" index = "index" separator = "union">
+    		select	#{item.id,jdbcType=varchar} ID,
+    						#{item.name,jdbcType = varchar}  NAME,
+    						#{item.age,jdbcType =number} AGE,
+    						to_char(sysdate,"YYYY-MM-DD HH24:MI:SS") CREATE_TIME,
+    						to_char(sysdate,"YYYY-MM-DD HH24:MI:SS") UPDATE_TIME
+      	from DUAL
+  </foreach>) t2
+  on (t1.id = t2.id)
+  when matched then 
+  		update 
+  			set t1.NAME = t2.NAME,
+  					t1.AGE = t2.AGE,
+  					t1.UPDATE_TIME = to_char(sysdate,"YYYY-MM-DD HH24:MI:SS")
+  when not matched then
+  			insert(
+  				NAME,
+  				AGE,
+  				CREATE_TIME,
+  				UPDATE_TIME
+  			)
+  		VALUES(
+  			t2.NAME,
+  			t2.AGE,
+  			t2.CREATE_TIME,
+  			t2.UPDATE_TIME
+  )
+</insert>
+     
+```
+
+
+
+#### mysql: INSERT ··· ON DUPLICATE KEY UPDATE语法
+
