@@ -1,8 +1,48 @@
-### SQL 
+# SQL 
 
-##### Oracle监控函数
+## Oracle函数
 
-字符串空值处理函数：nvl函数
+
+
+### Oracle字段属性
+
+#### 时间属性DATETIME和TIMESTAMP的区别：
+
+1. ##### 时间范围不同：
+
+   DATETIME的日期范围是1001-9999年，TIMESTAMP的时间范围是1970-2038年
+
+   
+
+2. ##### 时区：
+
+   DATETIME的储存时间与时区无关，TIMESTAMP储存时间与时区有关，显示的值也依赖于时区。在mysql服务器，操作系统以及客户端连接都有时区设置。
+
+   
+
+3. ##### 储存空间：
+
+   DATETIME使用8字节的存储空间，TIMESTAMP的储存空间为4字节。因此，TIMESTAMP比DATETIME的空间利用率更高。
+
+   
+
+4. ##### 默认值：
+
+   DATETIME的默认值为null，TIMESTAMP的字段默认不为空（not null），默认值为当前时间（CURRENT_TIMESTAMP），如果不做特殊处理，并且update语句中没有指定该列的更新值，则默认更新为当前时间。
+
+
+
+#### NUMBER长度对应java属性
+
+1. ##### 如果不指定number的长度，或指定长度n>18：java.math.BigDecimal（id number not null）
+
+2. ##### 10 <= n <= 18：java.lang.Long（id number(n) not null）
+
+3. ##### 1 <= n <= 9：Ijava.lang.Integer（id number(n) not null）
+
+
+
+### 字符串空值处理函数：nvl函数
 
 ```sql
 #NVL函数的功能是实现空值的转换，根据第一个表达式的值是否为空值来返回响应的列名或表达式，主要用于对数据列上的空值进行处理，语法格式如：
@@ -13,7 +53,7 @@ NVL( string1, replace_with)。
 
 
 
-##### 分组后获取每组数据第一条数据
+### 分组后获取每组数据第一条数据
 
 ```sql
 select * from (
@@ -27,9 +67,52 @@ where rn =1
 
 其中 partition by 是指的是要进行分组的字段。
 
+### oracle 插入数据 根据字段新增or更新
+
+oracle 插入数据 根据字段新增or更新useGeneratedKeys只针对insert 语句, 默认为false
+
+当设置为 true 时，表示如果插入的表以自增列为主键，则允许 JDBC 支持自动生成主键，并可将自动生成的主键返回。
+
+```xml
+<insert id = "insert" parameterType = "java.util.ArrayList" useGeneratedKeys = "false">
+merge into table_name_1 t1 
+using(
+  <foreach collection="list" item = "item" index = "index" separator = "union">
+    		select	#{item.id,jdbcType=varchar} ID,
+    						#{item.name,jdbcType = varchar}  NAME,
+    						#{item.age,jdbcType =number} AGE,
+    						to_char(sysdate,"YYYY-MM-DD HH24:MI:SS") CREATE_TIME,
+    						to_char(sysdate,"YYYY-MM-DD HH24:MI:SS") UPDATE_TIME
+      	from DUAL
+  </foreach>) t2
+  on (t1.id = t2.id)
+  when matched then 
+  		update 
+  			set t1.NAME = t2.NAME,
+  					t1.AGE = t2.AGE,
+  					t1.UPDATE_TIME = to_char(sysdate,"YYYY-MM-DD HH24:MI:SS")
+  when not matched then
+  			insert(
+  				NAME,
+  				AGE,
+  				CREATE_TIME,
+  				UPDATE_TIME
+  			)
+  		VALUES(
+  			t2.NAME,
+  			t2.AGE,
+  			t2.CREATE_TIME,
+  			t2.UPDATE_TIME
+  )
+</insert>
+     
+```
+
+补充：相似语法，mysql: INSERT ··· ON DUPLICATE KEY UPDATE语法
 
 
-##### Oracle实现数据同步
+
+## Oracle实现数据同步
 
 思路一：
 
@@ -76,7 +159,7 @@ when not matched then insert (id,age,name)values('123',12,'zhangsan')
 
 
 
-服务器启动：
+## Oracle服务器启动
 
 VMware vSphere Client
 
@@ -94,48 +177,11 @@ ORACLE instance started
 
 
 
-#### oracle 插入数据 根据字段新增or更新
-
-oracle 插入数据 根据字段新增or更新useGeneratedKeys只针对insert 语句, 默认为false
-
-当设置为 true 时，表示如果插入的表以自增列为主键，则允许 JDBC 支持自动生成主键，并可将自动生成的主键返回。
-
-```xml
-<insert id = "insert" parameterType = "java.util.ArrayList" useGeneratedKeys = "false">
-merge into table_name_1 t1 
-using(
-  <foreach collection="list" item = "item" index = "index" separator = "union">
-    		select	#{item.id,jdbcType=varchar} ID,
-    						#{item.name,jdbcType = varchar}  NAME,
-    						#{item.age,jdbcType =number} AGE,
-    						to_char(sysdate,"YYYY-MM-DD HH24:MI:SS") CREATE_TIME,
-    						to_char(sysdate,"YYYY-MM-DD HH24:MI:SS") UPDATE_TIME
-      	from DUAL
-  </foreach>) t2
-  on (t1.id = t2.id)
-  when matched then 
-  		update 
-  			set t1.NAME = t2.NAME,
-  					t1.AGE = t2.AGE,
-  					t1.UPDATE_TIME = to_char(sysdate,"YYYY-MM-DD HH24:MI:SS")
-  when not matched then
-  			insert(
-  				NAME,
-  				AGE,
-  				CREATE_TIME,
-  				UPDATE_TIME
-  			)
-  		VALUES(
-  			t2.NAME,
-  			t2.AGE,
-  			t2.CREATE_TIME,
-  			t2.UPDATE_TIME
-  )
-</insert>
-     
-```
+#### 
 
 
 
-#### mysql: INSERT ··· ON DUPLICATE KEY UPDATE语法
+
+
+
 
