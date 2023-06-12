@@ -79,47 +79,9 @@ X11Forwarding no
 :wq
 ```
 
-##	5.修改用户组用户目录权限
->	修改sftp用户组用户目录权限
-```zsh
-# 1、修改权限为root用户拥有
-chown root /data/sftp/sftpuser01
-# 2、修改权限为root可读写执行，其它用户可读
-chmod 755 /data/sftp/sftpuser01
-# 在用户目录下建立子目录，让sftp中的用户可读写文件
-# 我们在/data/sftp/sftpuser01目录下新建一个upload和upload文件夹：
-cd /data/sftp/sftpuser01
-mkdir upload
-mkdir download
-# 3、授权upload文件夹读写，让子文件夹属于 sftpuser01
-chown sftpuser01 /data/sftp/sftpuser01/upload
-chown sftpuser01 /data/sftp/sftpuser01/download
-# 4、让子文件夹upload被sftpuser01读写
-chmod 755 /data/sftp/sftpuser01/upload
-chmod 755 /data/sftp/sftpuser01/download
-```
+#
 
-##	6.重启服务登陆sftp测试
-```zsh
-# 配置完成 重启 sshd 服务
-service sshd restart
-# systemctl restart sshd.service
-# centos7重启ssh的命令是sudo systemctl restart sshd.service
-# sudo service ssh restart
 
-# sftp 用户名@ip地址。
-root@VM-16-8-ubuntu:/# sftp sftpuser01@127.0.0.1
-sftpuser01@127.0.0.1's password:
-Connected to 127.0.0.1.
-sftp> ls
-download  upload
-sftp> ls -la
-drwxr-xr-x    4 root     root         4096 Mar 23 02:37 .
-drwxr-xr-x    4 root     root         4096 Mar 23 02:37 ..
-drwxr-xr-x    2 sftpuser01 root         4096 Mar 23 02:37 download
-drwxr-xr-x    2 sftpuser01 root         4096 Mar 23 02:37 upload
-sftp> exit
-```
 
 1、 chroot 路径上的所有目录，所有者必须是 root，权限最大为 0755，这一点必须要注意而且符合 所以如果以非 root 用户登录时，我们需要在 chroot 下新建一个登录用户有权限操作的目录
 
@@ -138,7 +100,4 @@ This service allows sftp connections only.
 1、chroot 可能带来的问题，因为 chroot 会将会话的根目录切换至此，所以 ssh 登录很可能会提示 /bin/bash: No such file or directory 的错误，因为此会话的路径会为 chroot/bin/bash
 
 2、ForceCommand 为会话开始时的初始命令 如果指定了比如 internal-sftp，则会提示 This service allows sftp connections only. 这就如同 usermod -s /bin/false 命令一样，用户登录会话时无法调用 /bin/bash 命令，自然无法 ssh 登录服务器
-
-原文来自：https://www.linuxidc.com/Linux/2019-01/156465.htm
-本文地址：https://www.linuxprobe.com/ssh-sftp-configuration.html
 
