@@ -41,6 +41,7 @@
 | `docs` | `https://docs.anthropic.com/en/docs/claude-code` |
 | `version_scheme` | `semver` |
 | `package` | — |
+| `tags` | `[claude-code, anthropic, CLI, 更新追踪]` |
 
 ### Codex
 
@@ -58,19 +59,25 @@
 | `repo_docs` | `codex-rs/app-server/README.md` |
 | `version_scheme` | `semver` |
 | `package` | `@openai/codex` |
+| `tags` | `[codex, openai, CLI, 更新追踪]` |
 
-### OpenCode
+### OpenCode / oh-my-openagent
 
 | 字段 | 值 |
 |------|-----|
-| `name` | OpenCode |
+| `name` | OpenCode & oh-my-openagent |
 | `tracking_file` | `2026-04-13-opencode-update-tracking.md` |
-| `repo` | `opencode-ai/opencode` |
-| `changelog` | GitHub Releases |
-| `release_notes` | GitHub Releases |
+| `repo` | `anomalyco/opencode` |
+| `companion_repo` | `code-yeongyu/oh-my-openagent` |
+| `changelog` | `https://opencode.ai/changelog` |
+| `release_notes` | `https://github.com/anomalyco/opencode/releases` |
+| `companion_release_notes` | `https://github.com/code-yeongyu/oh-my-openagent/releases` |
 | `docs` | `https://opencode.ai` |
+| `release_streams` | `opencode-core` + `oh-my-openagent-plugin-platform` |
 | `version_scheme` | `semver` |
-| `package` | — |
+| `package` | `opencode` / `oh-my-opencode` |
+| `merged_tracking` | `true` |
+| `tags` | `[opencode, oh-my-openagent, CLI, 更新追踪]` |
 
 ### Google Gemini CLI
 
@@ -84,6 +91,7 @@
 | `docs` | `https://geminicli.com/docs` |
 | `version_scheme` | `semver` |
 | `package` | `@google/gemini-cli` |
+| `tags` | `[gemini-cli, google, CLI, 更新追踪]` |
 
 ---
 
@@ -105,6 +113,12 @@
    - 辅助锚点：semver 取版本区间上界；build-number 取最后构建号；其他无辅助锚点
    - 回退：若 `信息截止` 缺失，以 H4 标题中 `YYYY-MM` 的最后一天为锚点
 5. 输出：{工具 Profile} + {增量起点(日期+可选版本号)} + {tracking 文章路径}
+6. **frontmatter 约束**（新追加批次前校验，若不符合则先修正）：
+   - `categories: [tech, tools, tracking]`（固定）
+   - `tags`：与 §3 Profile 的 `tags` 字段完全一致，不得增删或更换大小写；不得列入易过时的模型号（如 `GPT-5.4`）
+   - `toc: true`（固定）
+   - `date`：格式 `YYYY-MM-DD 12:00:00 +0800`（创建日期，不随追加改变）
+   - `title`：风格为 `<工具名> 更新追踪`（双工具合并追踪允许 `&` 连写，如 `OpenCode & oh-my-openagent 更新追踪`）
 
 **触发方式**：当前为人工触发（用户主动发起追踪请求）。
 
@@ -179,8 +193,13 @@
   `Pre-release Observation`
 - 表头第一列：`version_scheme` 为 `semver` 或 `build-number` 时用 `版本`，
   `date-based` 或 `feature-name` 时用 `更新`
+- **列数规则**：Profile `merged_tracking: true`（双工具合并追踪）时用 4 列
+  `| 工具 | 版本 | 日期 | 一句话 |`；否则一律用 3 列 `| 版本 | 日期 | 一句话 |`
 - 每个版本/更新一行，列为 `{版本|更新} | 日期 | 一句话`
 - "一句话"浓缩为该版本最值得知道的 1~2 个变化
+- **多 channel 强制分批**：当 stable / prerelease / nightly / app-update 在同一月内出现时，
+  必须在 H4 标题尾部标 `（CLI Stable）` / `（预发布）` / `（Nightly）` / `（App Update）`，
+  且不允许在同一速览表内混排；同月多 channel 拆成独立 H4 批次，按发布时间排序
 
 **段二：新特性用法**（标题：`##### 新特性用法`）
 - 每项新特性以 `-` 列表展开，侧重「怎么用」
@@ -193,7 +212,12 @@
 **段三：关键 fix**（标题：`##### 关键 fix`）
 - 每项修复以 `-` 列表展开
 - 侧重「修了什么、影响谁、以前需要怎么绕路」
-- 所有修复项必须列出，即使只有 1~2 个
+- 所有修复项必须列出，即使只有 1~2 个；若无修复，写 `- 本批次无关键 fix`
+
+**段四：深度分析（可选）**（标题：`##### 深度分析（可选）`）
+- 用于季度综述、重大架构变更解读或跨版本趋势分析；非必填，可按需省略
+- 内容以 `> **主题**：分析内容` blockquote 形式组织，每个主题一个 blockquote 段落
+- 放在「关键 fix」段之后；不得替代三段式的任何一段
 
 **补充段：主分支未发版变更**（可选）
 - 仅当最新 Release 之后默认分支存在已合并但未发版的显著变更时出现
@@ -225,12 +249,14 @@
 输出前逐项检查：
 
 **格式合规：**
-- H4 标题以 `#### YYYY-MM` 开头，包含 `|` 分隔符
+- H4 标题以 `#### YYYY-MM` 开头，包含 `|` 分隔符；跨月批次允许 `#### YYYY-MM ~ MM`
 - 当存在多发布流或多版本线时，标题或版本描述需明确 channel /
   流标识，避免把 stable、prerelease、app update 混写
 - 版本描述与 `version_scheme` 匹配，未伪造格式
 - 三段内容完整（版本速览表 + 新特性用法 + 关键 fix）
 - 版本速览表首行包含信息截止日期
+- **frontmatter tags 与 §3 注册表标准 tag 集完全一致**（大小写、连字符均需匹配）
+- **速览表列数与 Profile `merged_tracking` 字段匹配**（`true` → 4 列含「工具」列；未设置/`false` → 3 列）
 
 **内容合规：**
 - 未引用仅 closed 但未 merged 的 PR 作为已落地更新
@@ -290,3 +316,5 @@
 | v4.0 | 2026-04-13 | 大版本升级：结构从 emoji 节改为 § 编号；SOP 从 3 步扩展为 5 步（环境感知 + 四层漏斗 + 三段式转化 + 写入定位 + 校验输出）；新增工具 Profile 注册表（§3）；输出模板对齐 Spec 批次格式；新增输出模式占位（§6）。v3.1 emoji 模板废弃，如需富格式摘要可关注 §6 briefing 模式 |
 | v4.1 | 2026-04-19 | 校正 Codex 官方入口到 developers / GitHub 官方源；补充 `feature_maturity`、`repo_docs` 与 npm 包名；新增“预发布快速滚动 / 文档漂移”处理规则，并要求对 README / commit 推导示例显式标注来源级别 |
 | v4.2 | 2026-04-24 | 补充“多官方发布流 + 多版本线并行”的处理规则：为 Codex 增加 `product_changelog` 与 `release_streams` 字段；明确 GitHub Releases 与 developers changelog 的职责分工；新增 stable 与下一条 prerelease 同窗并行时的拆批规则，以及稳定版 release notes 对预发布推断的回收规则 |
+| v4.3 | 2026-04-29 | 将 OpenCode Profile 修正为 OpenCode & oh-my-openagent 合并追踪；更新官方 repo、changelog 与 companion release 源 |
+| v4.4 | 2026-05-06 | 各工具 Profile 增加 tags 标准集与 merged_tracking 字段；§4.1 新增 frontmatter 约束步骤；§4.3 新增速览表列规范（3列/4列）、多 channel 强制分批规则与可选第四段「深度分析」；§4.5 新增 tags 和列数两项硬校验 |
