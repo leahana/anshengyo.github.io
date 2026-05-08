@@ -3,7 +3,7 @@ layout: post
 title: Codex 更新追踪
 date: 2026-04-13 12:00:00 +0800
 categories: [tech, tools, tracking]
-tags: [Codex, OpenAI, GPT-5.4, CLI, 更新追踪]
+tags: [codex, openai, CLI, 更新追踪]
 description: 持续追踪 OpenAI Codex 的版本更新，按季度组织，记录新特性用法与关键修复。
 toc: true
 ---
@@ -639,7 +639,7 @@ requires_openai_auth = true
 
 ##### 关键 fix
 
-- (无)
+- 本批次无关键 fix
 
 ---
 
@@ -663,7 +663,7 @@ requires_openai_auth = true
 
 ##### 关键 fix
 
-- (无)
+- 本批次无关键 fix
 
 ---
 
@@ -677,6 +677,14 @@ requires_openai_auth = true
 |------|------|--------|
 | Initial CLI Release | 2025-09-12 | 首个命令行版本下发至内测用户，支持基础文件操作 |
 | GPT-5.1-codex | 2025-08-15 | 早期代码专精模型进入测试池 |
+
+##### 新特性用法
+
+- 本批次以内部 beta 为主，无可公开使用法。
+
+##### 关键 fix
+
+- 本批次未公开 fix 列表。
 
 ---
 
@@ -693,3 +701,4 @@ requires_openai_auth = true
 | v1.6 | 2026-04-21 | 追加 0.122.0-alpha.11 ~ alpha.13 预发布批次，并补记 2026-04-20 主分支的主分支未发版观察 |
 | v1.7 | 2026-04-24 | 按多发布流规则追加 0.123.0 ~ 0.124.0 CLI Stable 批次，并补记 GPT-5.5、Browser use 与 automatic approval reviews 的 App/Product 更新 |
 | v1.8 | 2026-04-29 | 追加 0.125.0 稳定版与 0.126.0-alpha.1 ~ alpha.11 预发布观察 |
+| v1.9 | 2026-05-06 | tags 收敛（删除 GPT-5.4）、2025-Q3 批次补齐三段式占位、`(无)` 文案统一为「本批次无关键 fix」 |

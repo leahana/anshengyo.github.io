@@ -3,7 +3,7 @@ layout: post
 title: Claude Code 更新追踪
 date: 2026-04-13 12:00:00 +0800
 categories: [tech, tools, tracking]
-tags: [Claude Code, Anthropic, CLI, 更新追踪]
+tags: [claude-code, anthropic, CLI, 更新追踪]
 description: 持续追踪 Claude Code CLI 的版本更新，按季度组织，记录新特性用法与关键修复。
 toc: true
 ---
@@ -395,3 +395,4 @@ toc: true
 | v1.4 | 2026-04-19 | 增量追踪至 v2.1.114；新增原生二进制分发、`/tui`、`/ultrareview`、`xhigh` effort、PowerShell 工具，以及 Bash/sandbox 安全加固批次 |
 | v1.5 | 2026-04-24 | 增量追踪至 v2.1.119；新增 Vim 可视模式、自定义主题、Hooks 直调 MCP 工具、`/usage` 合并、Opus 4.7 1M 上下文修正、多平台 `--from-pr`、`prUrlTemplate`/`CLAUDE_CODE_HIDE_CWD` |
 | v1.6 | 2026-04-29 | 增量追踪至 v2.1.122；补记 v2.1.120 resume 崩溃回滚、HTTP/SSE MCP、Bedrock service tier、企业托管策略与 hook/model 元数据 |
+| v1.7 | 2026-05-06 | 全量结构对齐：tags 标准化为 kebab-case、frontmatter 同步至 v4.4 规范、复核占位章节 |

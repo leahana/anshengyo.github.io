@@ -3,8 +3,8 @@ layout: post
 title: OpenCode & oh-my-openagent 更新追踪
 date: 2026-04-13 12:00:00 +0800
 categories: [tech, tools, tracking]
-tags: [OpenCode, oh-my-openagent, AI编程代理, CLI, 更新追踪]
-description: 持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。
+tags: [opencode, oh-my-openagent, CLI, 更新追踪]
+description: 持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。当前追踪至 OpenCode v1.14.x / oh-my-openagent v3.17.x。
 toc: true
 ---
 
@@ -110,7 +110,7 @@ toc: true
 
 ### Q1（2026-01 ~ 03）
 
-#### 2026-Q1 | v1.1.65 ~ v1.3.17 (OpenCode) / v3.x (oh-my-openagent)
+#### 2026-01 ~ 03 | v1.1.65 ~ v1.3.17 (OpenCode) / v3.x (oh-my-openagent)
 
 **信息截止**：2026-04-03 | **最新 Release**：OpenCode v1.3.17
 
@@ -141,6 +141,8 @@ toc: true
 - OpenCode：Effect 重构后的 Plugin 生命周期稳定性
 - oh-my-openagent：v3.14.1 兼容层修复跨版本插件兼容问题
 - oh-my-openagent："Atlas Trusts No One" 拆分后的 200 LOC 硬限制防止模块膨胀，提升长期可维护性
+
+##### 深度分析（可选）
 
 > **深度分析：OpenCode，从底层架构到企业级集成**
 >
@@ -181,3 +183,5 @@ toc: true
 | v1.0 | 2026-04-13 | 初始版本，建立追踪框架；迁移 Q1 精选内容（v1.1.65~v1.3.17） |
 | v1.1 | 2026-04-13 | 修正格式规范，使用 H5 标题组织批次段落；合并深度分析内容 |
 | v1.2 | 2026-04-29 | 追加 OpenCode v1.4.0 ~ v1.14.29 与 oh-my-openagent v3.16.0 ~ v3.17.6 合并批次 |
+| v1.3 | 2026-04-29 | 回填漏写的更新记录行（补记 v1.2 条目）|
+| v1.4 | 2026-05-06 | 全量结构对齐：H4 季度批次标题 `2026-Q1` → `2026-01 ~ 03`、深度分析 blockquote 提升为 `##### 深度分析（可选）` 子段、tags 标准化、description 补版本范围 |
