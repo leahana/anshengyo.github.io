@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>数据库迁移实战：Oracle → MySQL → 国产化数据库完整方案 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="database, gaussdb, mysql, oracle, tidb, 国产化, 数据库迁移, 达梦" />
+  
+  <meta name="description" content="从实际项目迁移经验出发，系统梳理 Oracle 到 MySQL 的语法差异与迁移策略，以及 MySQL 到国产数据库（TiDB、OceanBase、达梦 DM、GaussDB）的兼容性评估与迁移路径。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库迁移实战：Oracle → MySQL → 国产化数据库完整方案">
+<meta property="og:url" content="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="从实际项目迁移经验出发，系统梳理 Oracle 到 MySQL 的语法差异与迁移策略，以及 MySQL 到国产数据库（TiDB、OceanBase、达梦 DM、GaussDB）的兼容性评估与迁移路径。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092236_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092329_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092444_02.webp">
+<meta property="article:published_time" content="2026-03-22T18:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.764Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="database">
+<meta property="article:tag" content="gaussdb">
+<meta property="article:tag" content="mysql">
+<meta property="article:tag" content="oracle">
+<meta property="article:tag" content="tidb">
+<meta property="article:tag" content="国产化">
+<meta property="article:tag" content="数据库迁移">
+<meta property="article:tag" content="达梦">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092236_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"数据库迁移实战：Oracle → MySQL → 国产化数据库完整方案","description":"从实际项目迁移经验出发，系统梳理 Oracle 到 MySQL 的语法差异与迁移策略，以及 MySQL 到国产数据库（TiDB、OceanBase、达梦 DM、GaussDB）的兼容性评估与迁移路径。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-22T18:00:00.000Z","dateModified":"2026-05-18T05:47:58.764Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">数据库迁移实战：Oracle → MySQL → 国产化数据库完整方案</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-22T18:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-23</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~13.18K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E8%BF%81%E7%A7%BB%E8%B7%AF%E5%BE%84%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 迁移路径总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">1.2.</span> <span class="toc-text">💎 核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%9B%BD%E4%BA%A7%E5%8C%96%E6%95%B0%E6%8D%AE%E5%BA%93%E9%80%89%E5%9E%8B%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 国产化数据库选型速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%81%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%81%E7%A7%BB"><span class="toc-number">3.</span> <span class="toc-text">1. 为什么要做数据库迁移</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Oracle-%E8%BF%81%E5%87%BA%E7%9A%84%E9%A9%B1%E5%8A%A8%E5%9B%A0%E7%B4%A0"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 Oracle 迁出的驱动因素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%85%B8%E5%9E%8B%E8%BF%81%E7%A7%BB%E8%B7%AF%E5%BE%84"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 典型迁移路径</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Oracle-%E2%86%92-MySQL-%E8%AF%AD%E6%B3%95%E5%B7%AE%E5%BC%82"><span class="toc-number">4.</span> <span class="toc-text">2. Oracle → MySQL 语法差异</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 数据类型映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%87%BD%E6%95%B0%E5%B7%AE%E5%BC%82%E5%AF%B9%E7%85%A7"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 函数差异对照</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%BA%8F%E5%88%97-vs-AUTO-INCREMENT"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 序列 vs AUTO_INCREMENT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%A9%BA%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8E-NULL-%E7%9A%84%E8%87%B4%E5%91%BD%E5%B7%AE%E5%BC%82"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 空字符串与 NULL 的致命差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E8%BF%81%E7%A7%BB"><span class="toc-number">4.5.</span> <span class="toc-text">2.5 存储过程迁移</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BF%81%E7%A7%BB%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5"><span class="toc-number">5.</span> <span class="toc-text">3. 迁移工具与数据同步</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B7%A5%E5%85%B7%E9%80%89%E5%9E%8B"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 工具选型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%85%A8%E9%87%8F%E8%BF%81%E7%A7%BB%E6%B5%81%E7%A8%8B"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 全量迁移流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%A2%9E%E9%87%8F%E5%90%8C%E6%AD%A5%EF%BC%88Canal-MQ%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 增量同步（Canal + MQ）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-MySQL-%E2%86%92-%E5%9B%BD%E4%BA%A7%E5%8C%96%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">6.</span> <span class="toc-text">4. MySQL → 国产化数据库</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%85%BC%E5%AE%B9%E6%80%A7%E8%AF%84%E4%BC%B0%E7%9F%A9%E9%98%B5"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 兼容性评估矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%90%84%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%81%E7%A7%BB%E8%A6%81%E7%82%B9"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 各数据库迁移要点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#TiDB%EF%BC%88%E6%8E%A8%E8%8D%90-MySQL-%E7%94%9F%E6%80%81%E9%A1%B9%E7%9B%AE%EF%BC%89"><span class="toc-number">6.2.1.</span> <span class="toc-text">TiDB（推荐 MySQL 生态项目）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#OceanBase%EF%BC%88%E6%8E%A8%E8%8D%90%E9%87%91%E8%9E%8D%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">6.2.2.</span> <span class="toc-text">OceanBase（推荐金融场景）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%BE%E6%A2%A6-DM8%EF%BC%88%E6%8E%A8%E8%8D%90%E6%94%BF%E5%8A%A1-%E5%9B%BD%E4%BC%81%EF%BC%89"><span class="toc-number">6.2.3.</span> <span class="toc-text">达梦 DM8（推荐政务&#x2F;国企）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#GaussDB%EF%BC%88%E6%8E%A8%E8%8D%90%E5%8D%8E%E4%B8%BA%E4%BA%91%E5%AE%A2%E6%88%B7%EF%BC%89"><span class="toc-number">6.2.4.</span> <span class="toc-text">GaussDB（推荐华为云客户）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BF%81%E7%A7%BB%E7%AD%96%E7%95%A5%EF%BC%9A%E7%81%B0%E5%BA%A6%E5%88%87%E6%B5%81"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 迁移策略：灰度切流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C%E4%B8%8E%E5%9B%9E%E6%BB%9A"><span class="toc-number">7.</span> <span class="toc-text">5. 数据校验与回滚</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7%E6%A0%A1%E9%AA%8C"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 数据一致性校验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%9B%9E%E6%BB%9A%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 回滚方案设计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">6. 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%97%AE%E9%A2%98%EF%BC%9A%E5%AD%97%E7%AC%A6%E9%9B%86%E4%B9%B1%E7%A0%81"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 问题：字符集乱码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%97%AE%E9%A2%98%EF%BC%9A%E6%97%A5%E6%9C%9F%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 问题：日期精度丢失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%97%AE%E9%A2%98%EF%BC%9A%E5%A4%A7%E8%A1%A8%E8%BF%81%E7%A7%BB%E8%B6%85%E6%97%B6"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 问题：大表迁移超时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E8%BF%81%E7%A7%BB%E5%90%8E-SQL-%E6%80%A7%E8%83%BD%E4%B8%8B%E9%99%8D%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: 迁移后 SQL 性能下降怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-Oracle-%E7%9A%84%E5%88%86%E5%8C%BA%E8%A1%A8%E5%A6%82%E4%BD%95%E8%BF%81%E7%A7%BB%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: Oracle 的分区表如何迁移？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%9B%BD%E4%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93-JDBC-%E9%A9%B1%E5%8A%A8%E4%BB%8E%E5%93%AA%E8%8E%B7%E5%8F%96%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: 国产数据库 JDBC 驱动从哪获取？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E8%BF%81%E7%A7%BB%E8%BF%87%E7%A8%8B%E4%B8%AD%E6%95%B0%E6%8D%AE%E4%B8%8D%E4%B8%A2%E5%A4%B1%EF%BC%9F"><span class="toc-number">9.4.</span> <span class="toc-text">Q4: 如何保证迁移过程中数据不丢失？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E8%BE%BE%E6%A2%A6-DM-%E5%92%8C-GaussDB-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">9.5.</span> <span class="toc-text">Q5: 达梦 DM 和 GaussDB 如何选择？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-%E8%BF%81%E7%A7%BB%E5%91%A8%E6%9C%9F%E4%B8%80%E8%88%AC%E5%A4%9A%E9%95%BF%EF%BC%9F"><span class="toc-number">9.6.</span> <span class="toc-text">Q6: 迁移周期一般多长？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：一篇覆盖 Oracle → MySQL → 国产化数据库的全链路迁移指南，从语法差异到灰度切流，帮你少踩 80% 的坑。</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>核心理念</strong>：迁移不是翻译 SQL，而是重新理解业务在新引擎上的最优表达。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开迁移全景图</strong></summary>
+
+<h3 id="🔌-迁移路径总览"><a href="#🔌-迁移路径总览" class="headerlink" title="🔌 迁移路径总览"></a>🔌 迁移路径总览</h3><pre class="mermaid">graph LR
+    A[Oracle] -->|语法转换<br/>工具辅助| B[MySQL]
+    B -->|兼容性评估<br/>灰度切流| C{国产化数据库}
+    C --> D[TiDB]
+    C --> E[OceanBase]
+    C --> F[达梦 DM8]
+    C --> G[GaussDB]
+
+    style A fill:#ffccbc,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#bbdefb,stroke:#333,color:#000
+    style E fill:#bbdefb,stroke:#333,color:#000
+    style F fill:#bbdefb,stroke:#333,color:#000
+    style G fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092236_00.webp" alt="迁移路径总览图解：Oracle、MySQL、TiDB"></p>
+</details>
+
+<h3 id="💎-核心要点"><a href="#💎-核心要点" class="headerlink" title="💎 核心要点"></a>💎 核心要点</h3><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>关键动作</th>
+<th>最大风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Oracle → MySQL</td>
+<td>语法转换 + 函数替换</td>
+<td>隐式类型转换、空字符串 vs NULL</td>
+</tr>
+<tr>
+<td>数据迁移</td>
+<td>全量 + 增量同步</td>
+<td>大表迁移超时、字符集不一致</td>
+</tr>
+<tr>
+<td>MySQL → 国产化</td>
+<td>兼容性评估 + 灰度切流</td>
+<td>方言差异、驱动兼容性</td>
+</tr>
+<tr>
+<td>上线验证</td>
+<td>数据校验 + 性能基线</td>
+<td>执行计划差异导致慢查询</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-国产化数据库选型速查"><a href="#🎯-国产化数据库选型速查" class="headerlink" title="🎯 国产化数据库选型速查"></a>🎯 国产化数据库选型速查</h3><table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>兼容模式</th>
+<th>核心优势</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TiDB</td>
+<td>MySQL</td>
+<td>水平扩展、HTAP</td>
+<td>大数据量、高并发</td>
+</tr>
+<tr>
+<td>OceanBase</td>
+<td>MySQL&#x2F;Oracle 双模</td>
+<td>金融级高可用</td>
+<td>金融交易、核心系统</td>
+</tr>
+<tr>
+<td>达梦 DM8</td>
+<td>Oracle</td>
+<td>信创主流认证</td>
+<td>政务、国企</td>
+</tr>
+<tr>
+<td>GaussDB</td>
+<td>PostgreSQL</td>
+<td>华为生态</td>
+<td>华为云客户、混合云</td>
+</tr>
+</tbody></table>
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-为什么要做数据库迁移"><a href="#1-为什么要做数据库迁移" class="headerlink" title="1. 为什么要做数据库迁移"></a>1. 为什么要做数据库迁移</h2><h3 id="1-1-Oracle-迁出的驱动因素"><a href="#1-1-Oracle-迁出的驱动因素" class="headerlink" title="1.1 Oracle 迁出的驱动因素"></a>1.1 Oracle 迁出的驱动因素</h3><ul>
+<li><strong>授权成本高</strong>：Oracle 按 CPU 核心数收费，年维护费占总 license 的 22%，一台 16 核服务器年费可达数十万</li>
+<li><strong>供应链风险</strong>：中美技术博弈背景下，Oracle 断供风险上升</li>
+<li><strong>信创政策</strong>：党政、金融、电信等关键行业要求 2027 年前完成国产化替代</li>
+</ul>
+<h3 id="1-2-典型迁移路径"><a href="#1-2-典型迁移路径" class="headerlink" title="1.2 典型迁移路径"></a>1.2 典型迁移路径</h3><p>大多数企业采用 <strong>两步走</strong> 策略：</p>
+<ol>
+<li><strong>Oracle → MySQL</strong>：先迁到开源生态，降低成本、消除授权风险</li>
+<li><strong>MySQL → 国产化</strong>：在 MySQL 兼容基础上选择信创认证数据库</li>
+</ol>
+<p>这种策略的优势在于：MySQL 生态成熟，人才储备充足，迁移工具丰富；国产化数据库大多兼容 MySQL 协议，二次迁移成本可控。</p>
+<hr>
+<h2 id="2-Oracle-→-MySQL-语法差异"><a href="#2-Oracle-→-MySQL-语法差异" class="headerlink" title="2. Oracle → MySQL 语法差异"></a>2. Oracle → MySQL 语法差异</h2><h3 id="2-1-数据类型映射"><a href="#2-1-数据类型映射" class="headerlink" title="2.1 数据类型映射"></a>2.1 数据类型映射</h3><table>
+<thead>
+<tr>
+<th>Oracle 类型</th>
+<th>MySQL 类型</th>
+<th>注意事项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>NUMBER(p,s)</code></td>
+<td><code>DECIMAL(p,s)</code></td>
+<td>MySQL <code>DECIMAL</code> 最大精度 65 位</td>
+</tr>
+<tr>
+<td><code>NUMBER(p)</code> (无小数)</td>
+<td><code>BIGINT</code> &#x2F; <code>INT</code></td>
+<td>根据精度选择</td>
+</tr>
+<tr>
+<td><code>VARCHAR2(n)</code></td>
+<td><code>VARCHAR(n)</code></td>
+<td>Oracle 按字节，MySQL 按字符（utf8mb4）</td>
+</tr>
+<tr>
+<td><code>NVARCHAR2(n)</code></td>
+<td><code>VARCHAR(n)</code></td>
+<td>MySQL utf8mb4 天然支持 Unicode</td>
+</tr>
+<tr>
+<td><code>DATE</code></td>
+<td><code>DATETIME</code></td>
+<td><strong>Oracle DATE 含时分秒，MySQL DATE 不含</strong></td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code></td>
+<td><code>DATETIME(6)</code></td>
+<td>MySQL 6 位微秒精度</td>
+</tr>
+<tr>
+<td><code>CLOB</code></td>
+<td><code>LONGTEXT</code></td>
+<td>最大 4GB</td>
+</tr>
+<tr>
+<td><code>BLOB</code></td>
+<td><code>LONGBLOB</code></td>
+<td>最大 4GB</td>
+</tr>
+<tr>
+<td><code>RAW(n)</code></td>
+<td><code>VARBINARY(n)</code></td>
+<td>二进制数据</td>
+</tr>
+<tr>
+<td><code>ROWID</code></td>
+<td>无直接等价</td>
+<td>改用自增主键或 UUID</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-函数差异对照"><a href="#2-2-函数差异对照" class="headerlink" title="2.2 函数差异对照"></a>2.2 函数差异对照</h3><table>
+<thead>
+<tr>
+<th>Oracle 函数</th>
+<th>MySQL 替代</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>NVL(a, b)</code></td>
+<td><code>IFNULL(a, b)</code></td>
+<td><code>IFNULL(name, &#39;未知&#39;)</code></td>
+</tr>
+<tr>
+<td><code>NVL2(a, b, c)</code></td>
+<td><code>IF(a IS NOT NULL, b, c)</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>DECODE(a, b, c, d)</code></td>
+<td><code>CASE WHEN a=b THEN c ELSE d END</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>SYSDATE</code></td>
+<td><code>NOW()</code></td>
+<td>注意时区设置</td>
+</tr>
+<tr>
+<td><code>SYSTIMESTAMP</code></td>
+<td><code>NOW(6)</code></td>
+<td>含微秒</td>
+</tr>
+<tr>
+<td><code>TO_CHAR(date, fmt)</code></td>
+<td><code>DATE_FORMAT(date, fmt)</code></td>
+<td>格式符不同：<code>YYYY→%Y</code>, <code>MM→%m</code></td>
+</tr>
+<tr>
+<td><code>TO_DATE(str, fmt)</code></td>
+<td><code>STR_TO_DATE(str, fmt)</code></td>
+<td>同上</td>
+</tr>
+<tr>
+<td><code>TO_NUMBER(str)</code></td>
+<td><code>CAST(str AS DECIMAL)</code></td>
+<td>或直接 <code>str + 0</code></td>
+</tr>
+<tr>
+<td><code>ROWNUM</code></td>
+<td><code>LIMIT</code></td>
+<td><code>WHERE ROWNUM &lt;= 10</code> → <code>LIMIT 10</code></td>
+</tr>
+<tr>
+<td><code>ROWNUM</code> (分页)</td>
+<td><code>LIMIT offset, count</code></td>
+<td>嵌套子查询 → 简单 <code>LIMIT</code></td>
+</tr>
+<tr>
+<td><code>SUBSTR(s, p, l)</code></td>
+<td><code>SUBSTRING(s, p, l)</code></td>
+<td>参数含义相同</td>
+</tr>
+<tr>
+<td><code>INSTR(s, sub)</code></td>
+<td><code>LOCATE(sub, s)</code></td>
+<td><strong>参数顺序相反</strong></td>
+</tr>
+<tr>
+<td><code>LENGTH(s)</code></td>
+<td><code>CHAR_LENGTH(s)</code></td>
+<td><code>LENGTH()</code> 在 MySQL 中返回字节数</td>
+</tr>
+<tr>
+<td><code>TRUNC(date)</code></td>
+<td><code>DATE(date)</code></td>
+<td>截断到天</td>
+</tr>
+<tr>
+<td><code>ADD_MONTHS(d, n)</code></td>
+<td><code>DATE_ADD(d, INTERVAL n MONTH)</code></td>
+<td>-</td>
+</tr>
+<tr>
+<td><code>MONTHS_BETWEEN(a, b)</code></td>
+<td><code>TIMESTAMPDIFF(MONTH, b, a)</code></td>
+<td><strong>参数顺序相反</strong></td>
+</tr>
+<tr>
+<td><code>序列.NEXTVAL</code></td>
+<td><code>AUTO_INCREMENT</code></td>
+<td>见下文详述</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-序列-vs-AUTO-INCREMENT"><a href="#2-3-序列-vs-AUTO-INCREMENT" class="headerlink" title="2.3 序列 vs AUTO_INCREMENT"></a>2.3 序列 vs AUTO_INCREMENT</h3><p><strong>Oracle 序列</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Oracle: 创建序列</span></span><br><span class="line"><span class="keyword">CREATE</span> SEQUENCE seq_user_id <span class="keyword">START</span> <span class="keyword">WITH</span> <span class="number">1</span> INCREMENT <span class="keyword">BY</span> <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 使用</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> t_user (id, name) <span class="keyword">VALUES</span> (seq_user_id.NEXTVAL, <span class="string">&#x27;张三&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>MySQL 自增</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- MySQL: 自增主键</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> t_user (</span><br><span class="line">    id <span class="type">BIGINT</span> <span class="keyword">NOT NULL</span> AUTO_INCREMENT,</span><br><span class="line">    name <span class="type">VARCHAR</span>(<span class="number">50</span>),</span><br><span class="line">    <span class="keyword">PRIMARY KEY</span> (id)</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 插入时不指定 id</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> t_user (name) <span class="keyword">VALUES</span> (<span class="string">&#x27;张三&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 获取最后插入的 id</span></span><br><span class="line"><span class="keyword">SELECT</span> LAST_INSERT_ID();</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：如果业务代码依赖”先获取序列值再插入”的模式，需要重构为”插入后获取自增 ID”或使用分布式 ID 生成器（Snowflake、Leaf）。</p>
+<h3 id="2-4-空字符串与-NULL-的致命差异"><a href="#2-4-空字符串与-NULL-的致命差异" class="headerlink" title="2.4 空字符串与 NULL 的致命差异"></a>2.4 空字符串与 NULL 的致命差异</h3><p>这是 Oracle → MySQL 迁移中<strong>最容易出 bug</strong> 的地方：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Oracle：空字符串 == NULL</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t_user <span class="keyword">WHERE</span> name <span class="keyword">IS</span> <span class="keyword">NULL</span>;</span><br><span class="line"><span class="comment">-- 能查到 name = &#x27;&#x27; 的记录</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- MySQL：空字符串 != NULL</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t_user <span class="keyword">WHERE</span> name <span class="keyword">IS</span> <span class="keyword">NULL</span>;</span><br><span class="line"><span class="comment">-- 查不到 name = &#x27;&#x27; 的记录，需要：</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> t_user <span class="keyword">WHERE</span> name <span class="keyword">IS</span> <span class="keyword">NULL</span> <span class="keyword">OR</span> name <span class="operator">=</span> <span class="string">&#x27;&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>修复策略</strong>：全面排查代码中的 <code>IS NULL</code> 判断，评估是否需要补充 <code>OR column = &#39;&#39;</code>。</p>
+<h3 id="2-5-存储过程迁移"><a href="#2-5-存储过程迁移" class="headerlink" title="2.5 存储过程迁移"></a>2.5 存储过程迁移</h3><p>Oracle PL&#x2F;SQL 和 MySQL 存储过程语法差异大，建议优先将逻辑迁移到应用层（Java&#x2F;Python）。必须保留存储过程时，主要差异：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- Oracle PL/SQL</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">OR</span> REPLACE <span class="keyword">PROCEDURE</span> update_salary(</span><br><span class="line">    p_emp_id <span class="keyword">IN</span> NUMBER,</span><br><span class="line">    p_raise  <span class="keyword">IN</span> NUMBER</span><br><span class="line">) <span class="keyword">AS</span></span><br><span class="line">    v_current NUMBER;</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">SELECT</span> salary <span class="keyword">INTO</span> v_current <span class="keyword">FROM</span> emp <span class="keyword">WHERE</span> id <span class="operator">=</span> p_emp_id;</span><br><span class="line">    <span class="keyword">UPDATE</span> emp <span class="keyword">SET</span> salary <span class="operator">=</span> v_current <span class="operator">+</span> p_raise <span class="keyword">WHERE</span> id <span class="operator">=</span> p_emp_id;</span><br><span class="line">    <span class="keyword">COMMIT</span>;</span><br><span class="line">EXCEPTION</span><br><span class="line">    <span class="keyword">WHEN</span> NO_DATA_FOUND <span class="keyword">THEN</span></span><br><span class="line">        DBMS_OUTPUT.PUT_LINE(<span class="string">&#x27;Employee not found&#x27;</span>);</span><br><span class="line"><span class="keyword">END</span>;</span><br><span class="line"><span class="operator">/</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- MySQL 存储过程</span></span><br><span class="line">DELIMITER $$</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">PROCEDURE</span> update_salary(</span><br><span class="line">    <span class="keyword">IN</span> p_emp_id <span class="type">BIGINT</span>,</span><br><span class="line">    <span class="keyword">IN</span> p_raise <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>)</span><br><span class="line">)</span><br><span class="line"><span class="keyword">BEGIN</span></span><br><span class="line">    <span class="keyword">DECLARE</span> v_current <span class="type">DECIMAL</span>(<span class="number">10</span>,<span class="number">2</span>);</span><br><span class="line">    <span class="keyword">DECLARE</span> CONTINUE HANDLER <span class="keyword">FOR</span> <span class="keyword">NOT</span> FOUND</span><br><span class="line">        <span class="keyword">SELECT</span> <span class="string">&#x27;Employee not found&#x27;</span> <span class="keyword">AS</span> message;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">SELECT</span> salary <span class="keyword">INTO</span> v_current <span class="keyword">FROM</span> emp <span class="keyword">WHERE</span> id <span class="operator">=</span> p_emp_id;</span><br><span class="line">    <span class="keyword">UPDATE</span> emp <span class="keyword">SET</span> salary <span class="operator">=</span> v_current <span class="operator">+</span> p_raise <span class="keyword">WHERE</span> id <span class="operator">=</span> p_emp_id;</span><br><span class="line">    <span class="comment">-- MySQL 默认 autocommit，无需显式 COMMIT</span></span><br><span class="line"><span class="keyword">END</span>$$</span><br><span class="line">DELIMITER ;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-迁移工具与数据同步"><a href="#3-迁移工具与数据同步" class="headerlink" title="3. 迁移工具与数据同步"></a>3. 迁移工具与数据同步</h2><h3 id="3-1-工具选型"><a href="#3-1-工具选型" class="headerlink" title="3.1 工具选型"></a>3.1 工具选型</h3><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>类型</th>
+<th>适用场景</th>
+<th>许可</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ora2pg</td>
+<td>开源</td>
+<td>Oracle → PostgreSQL&#x2F;MySQL DDL 转换</td>
+<td>免费</td>
+</tr>
+<tr>
+<td>SQLines</td>
+<td>商业&#x2F;社区版</td>
+<td>SQL 语法批量转换</td>
+<td>社区版免费</td>
+</tr>
+<tr>
+<td>AWS SCT</td>
+<td>云服务</td>
+<td>全面的 schema 转换 + 评估报告</td>
+<td>AWS 用户免费</td>
+</tr>
+<tr>
+<td>mysqldump &#x2F; mydumper</td>
+<td>开源</td>
+<td>MySQL 全量导出</td>
+<td>免费</td>
+</tr>
+<tr>
+<td>Canal</td>
+<td>开源（阿里）</td>
+<td>MySQL binlog 增量同步</td>
+<td>免费</td>
+</tr>
+<tr>
+<td>DataX</td>
+<td>开源（阿里）</td>
+<td>异构数据库批量同步</td>
+<td>免费</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-全量迁移流程"><a href="#3-2-全量迁移流程" class="headerlink" title="3.2 全量迁移流程"></a>3.2 全量迁移流程</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 1. 使用 ora2pg 导出 DDL（Oracle → MySQL 格式）</span></span><br><span class="line"><span class="comment">-- ora2pg -t TABLE -o tables.sql -c ora2pg.conf</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 2. 手动检查并修正 DDL</span></span><br><span class="line"><span class="comment">-- 重点：数据类型、索引、约束</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 3. 使用 DataX 同步数据</span></span><br><span class="line"><span class="comment">-- datax.py job/oracle_to_mysql.json</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>DataX 配置示例</strong>（Oracle → MySQL）：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;job&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;reader&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;oraclereader&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;parameter&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;connection&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;jdbcUrl&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;jdbc:oracle:thin:@//host:1521/orcl&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;table&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;T_USER&quot;</span><span class="punctuation">]</span></span><br><span class="line">          <span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;readonly_user&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;password&quot;</span><span class="punctuation">:</span> <span class="string">&quot;***&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;column&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;ID&quot;</span><span class="punctuation">,</span> <span class="string">&quot;NAME&quot;</span><span class="punctuation">,</span> <span class="string">&quot;STATUS&quot;</span><span class="punctuation">,</span> <span class="string">&quot;CREATED_AT&quot;</span><span class="punctuation">]</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;writer&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;mysqlwriter&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;parameter&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;connection&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;jdbcUrl&quot;</span><span class="punctuation">:</span> <span class="string">&quot;jdbc:mysql://host:3306/mydb?useUnicode=true&amp;characterEncoding=utf8mb4&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;table&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;t_user&quot;</span><span class="punctuation">]</span></span><br><span class="line">          <span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;username&quot;</span><span class="punctuation">:</span> <span class="string">&quot;write_user&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;password&quot;</span><span class="punctuation">:</span> <span class="string">&quot;***&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;column&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;id&quot;</span><span class="punctuation">,</span> <span class="string">&quot;name&quot;</span><span class="punctuation">,</span> <span class="string">&quot;status&quot;</span><span class="punctuation">,</span> <span class="string">&quot;created_at&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;writeMode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;replace&quot;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;setting&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;speed&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;channel&quot;</span><span class="punctuation">:</span> <span class="number">4</span> <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-增量同步（Canal-MQ）"><a href="#3-3-增量同步（Canal-MQ）" class="headerlink" title="3.3 增量同步（Canal + MQ）"></a>3.3 增量同步（Canal + MQ）</h3><p>迁移过程中业务不停机，需要增量同步：</p>
+<pre class="mermaid">graph LR
+    A[MySQL 源库] -->|binlog| B[Canal Server]
+    B -->|消息| C[Kafka/RocketMQ]
+    C --> D[消费者：写入目标库]
+    C --> E[消费者：数据校验]
+
+    style A fill:#ffccbc,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092329_01.webp" alt="增量同步（Canal + MQ）图解：MySQL 源库、Canal Server"></p>
+</details>
+
+<p><strong>Canal 核心配置</strong>：</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># canal.properties</span></span><br><span class="line"><span class="attr">canal.instance.master.address</span>=<span class="string">source-mysql:3306</span></span><br><span class="line"><span class="attr">canal.instance.dbUsername</span>=<span class="string">canal</span></span><br><span class="line"><span class="attr">canal.instance.dbPassword</span>=<span class="string">***</span></span><br><span class="line"><span class="attr">canal.instance.filter.regex</span>=<span class="string">mydb\\..*</span></span><br><span class="line"><span class="attr">canal.mq.topic</span>=<span class="string">canal_sync</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-MySQL-→-国产化数据库"><a href="#4-MySQL-→-国产化数据库" class="headerlink" title="4. MySQL → 国产化数据库"></a>4. MySQL → 国产化数据库</h2><h3 id="4-1-兼容性评估矩阵"><a href="#4-1-兼容性评估矩阵" class="headerlink" title="4.1 兼容性评估矩阵"></a>4.1 兼容性评估矩阵</h3><table>
+<thead>
+<tr>
+<th>评估维度</th>
+<th>TiDB</th>
+<th>OceanBase</th>
+<th>达梦 DM8</th>
+<th>GaussDB</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL 协议兼容</td>
+<td>✅ 高（&gt;95%）</td>
+<td>✅ 高（MySQL 模式）</td>
+<td>⚠️ 中（Oracle 模式为主）</td>
+<td>❌ 低（PG 内核）</td>
+</tr>
+<tr>
+<td>JDBC 驱动</td>
+<td>MySQL Connector</td>
+<td>自有 + MySQL 兼容</td>
+<td>自有驱动</td>
+<td>自有驱动</td>
+</tr>
+<tr>
+<td>ORM 框架支持</td>
+<td>MyBatis&#x2F;JPA 透明</td>
+<td>MyBatis&#x2F;JPA 透明</td>
+<td>需适配方言</td>
+<td>需适配方言</td>
+</tr>
+<tr>
+<td>分布式能力</td>
+<td>原生分布式</td>
+<td>原生分布式</td>
+<td>单机 + 集群</td>
+<td>分布式可选</td>
+</tr>
+<tr>
+<td>信创认证</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ 主流</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>社区生态</td>
+<td>活跃（PingCAP）</td>
+<td>活跃（蚂蚁）</td>
+<td>一般</td>
+<td>华为主导</td>
+</tr>
+<tr>
+<td>运维复杂度</td>
+<td>中</td>
+<td>高</td>
+<td>低</td>
+<td>中</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-各数据库迁移要点"><a href="#4-2-各数据库迁移要点" class="headerlink" title="4.2 各数据库迁移要点"></a>4.2 各数据库迁移要点</h3><h4 id="TiDB（推荐-MySQL-生态项目）"><a href="#TiDB（推荐-MySQL-生态项目）" class="headerlink" title="TiDB（推荐 MySQL 生态项目）"></a>TiDB（推荐 MySQL 生态项目）</h4><p><strong>优势</strong>：几乎无感迁移，修改 JDBC URL 即可。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 应用配置只需改连接串</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://tidb-host:4000/mydb?useSSL=false</span></span><br><span class="line">    <span class="attr">driver-class-name:</span> <span class="string">com.mysql.cj.jdbc.Driver</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>自增 ID 非连续（分布式分配），业务不能依赖 ID 连续性</li>
+<li>不支持外键约束（需在应用层保证）</li>
+<li><code>SELECT ... FOR UPDATE</code> 的锁行为与 MySQL 略有差异</li>
+</ul>
+<h4 id="OceanBase（推荐金融场景）"><a href="#OceanBase（推荐金融场景）" class="headerlink" title="OceanBase（推荐金融场景）"></a>OceanBase（推荐金融场景）</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># MySQL 模式连接</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://obproxy-host:2883/mydb</span></span><br><span class="line">    <span class="attr">driver-class-name:</span> <span class="string">com.mysql.cj.jdbc.Driver</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：通过 OBProxy 代理连接，应用层对 MySQL 透明。</p>
+<h4 id="达梦-DM8（推荐政务-国企）"><a href="#达梦-DM8（推荐政务-国企）" class="headerlink" title="达梦 DM8（推荐政务&#x2F;国企）"></a>达梦 DM8（推荐政务&#x2F;国企）</h4><p>达梦以 Oracle 兼容为主，若源库是 MySQL 需注意：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Maven 依赖 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.dameng<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>DmJdbcDriver18<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>8.1.2.192<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:dm://dm-host:5236/mydb</span></span><br><span class="line">    <span class="attr">driver-class-name:</span> <span class="string">dm.jdbc.driver.DmDriver</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>MyBatis 方言适配</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 达梦分页不支持 LIMIT，使用 ROWNUM 或 TOP</span></span><br><span class="line"><span class="comment">// MyBatis Plus 已内置 DmDialect，配置即可：</span></span><br><span class="line">mybatis-plus:</span><br><span class="line">  configuration:</span><br><span class="line">    database-id: dm</span><br></pre></td></tr></table></figure>
+
+<h4 id="GaussDB（推荐华为云客户）"><a href="#GaussDB（推荐华为云客户）" class="headerlink" title="GaussDB（推荐华为云客户）"></a>GaussDB（推荐华为云客户）</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:gaussdb://gauss-host:8000/mydb</span></span><br><span class="line">    <span class="attr">driver-class-name:</span> <span class="string">com.huawei.gaussdb.jdbc.Driver</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：GaussDB 基于 PostgreSQL 内核，SQL 方言差异较大，<code>LIMIT</code> 语法兼容但函数不同。</p>
+<h3 id="4-3-迁移策略：灰度切流"><a href="#4-3-迁移策略：灰度切流" class="headerlink" title="4.3 迁移策略：灰度切流"></a>4.3 迁移策略：灰度切流</h3><pre class="mermaid">graph TD
+    A[阶段1：双写] --> B[阶段2：读写分离]
+    B --> C[阶段3：完全切换]
+    C --> D[阶段4：老库下线]
+
+    A --- A1[写入同时落两个库<br/>以老库为准]
+    B --- B1[写入新库<br/>读新库为主/老库兜底]
+    C --- C1[全部流量切到新库<br/>老库只读保留 7 天]
+    D --- D1[确认无异常后下线老库]
+
+    style A fill:#ffccbc,stroke:#333,color:#000
+    style B fill:#fff9c4,stroke:#333,color:#000
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/diagram_20260417_092444_02.webp" alt="迁移策略：灰度切流图解：阶段1：双写、阶段2：读写分离、阶段3：完全切换"></p>
+</details>
+
+<p><strong>双写模式核心代码</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">DualWriteService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;mysqlJdbcTemplate&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> JdbcTemplate mysqlTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;tidbJdbcTemplate&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> JdbcTemplate tidbTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Transactional</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">saveUser</span><span class="params">(User user)</span> &#123;</span><br><span class="line">        <span class="comment">// 主库写入（MySQL）</span></span><br><span class="line">        mysqlTemplate.update(</span><br><span class="line">            <span class="string">&quot;INSERT INTO t_user (name, status) VALUES (?, ?)&quot;</span>,</span><br><span class="line">            user.getName(), user.getStatus()</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 新库写入（TiDB），异步 + 容错</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            tidbTemplate.update(</span><br><span class="line">                <span class="string">&quot;INSERT INTO t_user (name, status) VALUES (?, ?)&quot;</span>,</span><br><span class="line">                user.getName(), user.getStatus()</span><br><span class="line">            );</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// 记录差异日志，后续补偿</span></span><br><span class="line">            log.error(<span class="string">&quot;TiDB 双写失败, userId=&#123;&#125;&quot;</span>, user.getId(), e);</span><br><span class="line">            diffLogService.record(<span class="string">&quot;t_user&quot;</span>, user.getId(), <span class="string">&quot;INSERT&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-数据校验与回滚"><a href="#5-数据校验与回滚" class="headerlink" title="5. 数据校验与回滚"></a>5. 数据校验与回滚</h2><h3 id="5-1-数据一致性校验"><a href="#5-1-数据一致性校验" class="headerlink" title="5.1 数据一致性校验"></a>5.1 数据一致性校验</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 行数对比</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;mysql&#x27;</span> <span class="keyword">AS</span> source, <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> cnt <span class="keyword">FROM</span> mysql_db.t_user</span><br><span class="line"><span class="keyword">UNION</span> <span class="keyword">ALL</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;tidb&#x27;</span> <span class="keyword">AS</span> source, <span class="built_in">COUNT</span>(<span class="operator">*</span>) <span class="keyword">AS</span> cnt <span class="keyword">FROM</span> tidb_db.t_user;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 抽样校验（MD5 校验和）</span></span><br><span class="line"><span class="keyword">SELECT</span> MD5(GROUP_CONCAT(</span><br><span class="line">    CONCAT_WS(<span class="string">&#x27;,&#x27;</span>, id, name, status, created_at)</span><br><span class="line">    <span class="keyword">ORDER</span> <span class="keyword">BY</span> id</span><br><span class="line">)) <span class="keyword">AS</span> checksum</span><br><span class="line"><span class="keyword">FROM</span> t_user</span><br><span class="line"><span class="keyword">WHERE</span> id <span class="keyword">BETWEEN</span> <span class="number">1</span> <span class="keyword">AND</span> <span class="number">10000</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>pt-table-checksum</strong>（推荐）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对比源库和目标库的数据一致性</span></span><br><span class="line">pt-table-checksum \</span><br><span class="line">    --host=mysql-source \</span><br><span class="line">    --databases=mydb \</span><br><span class="line">    --tables=t_user \</span><br><span class="line">    --recursion-method=dsn=h=tidb-target,D=percona,t=dsns</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-回滚方案设计"><a href="#5-2-回滚方案设计" class="headerlink" title="5.2 回滚方案设计"></a>5.2 回滚方案设计</h3><table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>回滚方式</th>
+<th>RTO</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>双写阶段</td>
+<td>切回老库读写，停止双写</td>
+<td>&lt; 1 分钟</td>
+</tr>
+<tr>
+<td>读写分离</td>
+<td>读切回老库，写已在新库需同步回老库</td>
+<td>&lt; 5 分钟</td>
+</tr>
+<tr>
+<td>完全切换后 7 天内</td>
+<td>反向同步 + 切回</td>
+<td>&lt; 30 分钟</td>
+</tr>
+<tr>
+<td>老库下线后</td>
+<td>从备份恢复</td>
+<td>数小时</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="6-故障排查"><a href="#6-故障排查" class="headerlink" title="6. 故障排查"></a>6. 故障排查</h2><h3 id="6-1-问题：字符集乱码"><a href="#6-1-问题：字符集乱码" class="headerlink" title="6.1 问题：字符集乱码"></a>6.1 问题：字符集乱码</h3><p><strong>症状</strong>：迁移后中文显示为 <code>???</code> 或乱码。</p>
+<p><strong>原因</strong>：Oracle 使用 <code>AL32UTF8</code>，MySQL 需要 <code>utf8mb4</code>。</p>
+<p><strong>解决</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 检查 MySQL 字符集</span></span><br><span class="line"><span class="keyword">SHOW</span> VARIABLES <span class="keyword">LIKE</span> <span class="string">&#x27;character_set%&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 确保数据库和表使用 utf8mb4</span></span><br><span class="line"><span class="keyword">ALTER</span> DATABASE mydb <span class="keyword">CHARACTER SET</span> utf8mb4 <span class="keyword">COLLATE</span> utf8mb4_unicode_ci;</span><br><span class="line"><span class="keyword">ALTER TABLE</span> t_user <span class="keyword">CONVERT</span> <span class="keyword">TO</span> <span class="keyword">CHARACTER SET</span> utf8mb4;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-问题：日期精度丢失"><a href="#6-2-问题：日期精度丢失" class="headerlink" title="6.2 问题：日期精度丢失"></a>6.2 问题：日期精度丢失</h3><p><strong>症状</strong>：Oracle <code>DATE</code> 迁移到 MySQL <code>DATE</code> 后，时分秒丢失。</p>
+<p><strong>原因</strong>：Oracle <code>DATE</code> 含时分秒，MySQL <code>DATE</code> 只含日期。</p>
+<p><strong>解决</strong>：Oracle <code>DATE</code> 应映射为 MySQL <code>DATETIME</code>，而非 <code>DATE</code>。</p>
+<h3 id="6-3-问题：大表迁移超时"><a href="#6-3-问题：大表迁移超时" class="headerlink" title="6.3 问题：大表迁移超时"></a>6.3 问题：大表迁移超时</h3><p><strong>症状</strong>：千万级表迁移时 DataX 任务超时。</p>
+<p><strong>解决</strong>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;setting&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;speed&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;channel&quot;</span><span class="punctuation">:</span> <span class="number">8</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;byte&quot;</span><span class="punctuation">:</span> <span class="number">10485760</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;errorLimit&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;record&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;percentage&quot;</span><span class="punctuation">:</span> <span class="number">0</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>增加并发 channel 数</li>
+<li>按主键范围分片：<code>WHERE id BETWEEN ? AND ?</code></li>
+<li>关闭目标库的 binlog（迁移期间）：<code>SET sql_log_bin = 0;</code></li>
+</ul>
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-迁移后-SQL-性能下降怎么办？"><a href="#Q1-迁移后-SQL-性能下降怎么办？" class="headerlink" title="Q1: 迁移后 SQL 性能下降怎么办？"></a>Q1: 迁移后 SQL 性能下降怎么办？</h3><p><strong>A:</strong> Oracle 和 MySQL 的优化器策略不同，相同 SQL 的执行计划可能差异巨大。</p>
+<p><strong>排查步骤</strong>：</p>
+<ol>
+<li><code>EXPLAIN</code> 对比执行计划</li>
+<li>检查索引是否正确迁移（Oracle 函数索引在 MySQL 中不支持）</li>
+<li>关注 <code>JOIN</code> 顺序：MySQL 优化器对多表 JOIN 的处理弱于 Oracle</li>
+<li>考虑添加查询 Hint：<code>/*+ STRAIGHT_JOIN */</code></li>
+</ol>
+<h3 id="Q2-Oracle-的分区表如何迁移？"><a href="#Q2-Oracle-的分区表如何迁移？" class="headerlink" title="Q2: Oracle 的分区表如何迁移？"></a>Q2: Oracle 的分区表如何迁移？</h3><p><strong>A:</strong> MySQL 支持 RANGE、LIST、HASH、KEY 分区，但不支持 Oracle 的组合分区。</p>
+<ul>
+<li><strong>RANGE 分区</strong>：直接对应</li>
+<li><strong>LIST 分区</strong>：直接对应</li>
+<li><strong>组合分区</strong>：拆为单级分区 + 应用层路由</li>
+<li>如果目标是 TiDB，建议用 TiDB 的 Region 分裂替代分区表</li>
+</ul>
+<h3 id="Q3-国产数据库-JDBC-驱动从哪获取？"><a href="#Q3-国产数据库-JDBC-驱动从哪获取？" class="headerlink" title="Q3: 国产数据库 JDBC 驱动从哪获取？"></a>Q3: 国产数据库 JDBC 驱动从哪获取？</h3><p>各数据库驱动获取方式如下：</p>
+<table>
+<thead>
+<tr>
+<th>数据库</th>
+<th>Maven 仓库</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>TiDB</td>
+<td><code>mysql-connector-java</code>（同 MySQL）</td>
+<td>无需额外驱动</td>
+</tr>
+<tr>
+<td>OceanBase</td>
+<td>Maven Central: <code>com.oceanbase:oceanbase-client</code></td>
+<td>也可用 MySQL 驱动</td>
+</tr>
+<tr>
+<td>达梦 DM</td>
+<td>官网下载，手动安装到私服</td>
+<td><code>mvn install:install-file</code></td>
+</tr>
+<tr>
+<td>GaussDB</td>
+<td>华为云官网 &#x2F; 镜像仓库</td>
+<td>注意版本匹配</td>
+</tr>
+</tbody></table>
+<h3 id="Q4-如何保证迁移过程中数据不丢失？"><a href="#Q4-如何保证迁移过程中数据不丢失？" class="headerlink" title="Q4: 如何保证迁移过程中数据不丢失？"></a>Q4: 如何保证迁移过程中数据不丢失？</h3><p><strong>A:</strong> 采用「全量 + 增量 + 校验」三步法：</p>
+<ol>
+<li><strong>全量同步</strong>：停写窗口或一致性快照导出</li>
+<li><strong>增量同步</strong>：Canal 监听 binlog，消费写入目标库</li>
+<li><strong>数据校验</strong>：pt-table-checksum 对比行数和校验和</li>
+<li><strong>补偿机制</strong>：差异日志 + 定时修复任务</li>
+</ol>
+<h3 id="Q5-达梦-DM-和-GaussDB-如何选择？"><a href="#Q5-达梦-DM-和-GaussDB-如何选择？" class="headerlink" title="Q5: 达梦 DM 和 GaussDB 如何选择？"></a>Q5: 达梦 DM 和 GaussDB 如何选择？</h3><p>两者的核心区别在于兼容方向和目标生态：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>达梦 DM8</th>
+<th>GaussDB</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>兼容方向</td>
+<td>Oracle 兼容</td>
+<td>PostgreSQL 兼容</td>
+</tr>
+<tr>
+<td>信创认证</td>
+<td>覆盖面广，政务首选</td>
+<td>华为生态优先</td>
+</tr>
+<tr>
+<td>运维难度</td>
+<td>低，传统单机架构</td>
+<td>中，分布式可选</td>
+</tr>
+<tr>
+<td>推荐场景</td>
+<td>从 Oracle 迁出的政务系统</td>
+<td>华为云客户、PG 生态项目</td>
+</tr>
+<tr>
+<td>社区支持</td>
+<td>一般，依赖厂商</td>
+<td>华为文档丰富</td>
+</tr>
+</tbody></table>
+<p><strong>简单判断</strong>：如果你的系统原来是 Oracle → 选达梦；如果原来是 PostgreSQL 或跑在华为云 → 选 GaussDB。</p>
+<h3 id="Q6-迁移周期一般多长？"><a href="#Q6-迁移周期一般多长？" class="headerlink" title="Q6: 迁移周期一般多长？"></a>Q6: 迁移周期一般多长？</h3><p><strong>A:</strong> 视系统规模而定：</p>
+<ul>
+<li>小型系统（&lt; 50 张表）：2-4 周</li>
+<li>中型系统（50-200 张表，含存储过程）：1-3 个月</li>
+<li>大型核心系统（&gt; 200 张表，高并发）：3-6 个月</li>
+<li>其中 <strong>SQL 兼容性改造</strong> 占 40-60% 的工期</li>
+</ul>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>Oracle → MySQL 的核心难点不在数据搬迁，在 SQL 语法和隐式行为差异</strong>（尤其是空字符串&#x2F;NULL、日期类型、函数差异）</li>
+<li><strong>国产化数据库选型取决于你的源库类型和行业要求</strong>：MySQL 生态选 TiDB&#x2F;OceanBase，Oracle 生态选达梦</li>
+<li><strong>灰度切流是生命线</strong>：双写 → 读写分离 → 完全切换，每个阶段都必须有回滚方案</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><p><strong>今天就可以做的</strong>：</p>
+<ul>
+<li>梳理当前系统的 Oracle 专有语法使用情况（搜索 <code>ROWNUM</code>、<code>NVL</code>、<code>DECODE</code>、<code>序列</code>）</li>
+<li>评估存储过程数量和复杂度，决定是迁移还是重构到应用层</li>
+</ul>
+<p><strong>本周可以完成的</strong>：</p>
+<ul>
+<li>使用 ora2pg 或 SQLines 做一次自动化转换评估，输出兼容性报告</li>
+<li>搭建目标数据库测试环境，跑通核心业务 SQL</li>
+</ul>
+<p><strong>长期持续改进的</strong>：</p>
+<ul>
+<li>建立 SQL 兼容性基线测试套件，CI&#x2F;CD 中自动验证</li>
+<li>完善数据校验和灰度切流机制，形成可复用的迁移 SOP</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-23</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/database/" rel="tag">database</a>, <a class="tag-none-link" href="/tags/gaussdb/" rel="tag">gaussdb</a>, <a class="tag-none-link" href="/tags/mysql/" rel="tag">mysql</a>, <a class="tag-none-link" href="/tags/oracle/" rel="tag">oracle</a>, <a class="tag-none-link" href="/tags/tidb/" rel="tag">tidb</a>, <a class="tag-none-link" href="/tags/%E5%9B%BD%E4%BA%A7%E5%8C%96/" rel="tag">国产化</a>, <a class="tag-none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%81%E7%A7%BB/" rel="tag">数据库迁移</a>, <a class="tag-none-link" href="/tags/%E8%BE%BE%E6%A2%A6/" rel="tag">达梦</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.764Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 自定义 RedisTemplate 使用 StringRedisSerializer 避免双重引号问题" href="/2026/03/15/tech/backend/2026-03-16-custom-redis-template-string-serializer/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 终端长任务不断线：从 Ctrl+Z、bg 到 tmux 的选择指南" href="/2026/03/22/tech/tools/2026-03-23-console-job-control-and-tmux/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E8%BF%81%E7%A7%BB%E8%B7%AF%E5%BE%84%E6%80%BB%E8%A7%88"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 迁移路径总览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">1.2.</span> <span class="toc-text">💎 核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%9B%BD%E4%BA%A7%E5%8C%96%E6%95%B0%E6%8D%AE%E5%BA%93%E9%80%89%E5%9E%8B%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 国产化数据库选型速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%81%9A%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%81%E7%A7%BB"><span class="toc-number">3.</span> <span class="toc-text">1. 为什么要做数据库迁移</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-Oracle-%E8%BF%81%E5%87%BA%E7%9A%84%E9%A9%B1%E5%8A%A8%E5%9B%A0%E7%B4%A0"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 Oracle 迁出的驱动因素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%85%B8%E5%9E%8B%E8%BF%81%E7%A7%BB%E8%B7%AF%E5%BE%84"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 典型迁移路径</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Oracle-%E2%86%92-MySQL-%E8%AF%AD%E6%B3%95%E5%B7%AE%E5%BC%82"><span class="toc-number">4.</span> <span class="toc-text">2. Oracle → MySQL 语法差异</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 数据类型映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%87%BD%E6%95%B0%E5%B7%AE%E5%BC%82%E5%AF%B9%E7%85%A7"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 函数差异对照</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%BA%8F%E5%88%97-vs-AUTO-INCREMENT"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 序列 vs AUTO_INCREMENT</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%A9%BA%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8E-NULL-%E7%9A%84%E8%87%B4%E5%91%BD%E5%B7%AE%E5%BC%82"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 空字符串与 NULL 的致命差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E8%BF%81%E7%A7%BB"><span class="toc-number">4.5.</span> <span class="toc-text">2.5 存储过程迁移</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E8%BF%81%E7%A7%BB%E5%B7%A5%E5%85%B7%E4%B8%8E%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5"><span class="toc-number">5.</span> <span class="toc-text">3. 迁移工具与数据同步</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%B7%A5%E5%85%B7%E9%80%89%E5%9E%8B"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 工具选型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%85%A8%E9%87%8F%E8%BF%81%E7%A7%BB%E6%B5%81%E7%A8%8B"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 全量迁移流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%A2%9E%E9%87%8F%E5%90%8C%E6%AD%A5%EF%BC%88Canal-MQ%EF%BC%89"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 增量同步（Canal + MQ）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-MySQL-%E2%86%92-%E5%9B%BD%E4%BA%A7%E5%8C%96%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">6.</span> <span class="toc-text">4. MySQL → 国产化数据库</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%85%BC%E5%AE%B9%E6%80%A7%E8%AF%84%E4%BC%B0%E7%9F%A9%E9%98%B5"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 兼容性评估矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%90%84%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%81%E7%A7%BB%E8%A6%81%E7%82%B9"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 各数据库迁移要点</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#TiDB%EF%BC%88%E6%8E%A8%E8%8D%90-MySQL-%E7%94%9F%E6%80%81%E9%A1%B9%E7%9B%AE%EF%BC%89"><span class="toc-number">6.2.1.</span> <span class="toc-text">TiDB（推荐 MySQL 生态项目）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#OceanBase%EF%BC%88%E6%8E%A8%E8%8D%90%E9%87%91%E8%9E%8D%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">6.2.2.</span> <span class="toc-text">OceanBase（推荐金融场景）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BE%BE%E6%A2%A6-DM8%EF%BC%88%E6%8E%A8%E8%8D%90%E6%94%BF%E5%8A%A1-%E5%9B%BD%E4%BC%81%EF%BC%89"><span class="toc-number">6.2.3.</span> <span class="toc-text">达梦 DM8（推荐政务&#x2F;国企）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#GaussDB%EF%BC%88%E6%8E%A8%E8%8D%90%E5%8D%8E%E4%B8%BA%E4%BA%91%E5%AE%A2%E6%88%B7%EF%BC%89"><span class="toc-number">6.2.4.</span> <span class="toc-text">GaussDB（推荐华为云客户）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%BF%81%E7%A7%BB%E7%AD%96%E7%95%A5%EF%BC%9A%E7%81%B0%E5%BA%A6%E5%88%87%E6%B5%81"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 迁移策略：灰度切流</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%B0%E6%8D%AE%E6%A0%A1%E9%AA%8C%E4%B8%8E%E5%9B%9E%E6%BB%9A"><span class="toc-number">7.</span> <span class="toc-text">5. 数据校验与回滚</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%95%B0%E6%8D%AE%E4%B8%80%E8%87%B4%E6%80%A7%E6%A0%A1%E9%AA%8C"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 数据一致性校验</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%9B%9E%E6%BB%9A%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 回滚方案设计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">6. 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E9%97%AE%E9%A2%98%EF%BC%9A%E5%AD%97%E7%AC%A6%E9%9B%86%E4%B9%B1%E7%A0%81"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 问题：字符集乱码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%97%AE%E9%A2%98%EF%BC%9A%E6%97%A5%E6%9C%9F%E7%B2%BE%E5%BA%A6%E4%B8%A2%E5%A4%B1"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 问题：日期精度丢失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E9%97%AE%E9%A2%98%EF%BC%9A%E5%A4%A7%E8%A1%A8%E8%BF%81%E7%A7%BB%E8%B6%85%E6%97%B6"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 问题：大表迁移超时</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E8%BF%81%E7%A7%BB%E5%90%8E-SQL-%E6%80%A7%E8%83%BD%E4%B8%8B%E9%99%8D%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: 迁移后 SQL 性能下降怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-Oracle-%E7%9A%84%E5%88%86%E5%8C%BA%E8%A1%A8%E5%A6%82%E4%BD%95%E8%BF%81%E7%A7%BB%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: Oracle 的分区表如何迁移？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%9B%BD%E4%BA%A7%E6%95%B0%E6%8D%AE%E5%BA%93-JDBC-%E9%A9%B1%E5%8A%A8%E4%BB%8E%E5%93%AA%E8%8E%B7%E5%8F%96%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: 国产数据库 JDBC 驱动从哪获取？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E8%BF%81%E7%A7%BB%E8%BF%87%E7%A8%8B%E4%B8%AD%E6%95%B0%E6%8D%AE%E4%B8%8D%E4%B8%A2%E5%A4%B1%EF%BC%9F"><span class="toc-number">9.4.</span> <span class="toc-text">Q4: 如何保证迁移过程中数据不丢失？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E8%BE%BE%E6%A2%A6-DM-%E5%92%8C-GaussDB-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">9.5.</span> <span class="toc-text">Q5: 达梦 DM 和 GaussDB 如何选择？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-%E8%BF%81%E7%A7%BB%E5%91%A8%E6%9C%9F%E4%B8%80%E8%88%AC%E5%A4%9A%E9%95%BF%EF%BC%9F"><span class="toc-number">9.6.</span> <span class="toc-text">Q6: 迁移周期一般多长？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

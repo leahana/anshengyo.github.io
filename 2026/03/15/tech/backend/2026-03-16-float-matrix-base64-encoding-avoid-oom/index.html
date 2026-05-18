@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>float[][] 矩阵序列化：用 Base64 二进制编码替代 JSON 文本，避免 OOM | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Base64, Jackson, Java, 内存优化, 序列化, 性能优化" />
+  
+  <meta name="description" content="将 float[][] 矩阵编码为 Base64 二进制字符串，替代 ObjectMapper 的 JSON 文本序列化，从根源解决大矩阵场景下的内存溢出问题。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="float[][] 矩阵序列化：用 Base64 二进制编码替代 JSON 文本，避免 OOM">
+<meta property="og:url" content="https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="将 float[][] 矩阵编码为 Base64 二进制字符串，替代 ObjectMapper 的 JSON 文本序列化，从根源解决大矩阵场景下的内存溢出问题。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_090304_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_091714_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_091452_02.webp">
+<meta property="article:published_time" content="2026-03-15T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Base64">
+<meta property="article:tag" content="Jackson">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="内存优化">
+<meta property="article:tag" content="序列化">
+<meta property="article:tag" content="性能优化">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_090304_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"float[][] 矩阵序列化：用 Base64 二进制编码替代 JSON 文本，避免 OOM","description":"将 float[][] 矩阵编码为 Base64 二进制字符串，替代 ObjectMapper 的 JSON 文本序列化，从根源解决大矩阵场景下的内存溢出问题。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-15T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">float[][] 矩阵序列化：用 Base64 二进制编码替代 JSON 文本，避免 OOM</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-15T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-16</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~12.08K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%E7%9C%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">1.1.</span> <span class="toc-text">方案一眼对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E5%93%AA%E4%B8%AA%E6%96%B9%E6%A1%88"><span class="toc-number">1.2.</span> <span class="toc-text">选哪个方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E4%BB%A3%E7%A0%81%EF%BC%88%E4%B8%80%E5%88%86%E9%92%9F%E4%B8%8A%E6%89%8B%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">核心代码（一分钟上手）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">2.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">2.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">2.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">3.</span> <span class="toc-text">🔍 方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="toc-number">3.1.</span> <span class="toc-text">方案调研</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%90%86%E7%94%B1"><span class="toc-number">3.2.</span> <span class="toc-text">选择理由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">💡 核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%A7%A3%E7%A0%81%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">编解码流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="toc-number">4.2.</span> <span class="toc-text">完整实现代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Roundtrip-%E6%B5%8B%E8%AF%95"><span class="toc-number">4.3.</span> <span class="toc-text">Roundtrip 测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E8%AE%BE%E8%AE%A1%E8%AF%B4%E6%98%8E"><span class="toc-number">4.4.</span> <span class="toc-text">关键设计说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">⚡ 性能分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%8D%A0%E7%94%A8%E5%AF%B9%E6%AF%94"><span class="toc-number">5.1.</span> <span class="toc-text">内存占用对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-ObjectMapper-%E4%BC%9A-OOM"><span class="toc-number">5.2.</span> <span class="toc-text">为什么 ObjectMapper 会 OOM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#writerWithDefaultPrettyPrinter-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="toc-number">5.3.</span> <span class="toc-text">writerWithDefaultPrettyPrinter 的代价</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%E4%BC%98%E5%8C%96%EF%BC%9AGZIP-Base64"><span class="toc-number">5.4.</span> <span class="toc-text">进阶优化：GZIP + Base64</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6%E5%A4%84%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">边界条件处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">6.2.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E9%95%BF%E5%BA%A6%E9%80%9F%E6%9F%A5"><span class="toc-number">6.3.</span> <span class="toc-text">字段长度速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87"><span class="toc-number">6.4.</span> <span class="toc-text">监控指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%BA%BF%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">6.5.</span> <span class="toc-text">生产上线检查清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E9%80%89%E6%8B%A9"><span class="toc-number">6.5.1.</span> <span class="toc-text">编码选择</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE"><span class="toc-number">6.5.2.</span> <span class="toc-text">数据库配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#URL-%E6%8E%A5%E5%8F%A3%E4%BC%A0%E8%BE%93"><span class="toc-number">6.5.3.</span> <span class="toc-text">URL &#x2F; 接口传输</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E5%91%8A%E8%AD%A6"><span class="toc-number">6.5.4.</span> <span class="toc-text">监控告警</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9ABase64-%E7%BC%96%E7%A0%81%E4%BC%9A%E6%9C%89%E7%B2%BE%E5%BA%A6%E6%8D%9F%E5%A4%B1%E5%90%97%EF%BC%9F"><span class="toc-number">7.1.</span> <span class="toc-text">Q1：Base64 编码会有精度损失吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9A%E8%83%BD%E7%94%A8%E4%BA%8E-double-%E5%90%97%EF%BC%9F"><span class="toc-number">7.2.</span> <span class="toc-text">Q2：能用于 double[][] 吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9ABase64-%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8D%E6%96%B9%E4%BE%BF%E8%B0%83%E8%AF%95%EF%BC%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.3.</span> <span class="toc-text">Q3：Base64 字符串不方便调试，怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E5%92%8C-Kryo-FST-%E7%AD%89-Java-%E5%BA%8F%E5%88%97%E5%8C%96%E6%A1%86%E6%9E%B6%E7%9B%B8%E6%AF%94%E6%80%8E%E4%B9%88%E6%A0%B7%EF%BC%9F"><span class="toc-number">7.4.</span> <span class="toc-text">Q4：和 Kryo &#x2F; FST 等 Java 序列化框架相比怎么样？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9A%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E7%94%A8-MessagePack-%E8%80%8C%E4%B8%8D%E6%98%AF-Base64-%E4%BA%8C%E8%BF%9B%E5%88%B6%EF%BC%9F"><span class="toc-number">7.5.</span> <span class="toc-text">Q5：什么时候该用 MessagePack 而不是 Base64 二进制？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6%EF%BC%9A%E6%88%91%E7%9A%84%E7%9F%A9%E9%98%B5%E8%B6%85%E8%BF%87-2-GB-%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.6.</span> <span class="toc-text">Q6：我的矩阵超过 2 GB 怎么办？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">8.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">8.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.3.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：大矩阵序列化时，JSON 文本格式是内存杀手，Base64 二进制编码才是正解。</p>
+<p>💡 <strong>核心理念</strong>：用二进制紧凑表示替代人类可读的 JSON 文本，在序列化&#x2F;反序列化的每一步都减少内存分配。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3-分钟速览版"><a href="#📖-3-分钟速览版" class="headerlink" title="📖 3 分钟速览版"></a>📖 3 分钟速览版</h2><details>
+<summary><strong>📊 点击展开核心概念</strong></summary>
+
+<h3 id="方案一眼对比"><a href="#方案一眼对比" class="headerlink" title="方案一眼对比"></a>方案一眼对比</h3><p>以 <code>1000 × 512</code> 的 <code>float[][]</code> 矩阵（512,000 个浮点数）为例：</p>
+<table>
+<thead>
+<tr>
+<th>序列化方案</th>
+<th>输出大小</th>
+<th>内存风险</th>
+<th>推荐度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ObjectMapper</code> 普通 JSON</td>
+<td>~6.5 MB</td>
+<td>高（大量临时 String）</td>
+<td>⚠️ 小矩阵可用</td>
+</tr>
+<tr>
+<td><code>writerWithDefaultPrettyPrinter()</code></td>
+<td>~13 MB</td>
+<td>极高（体积翻倍）</td>
+<td>❌ 禁止</td>
+</tr>
+<tr>
+<td>Base64 二进制编码</td>
+<td>~2.73 MB</td>
+<td>极低（仅 1 个 byte[]）</td>
+<td>✅ 推荐</td>
+</tr>
+</tbody></table>
+<h3 id="选哪个方案"><a href="#选哪个方案" class="headerlink" title="选哪个方案"></a>选哪个方案</h3><pre class="mermaid">graph TD
+    A["矩阵需要序列化"] --> B{"元素数量?"}
+    B -->|"< 10,000 个"| C["JSON 文本可用"]
+    B -->|">= 10,000 个"| D{"需要跨语言?"}
+    D -->|"需要"| E["MessagePack / Protobuf"]
+    D -->|"不需要"| F["Base64 二进制编码 ✅"]
+
+    style C fill:#fff9c4,stroke:#333,color:#000
+    style E fill:#bbdefb,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_090304_00.webp" alt="选哪个方案图解：&quot;矩阵需要序列化&quot;、元素数量?、&lt; 10,000 个"></p>
+</details>
+
+<h3 id="核心代码（一分钟上手）"><a href="#核心代码（一分钟上手）" class="headerlink" title="核心代码（一分钟上手）"></a>核心代码（一分钟上手）</h3><p>编码：<code>ByteBuffer.allocate(8 + rows*cols*4)</code> → 写维度 → 写数据 → <code>Base64.encode()</code></p>
+<p>解码：<code>Base64.decode()</code> → <code>ByteBuffer.wrap()</code> → 读维度 → 读数据 → <code>float[][]</code></p>
+<p>完整代码见下方「核心实现」章节。</p>
+</details>
+
+<hr>
+<h2 id="📋-问题背景"><a href="#📋-问题背景" class="headerlink" title="📋 问题背景"></a>📋 问题背景</h2><h3 id="业务场景"><a href="#业务场景" class="headerlink" title="业务场景"></a>业务场景</h3><p>在机器学习模型服务、图像特征存储、推荐系统向量计算等场景中，经常需要将 <code>float[][]</code> 矩阵（如 embedding 向量、权重矩阵）序列化后存入数据库或通过接口传输。</p>
+<p>一个典型的矩阵规模：<code>1000 × 512</code> 的 <code>float[][]</code>，包含 512,000 个浮点数。</p>
+<h3 id="痛点分析"><a href="#痛点分析" class="headerlink" title="痛点分析"></a>痛点分析</h3><ul>
+<li><strong>痛点 1</strong>：<code>ObjectMapper.readValue()</code> 反序列化 JSON 文本时，需要逐字符解析数字字符串再转为 <code>float</code>，中间对象极多，大矩阵直接 OOM</li>
+<li><strong>痛点 2</strong>：<code>writerWithDefaultPrettyPrinter()</code> 输出带缩进的 JSON，空格和换行符使序列化结果膨胀 2-3 倍，进一步加剧内存压力</li>
+<li><strong>痛点 3</strong>：JSON 文本中每个浮点数占 8-15 个字符（如 <code>0.12345678</code>），而二进制只需固定 4 字节，存储效率差距巨大</li>
+</ul>
+<h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><p>将 <code>float[][]</code> 矩阵的序列化内存占用降低 60% 以上，彻底消除大矩阵场景下的 OOM 风险。</p>
+<hr>
+<h2 id="🔍-方案对比"><a href="#🔍-方案对比" class="headerlink" title="🔍 方案对比"></a>🔍 方案对比</h2><h3 id="方案调研"><a href="#方案调研" class="headerlink" title="方案调研"></a>方案调研</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>核心思路</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JSON 文本（ObjectMapper）</td>
+<td>将矩阵序列化为 <code>[[0.1,0.2],[0.3,0.4]]</code></td>
+<td>人类可读，调试方便</td>
+<td>内存占用极高，大矩阵 OOM</td>
+<td>小规模数据、调试</td>
+</tr>
+<tr>
+<td>Base64 二进制编码</td>
+<td>float → 4 字节 → Base64 字符串</td>
+<td>内存紧凑，速度快，零依赖</td>
+<td>不可直接阅读</td>
+<td>生产环境、大矩阵</td>
+</tr>
+<tr>
+<td>MessagePack &#x2F; Protobuf</td>
+<td>使用二进制序列化框架</td>
+<td>生态成熟，跨语言</td>
+<td>引入额外依赖，学习成本</td>
+<td>跨服务通信</td>
+</tr>
+</tbody></table>
+<h3 id="选择理由"><a href="#选择理由" class="headerlink" title="选择理由"></a>选择理由</h3><p>Base64 二进制编码方案：<strong>零额外依赖</strong>（JDK 自带 <code>java.util.Base64</code> + <code>ByteBuffer</code>），实现简单，性能最优。在只需要 Java 内部序列化的场景下，没必要引入 MessagePack 等重型框架。</p>
+<hr>
+<h2 id="💡-核心实现"><a href="#💡-核心实现" class="headerlink" title="💡 核心实现"></a>💡 核心实现</h2><h3 id="编解码流程"><a href="#编解码流程" class="headerlink" title="编解码流程"></a>编解码流程</h3><pre class="mermaid">graph TD
+    A["float[][] 矩阵"] -->|"encode"| B["ByteBuffer 写入维度 + 数据"]
+    B --> C["Base64 编码为字符串"]
+    C -->|"decode"| D["Base64 解码为 byte[]"]
+    D --> E["ByteBuffer 读取维度 + 数据"]
+    E --> F["还原 float[][] 数组"]
+
+    style A fill:#bbdefb,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_091714_00.webp" alt="编解码流程：float[][] 矩阵、encode"></p>
+</details>
+
+<h3 id="完整实现代码"><a href="#完整实现代码" class="headerlink" title="完整实现代码"></a>完整实现代码</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.nio.ByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FloatMatrixCodec</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将 float[][] 编码为 Base64 字符串</span></span><br><span class="line"><span class="comment">     * 二进制格式：[rows(4B)][cols(4B)][float 数据(rows*cols*4B)]</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">encode</span><span class="params">(<span class="type">float</span>[][] matrix)</span> &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">rows</span> <span class="operator">=</span> matrix.length;</span><br><span class="line">        <span class="type">int</span> <span class="variable">cols</span> <span class="operator">=</span> (rows &gt; <span class="number">0</span>) ? matrix[<span class="number">0</span>].length : <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 精确计算字节数：8（维度头）+ rows * cols * 4（数据区）</span></span><br><span class="line">        <span class="comment">// 使用 long 防止 int 溢出（rows * cols * 4 可能超过 Integer.MAX_VALUE）</span></span><br><span class="line">        <span class="type">long</span> <span class="variable">size</span> <span class="operator">=</span> <span class="number">8L</span> + (<span class="type">long</span>) rows * cols * <span class="number">4</span>;</span><br><span class="line">        <span class="keyword">if</span> (size &gt; Integer.MAX_VALUE) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(</span><br><span class="line">                <span class="string">&quot;Matrix too large for single buffer, use chunk encoding&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">ByteBuffer</span> <span class="variable">buffer</span> <span class="operator">=</span> ByteBuffer.allocate((<span class="type">int</span>) size);</span><br><span class="line">        buffer.putInt(rows);</span><br><span class="line">        buffer.putInt(cols);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (<span class="type">float</span>[] row : matrix) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">float</span> val : row) &#123;</span><br><span class="line">                buffer.putFloat(val);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> Base64.getEncoder().encodeToString(buffer.array());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将 Base64 字符串解码为 float[][]</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">float</span>[][] decode(String base64Str) &#123;</span><br><span class="line">        <span class="type">byte</span>[] bytes = Base64.getDecoder().decode(base64Str);</span><br><span class="line">        <span class="keyword">if</span> (bytes.length &lt; <span class="number">8</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Invalid encoded data: too short&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">ByteBuffer</span> <span class="variable">buffer</span> <span class="operator">=</span> ByteBuffer.wrap(bytes);</span><br><span class="line"></span><br><span class="line">        <span class="type">int</span> <span class="variable">rows</span> <span class="operator">=</span> buffer.getInt();</span><br><span class="line">        <span class="type">int</span> <span class="variable">cols</span> <span class="operator">=</span> buffer.getInt();</span><br><span class="line">        <span class="keyword">if</span> (rows &lt; <span class="number">0</span> || cols &lt; <span class="number">0</span> || <span class="number">8</span> + (<span class="type">long</span>) rows * cols * <span class="number">4</span> != bytes.length) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;Invalid encoded data: size mismatch&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">float</span>[][] matrix = <span class="keyword">new</span> <span class="title class_">float</span>[rows][cols];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; rows; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; cols; j++) &#123;</span><br><span class="line">                matrix[i][j] = buffer.getFloat();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> matrix;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Roundtrip-测试"><a href="#Roundtrip-测试" class="headerlink" title="Roundtrip 测试"></a>Roundtrip 测试</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.junit.jupiter.api.Test;</span><br><span class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.junit.jupiter.api.Assertions.*;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">FloatMatrixCodecTest</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">encodeAndDecodeShouldBeIdentical</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">float</span>[][] original = &#123;&#123;<span class="number">1.1f</span>, <span class="number">2.2f</span>, <span class="number">3.3f</span>&#125;, &#123;<span class="number">4.4f</span>, <span class="number">5.5f</span>, <span class="number">6.6f</span>&#125;&#125;;</span><br><span class="line">        <span class="type">String</span> <span class="variable">encoded</span> <span class="operator">=</span> FloatMatrixCodec.encode(original);</span><br><span class="line">        <span class="type">float</span>[][] decoded = FloatMatrixCodec.decode(encoded);</span><br><span class="line">        assertArrayEquals(original, decoded);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="keyword">void</span> <span class="title function_">emptyMatrixShouldRoundtrip</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">float</span>[][] empty = <span class="keyword">new</span> <span class="title class_">float</span>[<span class="number">0</span>][<span class="number">0</span>];</span><br><span class="line">        assertArrayEquals(empty, FloatMatrixCodec.decode(FloatMatrixCodec.encode(empty)));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键设计说明"><a href="#关键设计说明" class="headerlink" title="关键设计说明"></a>关键设计说明</h3><ul>
+<li><strong>维度信息前置</strong>：头 8 字节存储 rows 和 cols，解码时无需额外传参，字符串本身自描述</li>
+<li><strong>精确 allocate</strong>：<code>8 + rows * cols * 4</code> 一次性分配，避免动态扩容带来的内存拷贝</li>
+<li><strong>IEEE 754 直接写入</strong>：<code>ByteBuffer.putFloat()</code> 将 float 的二进制位原样写入，无精度损失，无字符串转换</li>
+</ul>
+<hr>
+<h2 id="⚡-性能分析"><a href="#⚡-性能分析" class="headerlink" title="⚡ 性能分析"></a>⚡ 性能分析</h2><h3 id="内存占用对比"><a href="#内存占用对比" class="headerlink" title="内存占用对比"></a>内存占用对比</h3><p>以 <code>1000 × 512</code> 的 <code>float[][]</code> 矩阵（512,000 个浮点数）为例：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>JSON（普通）</th>
+<th>JSON（Pretty Print）</th>
+<th>Base64 二进制</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>序列化结果大小</td>
+<td>~6.5 MB</td>
+<td>~13 MB</td>
+<td><strong>~2.73 MB</strong></td>
+</tr>
+<tr>
+<td>与原始数据比</td>
+<td>3.2×</td>
+<td>6×+</td>
+<td><strong>1.33×</strong></td>
+</tr>
+<tr>
+<td>反序列化中间对象</td>
+<td>大量 String、JsonNode、临时数组</td>
+<td>更多</td>
+<td><strong>仅 1 个 byte[]</strong></td>
+</tr>
+</tbody></table>
+<h3 id="为什么-ObjectMapper-会-OOM"><a href="#为什么-ObjectMapper-会-OOM" class="headerlink" title="为什么 ObjectMapper 会 OOM"></a>为什么 ObjectMapper 会 OOM</h3><pre class="mermaid">graph TD
+    A["JSON 字符串输入"] -->|"Jackson 解析"| B["创建 JsonParser"]
+    B --> C["逐 token 读取字符串"]
+    C --> D["String 转 float"]
+    D --> E["构建临时 ArrayList"]
+    E --> F["ArrayList 转 float[]"]
+    F --> G["float[][] 最终结果"]
+
+    style A fill:#ffccbc,stroke:#333,color:#000
+    style G fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/diagram_20260417_091452_02.webp" alt="为什么 ObjectMapper 会 OOM图解：&quot;JSON 字符串输入&quot;、Jackson 解析"></p>
+</details>
+
+<p>Jackson 反序列化 <code>float[][]</code> 的过程中，<strong>每一个浮点数</strong>都经历了：字符串分配 → 数字解析 → 装箱&#x2F;拆箱 → 临时集合存储 → 最终数组拷贝。512K 个浮点数意味着至少 512K 次字符串分配，GC 压力巨大。</p>
+<h3 id="writerWithDefaultPrettyPrinter-的代价"><a href="#writerWithDefaultPrettyPrinter-的代价" class="headerlink" title="writerWithDefaultPrettyPrinter 的代价"></a>writerWithDefaultPrettyPrinter 的代价</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 千万不要这样做！</span></span><br><span class="line"><span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> objectMapper</span><br><span class="line">    .writerWithDefaultPrettyPrinter()</span><br><span class="line">    .writeValueAsString(matrix);</span><br></pre></td></tr></table></figure>
+
+<p>Pretty Print 会在每个元素后加换行和缩进，对于 <code>float[][]</code> 这种高密度数据结构：</p>
+<ul>
+<li>每个 float 值独占一行 + 缩进空格 → 每个元素额外增加 ~10 字节</li>
+<li>512K 个元素 → 额外 ~5 MB 的空白字符</li>
+<li>最终 JSON 字符串可达原始数据 <strong>6 倍以上</strong></li>
+</ul>
+<h3 id="进阶优化：GZIP-Base64"><a href="#进阶优化：GZIP-Base64" class="headerlink" title="进阶优化：GZIP + Base64"></a>进阶优化：GZIP + Base64</h3><p>如果存储空间敏感，可以在 Base64 外再套一层 GZIP：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.io.*;</span><br><span class="line"><span class="keyword">import</span> java.nio.ByteBuffer;</span><br><span class="line"><span class="keyword">import</span> java.util.Base64;</span><br><span class="line"><span class="keyword">import</span> java.util.zip.GZIPInputStream;</span><br><span class="line"><span class="keyword">import</span> java.util.zip.GZIPOutputStream;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FloatMatrixCodecGzip</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">encodeWithGzip</span><span class="params">(<span class="type">float</span>[][] matrix)</span> <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="comment">// Step 1：float[][] → byte[]（内联 ByteBuffer 编码，跳过 Base64 步骤）</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">rows</span> <span class="operator">=</span> matrix.length;</span><br><span class="line">        <span class="type">int</span> <span class="variable">cols</span> <span class="operator">=</span> (rows &gt; <span class="number">0</span>) ? matrix[<span class="number">0</span>].length : <span class="number">0</span>;</span><br><span class="line">        <span class="type">ByteBuffer</span> <span class="variable">buf</span> <span class="operator">=</span> ByteBuffer.allocate(<span class="number">8</span> + rows * cols * <span class="number">4</span>);</span><br><span class="line">        buf.putInt(rows);</span><br><span class="line">        buf.putInt(cols);</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">float</span>[] row : matrix) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">float</span> v : row) buf.putFloat(v);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">byte</span>[] raw = buf.array();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Step 2：GZIP 压缩</span></span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">baos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">GZIPOutputStream</span> <span class="variable">gz</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GZIPOutputStream</span>(baos)) &#123;</span><br><span class="line">            gz.write(raw);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Step 3：Base64 编码</span></span><br><span class="line">        <span class="keyword">return</span> Base64.getEncoder().encodeToString(baos.toByteArray());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">float</span>[][] decodeWithGzip(String base64Str) <span class="keyword">throws</span> IOException &#123;</span><br><span class="line">        <span class="type">byte</span>[] compressed = Base64.getDecoder().decode(base64Str);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Step 1：GZIP 解压</span></span><br><span class="line">        <span class="type">ByteArrayOutputStream</span> <span class="variable">baos</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ByteArrayOutputStream</span>();</span><br><span class="line">        <span class="keyword">try</span> (<span class="type">GZIPInputStream</span> <span class="variable">gz</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">GZIPInputStream</span>(<span class="keyword">new</span> <span class="title class_">ByteArrayInputStream</span>(compressed))) &#123;</span><br><span class="line">            <span class="type">byte</span>[] tmp = <span class="keyword">new</span> <span class="title class_">byte</span>[<span class="number">4096</span>];</span><br><span class="line">            <span class="type">int</span> len;</span><br><span class="line">            <span class="keyword">while</span> ((len = gz.read(tmp)) != -<span class="number">1</span>) baos.write(tmp, <span class="number">0</span>, len);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// Step 2：byte[] → float[][]</span></span><br><span class="line">        <span class="type">ByteBuffer</span> <span class="variable">buf</span> <span class="operator">=</span> ByteBuffer.wrap(baos.toByteArray());</span><br><span class="line">        <span class="type">int</span> <span class="variable">rows</span> <span class="operator">=</span> buf.getInt();</span><br><span class="line">        <span class="type">int</span> <span class="variable">cols</span> <span class="operator">=</span> buf.getInt();</span><br><span class="line">        <span class="type">float</span>[][] matrix = <span class="keyword">new</span> <span class="title class_">float</span>[rows][cols];</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; rows; i++)</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">0</span>; j &lt; cols; j++)</span><br><span class="line">                matrix[i][j] = buf.getFloat();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> matrix;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>GZIP 效果</strong>：对规律性较强的 embedding 向量，可再减少 30-50% 体积，但 CPU 开销约增加 2-3 倍。优先考虑 IO 瓶颈是否大于 CPU 开销后再决定是否启用。</p>
+<hr>
+<h2 id="🚧-生产实践"><a href="#🚧-生产实践" class="headerlink" title="🚧 生产实践"></a>🚧 生产实践</h2><h3 id="边界条件处理"><a href="#边界条件处理" class="headerlink" title="边界条件处理"></a>边界条件处理</h3><ul>
+<li><strong>空矩阵</strong>：<code>new float[0][0]</code> 编码后仅 8 字节（rows&#x3D;0, cols&#x3D;0），解码正常还原</li>
+<li><strong>不规则矩阵</strong>：当前实现以 <code>matrix[0].length</code> 为列数，不规则矩阵（各行列数不同）需先补齐为矩形矩阵</li>
+<li><strong>超大矩阵</strong>：<code>ByteBuffer.allocate()</code> 上限约 2 GB，超过时需分块处理</li>
+</ul>
+<h3 id="常见坑点"><a href="#常见坑点" class="headerlink" title="常见坑点"></a>常见坑点</h3><ol>
+<li><p><strong>Base64 变体选择错误</strong></p>
+<ul>
+<li><strong>现象</strong>：存入数据库或 URL 传输时 <code>+</code> <code>/</code> 被转义，导致解码失败</li>
+<li><strong>原因</strong>：标准 Base64 包含 <code>+</code> <code>/</code> <code>=</code>，不适合 URL 和部分数据库驱动</li>
+<li><strong>解决</strong>：URL 场景改用 <code>Base64.getUrlEncoder()</code> 和 <code>Base64.getUrlDecoder()</code></li>
+</ul>
+</li>
+<li><p><strong>ByteBuffer 字节序不一致</strong></p>
+<ul>
+<li><strong>现象</strong>：跨平台或跨语言解码后数据乱码</li>
+<li><strong>原因</strong>：不同平台默认字节序可能不同</li>
+<li><strong>解决</strong>：显式声明 <code>buffer.order(ByteOrder.BIG_ENDIAN)</code>（Java 默认已是大端序，但跨语言时两端都建议显式声明）</li>
+</ul>
+</li>
+<li><p><strong>数据库字段长度不足</strong></p>
+<ul>
+<li><strong>现象</strong>：存储时被静默截断，解码时报错或返回错误数据</li>
+<li><strong>原因</strong>：Base64 输出长度 &#x3D; <code>⌈原始字节数 / 3⌉ × 4</code>，需预先估算</li>
+<li><strong>解决</strong>：MySQL 改用 <code>MEDIUMTEXT</code>（最大 16 MB）或 <code>LONGTEXT</code>，避免 <code>VARCHAR(N)</code></li>
+</ul>
+</li>
+</ol>
+<h3 id="字段长度速查"><a href="#字段长度速查" class="headerlink" title="字段长度速查"></a>字段长度速查</h3><table>
+<thead>
+<tr>
+<th>矩阵规模</th>
+<th>原始字节</th>
+<th>Base64 长度</th>
+<th>MySQL 字段</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>100 × 128</td>
+<td>~50 KB</td>
+<td>~68 KB</td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td>1000 × 512</td>
+<td>~2 MB</td>
+<td>~2.7 MB</td>
+<td><code>MEDIUMTEXT</code></td>
+</tr>
+<tr>
+<td>10000 × 512</td>
+<td>~20 MB</td>
+<td>~27 MB</td>
+<td><code>LONGTEXT</code></td>
+</tr>
+</tbody></table>
+<h3 id="监控指标"><a href="#监控指标" class="headerlink" title="监控指标"></a>监控指标</h3><ul>
+<li>序列化&#x2F;反序列化 P99 耗时（基准：1000 × 512 矩阵单次 &lt; 5ms）</li>
+<li>单次编码的 <code>byte[]</code> 分配大小（防止超预期大矩阵打满堆）</li>
+<li>GC 频率（切换 Base64 方案后应有明显下降）</li>
+</ul>
+<h3 id="生产上线检查清单"><a href="#生产上线检查清单" class="headerlink" title="生产上线检查清单"></a>生产上线检查清单</h3><details>
+<summary><strong>✅ 点击展开上线前确认清单</strong></summary>
+
+<h4 id="编码选择"><a href="#编码选择" class="headerlink" title="编码选择"></a>编码选择</h4><ul>
+<li><input disabled="" type="checkbox"> 矩阵元素数量 &gt;&#x3D; 10,000 → 已改用 Base64 二进制编码</li>
+<li><input disabled="" type="checkbox"> 已禁止代码中出现 <code>writerWithDefaultPrettyPrinter()</code> 操作大矩阵</li>
+<li><input disabled="" type="checkbox"> 确认编解码两端使用相同字节序（默认 <code>BIG_ENDIAN</code> 即可）</li>
+</ul>
+<h4 id="数据库配置"><a href="#数据库配置" class="headerlink" title="数据库配置"></a>数据库配置</h4><ul>
+<li><input disabled="" type="checkbox"> 字段类型已从 <code>VARCHAR</code> 改为 <code>MEDIUMTEXT</code> 或 <code>LONGTEXT</code></li>
+<li><input disabled="" type="checkbox"> 已按矩阵最大规模估算 Base64 长度并留有余量</li>
+</ul>
+<h4 id="URL-接口传输"><a href="#URL-接口传输" class="headerlink" title="URL &#x2F; 接口传输"></a>URL &#x2F; 接口传输</h4><ul>
+<li><input disabled="" type="checkbox"> URL 参数场景已改用 <code>Base64.getUrlEncoder()</code></li>
+<li><input disabled="" type="checkbox"> 接口文档已标注字段为 Base64 二进制编码格式</li>
+</ul>
+<h4 id="监控告警"><a href="#监控告警" class="headerlink" title="监控告警"></a>监控告警</h4><ul>
+<li><input disabled="" type="checkbox"> 已添加序列化耗时监控（P99）</li>
+<li><input disabled="" type="checkbox"> 已配置 JVM 堆内存监控并设置阈值告警</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1：Base64-编码会有精度损失吗？"><a href="#Q1：Base64-编码会有精度损失吗？" class="headerlink" title="Q1：Base64 编码会有精度损失吗？"></a>Q1：Base64 编码会有精度损失吗？</h3><p><strong>A：</strong> 不会。<code>ByteBuffer.putFloat()</code> 直接将 float 的 IEEE 754 二进制位（32 bit）原样写入字节数组，没有任何字符串转换，解码后与原始值 bit-for-bit 一致。而 JSON 文本序列化在配置了数字格式化（如 <code>DecimalFormat</code> 或 <code>@JsonFormat(pattern=&quot;0.##&quot;)</code>）时可能引入精度损失。</p>
+<h3 id="Q2：能用于-double-吗？"><a href="#Q2：能用于-double-吗？" class="headerlink" title="Q2：能用于 double[][] 吗？"></a>Q2：能用于 double[][] 吗？</h3><p><strong>A：</strong> 完全可以。只需将 <code>buffer.putFloat()</code> &#x2F; <code>buffer.getFloat()</code> 改为 <code>buffer.putDouble()</code> &#x2F; <code>buffer.getDouble()</code>，并将每个元素字节数从 4 改为 8。但 double 体积是 float 的 2 倍，大部分 embedding 应用 float 的精度（~7 位有效数字）已足够。</p>
+<h3 id="Q3：Base64-字符串不方便调试，怎么办？"><a href="#Q3：Base64-字符串不方便调试，怎么办？" class="headerlink" title="Q3：Base64 字符串不方便调试，怎么办？"></a>Q3：Base64 字符串不方便调试，怎么办？</h3><p><strong>A：</strong> 推荐双模式策略：</p>
+<ul>
+<li><strong>开发&#x2F;测试环境</strong>：同时输出 JSON 格式的前几个元素到日志</li>
+<li><strong>生产环境</strong>：存储和传输全部走 Base64 二进制</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 仅在 DEBUG 级别打印可读预览，不影响生产性能</span></span><br><span class="line"><span class="keyword">if</span> (log.isDebugEnabled()) &#123;</span><br><span class="line">    log.debug(<span class="string">&quot;Matrix preview [&#123;&#125;,&#123;&#125;,...] size=&#123;&#125;x&#123;&#125;&quot;</span>,</span><br><span class="line">        matrix[<span class="number">0</span>][<span class="number">0</span>], matrix[<span class="number">0</span>][<span class="number">1</span>],</span><br><span class="line">        matrix.length, matrix[<span class="number">0</span>].length);</span><br><span class="line">&#125;</span><br><span class="line"><span class="type">String</span> <span class="variable">encoded</span> <span class="operator">=</span> FloatMatrixCodec.encode(matrix);</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4：和-Kryo-FST-等-Java-序列化框架相比怎么样？"><a href="#Q4：和-Kryo-FST-等-Java-序列化框架相比怎么样？" class="headerlink" title="Q4：和 Kryo &#x2F; FST 等 Java 序列化框架相比怎么样？"></a>Q4：和 Kryo &#x2F; FST 等 Java 序列化框架相比怎么样？</h3><p><strong>A：</strong> 核心区别在于<strong>可移植性</strong>：</p>
+<ul>
+<li><strong>Kryo &#x2F; FST</strong>：极快，但格式与 Java 强绑定，跨语言复杂</li>
+<li><strong>Base64 二进制</strong>：输出标准 Base64 字符串，Python&#x2F;Go 等任何语言都能用约 10 行代码解码</li>
+</ul>
+<p>如果确定只在 Java 内部使用，Kryo 性能更优；如果需要将矩阵传给 Python 模型服务，Base64 二进制方案更合适。</p>
+<h3 id="Q5：什么时候该用-MessagePack-而不是-Base64-二进制？"><a href="#Q5：什么时候该用-MessagePack-而不是-Base64-二进制？" class="headerlink" title="Q5：什么时候该用 MessagePack 而不是 Base64 二进制？"></a>Q5：什么时候该用 MessagePack 而不是 Base64 二进制？</h3><p><strong>A：</strong> 以下场景推荐 MessagePack：</p>
+<ul>
+<li><strong>复杂对象</strong>：不只是 <code>float[][]</code>，还包含字符串、嵌套对象等异构数据</li>
+<li><strong>跨语言生态</strong>：团队同时有 Python &#x2F; Go &#x2F; Java 服务，MessagePack 有成熟的多语言 SDK</li>
+<li><strong>自描述需求</strong>：MessagePack 支持类型标注，而 Base64 二进制依赖双端约定格式</li>
+</ul>
+<p>纯粹的 <code>float[][]</code> 场景，Base64 二进制更轻量；复杂业务对象，MessagePack 更合适。</p>
+<h3 id="Q6：我的矩阵超过-2-GB-怎么办？"><a href="#Q6：我的矩阵超过-2-GB-怎么办？" class="headerlink" title="Q6：我的矩阵超过 2 GB 怎么办？"></a>Q6：我的矩阵超过 2 GB 怎么办？</h3><p><strong>A：</strong> <code>ByteBuffer.allocate()</code> 上限约 2 GB（<code>Integer.MAX_VALUE</code> 字节）。超大矩阵需分块处理：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 示例：按行分块，每块最多 N 行</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;String&gt; <span class="title function_">encodeInChunks</span><span class="params">(<span class="type">float</span>[][] matrix, <span class="type">int</span> chunkRows)</span> &#123;</span><br><span class="line">    List&lt;String&gt; chunks = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">start</span> <span class="operator">=</span> <span class="number">0</span>; start &lt; matrix.length; start += chunkRows) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">end</span> <span class="operator">=</span> Math.min(start + chunkRows, matrix.length);</span><br><span class="line">        <span class="type">float</span>[][] chunk = Arrays.copyOfRange(matrix, start, end);</span><br><span class="line">        chunks.add(FloatMatrixCodec.encode(chunk));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> chunks;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>JSON 文本是大矩阵的内存杀手</strong>：<code>ObjectMapper</code> 反序列化时每个元素都产生临时字符串，512K 个浮点数直接引发 GC 爆炸</li>
+<li><strong><code>writerWithDefaultPrettyPrinter()</code> 绝不能用于数值数据</strong>：让 JSON 体积膨胀 6 倍以上，是调试工具，不是数据格式</li>
+<li><strong>Base64 二进制编码 &#x3D; 零依赖，内存降 58%</strong>：<code>ByteBuffer.putFloat()</code> + <code>Base64.getEncoder()</code>，50 行代码彻底告别大矩阵 OOM</li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>ML 模型 embedding 向量的存储与传输</li>
+<li>图像特征矩阵的数据库持久化</li>
+<li>推荐系统中用户&#x2F;物品向量的批量序列化</li>
+<li>任何需要高效传输大规模浮点数组的场景</li>
+</ul>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><p><strong>今天就可以做的</strong>：</p>
+<ul>
+<li>搜索代码库中所有 <code>ObjectMapper</code> + <code>float[][]</code> 的组合，标记为待优化</li>
+<li>引入 <code>FloatMatrixCodec</code> 工具类，补充单元测试验证编解码一致性</li>
+</ul>
+<p><strong>本周可以优化的</strong>：</p>
+<ul>
+<li>将生产环境大矩阵字段全部迁移到 Base64 编码</li>
+<li>更新数据库字段类型（<code>VARCHAR</code> → <code>MEDIUMTEXT</code>）</li>
+</ul>
+<p><strong>长期可以改进的</strong>：</p>
+<ul>
+<li>对 embedding 存储量大的表，评估 GZIP + Base64 方案，进一步降低存储成本</li>
+<li>建立团队级矩阵序列化规范，统一编码格式，避免新人踩坑</li>
+</ul>
+<blockquote>
+<p>序列化不只是”把对象变成字符串”，它是内存管理的第一道防线。选对格式，才能选对战场。</p>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-16</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td>2026-03-16</td>
+<td>深度优化：新增 3 分钟速览、FAQ（6 问）、GZIP 进阶方案、生产检查清单、行动建议</td>
+</tr>
+<tr>
+<td>v2.1</td>
+<td>2026-03-16</td>
+<td>Review 修复：encode 增加溢出校验、decode 增加输入校验、修正精度描述、补充 JUnit 测试</td>
+</tr>
+<tr>
+<td>v2.2</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Base64/" rel="tag">Base64</a>, <a class="tag-none-link" href="/tags/Jackson/" rel="tag">Jackson</a>, <a class="tag-none-link" href="/tags/Java/" rel="tag">Java</a>, <a class="tag-none-link" href="/tags/%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/" rel="tag">内存优化</a>, <a class="tag-none-link" href="/tags/%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">序列化</a>, <a class="tag-none-link" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="tag">性能优化</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流" href="/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 自定义 RedisTemplate 使用 StringRedisSerializer 避免双重引号问题" href="/2026/03/15/tech/backend/2026-03-16-custom-redis-template-string-serializer/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E4%B8%80%E7%9C%BC%E5%AF%B9%E6%AF%94"><span class="toc-number">1.1.</span> <span class="toc-text">方案一眼对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E5%93%AA%E4%B8%AA%E6%96%B9%E6%A1%88"><span class="toc-number">1.2.</span> <span class="toc-text">选哪个方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E4%BB%A3%E7%A0%81%EF%BC%88%E4%B8%80%E5%88%86%E9%92%9F%E4%B8%8A%E6%89%8B%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">核心代码（一分钟上手）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">2.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">2.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">2.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">3.</span> <span class="toc-text">🔍 方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="toc-number">3.1.</span> <span class="toc-text">方案调研</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%90%86%E7%94%B1"><span class="toc-number">3.2.</span> <span class="toc-text">选择理由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.</span> <span class="toc-text">💡 核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BC%96%E8%A7%A3%E7%A0%81%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">编解码流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0%E4%BB%A3%E7%A0%81"><span class="toc-number">4.2.</span> <span class="toc-text">完整实现代码</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Roundtrip-%E6%B5%8B%E8%AF%95"><span class="toc-number">4.3.</span> <span class="toc-text">Roundtrip 测试</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E8%AE%BE%E8%AE%A1%E8%AF%B4%E6%98%8E"><span class="toc-number">4.4.</span> <span class="toc-text">关键设计说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="toc-number">5.</span> <span class="toc-text">⚡ 性能分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E5%8D%A0%E7%94%A8%E5%AF%B9%E6%AF%94"><span class="toc-number">5.1.</span> <span class="toc-text">内存占用对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-ObjectMapper-%E4%BC%9A-OOM"><span class="toc-number">5.2.</span> <span class="toc-text">为什么 ObjectMapper 会 OOM</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#writerWithDefaultPrettyPrinter-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="toc-number">5.3.</span> <span class="toc-text">writerWithDefaultPrettyPrinter 的代价</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%9B%E9%98%B6%E4%BC%98%E5%8C%96%EF%BC%9AGZIP-Base64"><span class="toc-number">5.4.</span> <span class="toc-text">进阶优化：GZIP + Base64</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6%E5%A4%84%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">边界条件处理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">6.2.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%97%E6%AE%B5%E9%95%BF%E5%BA%A6%E9%80%9F%E6%9F%A5"><span class="toc-number">6.3.</span> <span class="toc-text">字段长度速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87"><span class="toc-number">6.4.</span> <span class="toc-text">监控指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E4%B8%8A%E7%BA%BF%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">6.5.</span> <span class="toc-text">生产上线检查清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%96%E7%A0%81%E9%80%89%E6%8B%A9"><span class="toc-number">6.5.1.</span> <span class="toc-text">编码选择</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E5%BA%93%E9%85%8D%E7%BD%AE"><span class="toc-number">6.5.2.</span> <span class="toc-text">数据库配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#URL-%E6%8E%A5%E5%8F%A3%E4%BC%A0%E8%BE%93"><span class="toc-number">6.5.3.</span> <span class="toc-text">URL &#x2F; 接口传输</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E5%91%8A%E8%AD%A6"><span class="toc-number">6.5.4.</span> <span class="toc-text">监控告警</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9ABase64-%E7%BC%96%E7%A0%81%E4%BC%9A%E6%9C%89%E7%B2%BE%E5%BA%A6%E6%8D%9F%E5%A4%B1%E5%90%97%EF%BC%9F"><span class="toc-number">7.1.</span> <span class="toc-text">Q1：Base64 编码会有精度损失吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9A%E8%83%BD%E7%94%A8%E4%BA%8E-double-%E5%90%97%EF%BC%9F"><span class="toc-number">7.2.</span> <span class="toc-text">Q2：能用于 double[][] 吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9ABase64-%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%B8%8D%E6%96%B9%E4%BE%BF%E8%B0%83%E8%AF%95%EF%BC%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.3.</span> <span class="toc-text">Q3：Base64 字符串不方便调试，怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E5%92%8C-Kryo-FST-%E7%AD%89-Java-%E5%BA%8F%E5%88%97%E5%8C%96%E6%A1%86%E6%9E%B6%E7%9B%B8%E6%AF%94%E6%80%8E%E4%B9%88%E6%A0%B7%EF%BC%9F"><span class="toc-number">7.4.</span> <span class="toc-text">Q4：和 Kryo &#x2F; FST 等 Java 序列化框架相比怎么样？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9A%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E7%94%A8-MessagePack-%E8%80%8C%E4%B8%8D%E6%98%AF-Base64-%E4%BA%8C%E8%BF%9B%E5%88%B6%EF%BC%9F"><span class="toc-number">7.5.</span> <span class="toc-text">Q5：什么时候该用 MessagePack 而不是 Base64 二进制？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6%EF%BC%9A%E6%88%91%E7%9A%84%E7%9F%A9%E9%98%B5%E8%B6%85%E8%BF%87-2-GB-%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.6.</span> <span class="toc-text">Q6：我的矩阵超过 2 GB 怎么办？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">8.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">8.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.3.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

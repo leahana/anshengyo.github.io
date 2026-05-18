@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>GitHub Actions CI 最小落地方案：从计划到可实施门禁 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/03/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CI, DevOps, GitHub-Actions, Skill, m2c-pipeline" />
+  
+  <meta name="description" content="基于 m2c-pipeline 实战，给出可直接复制的 CI 门禁、Release 校验与治理审计最小方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GitHub Actions CI 最小落地方案：从计划到可实施门禁">
+<meta property="og:url" content="https://leahana.github.io/2026/04/03/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="基于 m2c-pipeline 实战，给出可直接复制的 CI 门禁、Release 校验与治理审计最小方案。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084309_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084411_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084511_02.webp">
+<meta property="article:published_time" content="2026-04-03T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.766Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CI">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="GitHub-Actions">
+<meta property="article:tag" content="Skill">
+<meta property="article:tag" content="m2c-pipeline">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084309_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"GitHub Actions CI 最小落地方案：从计划到可实施门禁","description":"基于 m2c-pipeline 实战，给出可直接复制的 CI 门禁、Release 校验与治理审计最小方案。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-03T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.766Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/03/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/03/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">GitHub Actions CI 最小落地方案：从计划到可实施门禁</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-03T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-04</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~21.66K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%9C%89%E8%AE%A1%E5%88%92%E2%80%9D%E4%B8%8D%E7%AD%89%E4%BA%8E%E2%80%9C%E5%8F%AF%E5%AE%9E%E6%96%BD%E2%80%9D"><span class="toc-number">1.1.</span> <span class="toc-text">为什么“有计划”不等于“可实施”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81%E4%BD%A0%E6%98%AF%E4%B8%8D%E6%98%AF%E8%BF%98%E5%81%9C%E7%95%99%E5%9C%A8%E2%80%9C%E5%8F%AA%E6%9C%89%E8%AE%A1%E5%88%92%E2%80%9D%E7%9A%84%E9%98%B6%E6%AE%B5"><span class="toc-number">1.2.</span> <span class="toc-text">怎么验证你是不是还停留在“只有计划”的阶段</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E7%9B%AE%E6%A0%87"><span class="toc-number">2.</span> <span class="toc-text">最小目标</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%85%88%E6%94%B6%E6%95%9B%E7%9B%AE%E6%A0%87"><span class="toc-number">2.1.</span> <span class="toc-text">为什么要先收敛目标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%81%9A%E6%B3%95"><span class="toc-number">2.2.</span> <span class="toc-text">最小做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81%E8%8C%83%E5%9B%B4%E6%94%B6%E6%95%9B%E6%98%AF%E6%88%90%E5%8A%9F%E7%9A%84"><span class="toc-number">2.3.</span> <span class="toc-text">怎么验证范围收敛是成功的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E7%9B%AE%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">最小目录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%AE%E5%BD%95%E8%A6%81%E5%85%88%E5%86%BB%E7%BB%93"><span class="toc-number">3.1.</span> <span class="toc-text">为什么目录要先冻结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%81%9A%E6%B3%95-1"><span class="toc-number">3.2.</span> <span class="toc-text">最小做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81%E7%9B%AE%E5%BD%95%E6%98%AF%E5%A4%9F%E7%94%A8%E7%9A%84"><span class="toc-number">3.3.</span> <span class="toc-text">怎么验证目录是够用的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GitHub-Actions-%E6%9C%80%E5%B0%8F%E8%90%BD%E5%9C%B0%E6%AD%A5%E9%AA%A4"><span class="toc-number">4.</span> <span class="toc-text">GitHub Actions 最小落地步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-1-%E6%AD%A5%EF%BC%9A%E5%86%BB%E7%BB%93%E5%8D%95%E4%B8%80%E7%89%88%E6%9C%AC%E6%BA%90%E5%92%8C%E6%B2%BB%E7%90%86%E5%A5%91%E7%BA%A6"><span class="toc-number">4.1.</span> <span class="toc-text">第 1 步：冻结单一版本源和治理契约</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-2-%E6%AD%A5%EF%BC%9A%E6%8A%8A-PR-%E6%A0%A1%E9%AA%8C%E6%94%B6%E6%95%9B%E6%88%90-6-%E4%B8%AA%E5%9B%BA%E5%AE%9A-job"><span class="toc-number">4.2.</span> <span class="toc-text">第 2 步：把 PR 校验收敛成 6 个固定 job</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-3-%E6%AD%A5%EF%BC%9A%E7%BB%99-Release-%E5%8A%A0-3-%E4%B8%AA%E6%A0%B8%E5%BF%83-guard"><span class="toc-number">4.3.</span> <span class="toc-text">第 3 步：给 Release 加 3 个核心 guard</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-4-%E6%AD%A5%EF%BC%9A%E5%8A%A0-governance-audit%EF%BC%8C%E8%AE%A9%E8%AE%BE%E7%BD%AE%E6%BC%82%E7%A7%BB%E4%BC%9A%E6%8A%A5%E8%AD%A6"><span class="toc-number">4.4.</span> <span class="toc-text">第 4 步：加 governance audit，让设置漂移会报警</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-5-%E6%AD%A5%EF%BC%9A%E8%B7%91%E4%B8%80%E6%AC%A1%E7%AB%AF%E5%88%B0%E7%AB%AF%E9%AA%8C%E6%94%B6"><span class="toc-number">4.5.</span> <span class="toc-text">第 5 步：跑一次端到端验收</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-YAML-%E7%A4%BA%E4%BE%8B"><span class="toc-number">5.</span> <span class="toc-text">关键 YAML 示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ci-yml%EF%BC%9A6-%E4%B8%AA%E5%9B%BA%E5%AE%9A-job-%E7%9A%84%E6%9C%80%E5%B0%8F%E7%89%88%E6%9C%AC"><span class="toc-number">5.1.</span> <span class="toc-text">ci.yml：6 个固定 job 的最小版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#release-generic-yml%EF%BC%9A3-%E4%B8%AA%E6%A0%B8%E5%BF%83-job-%E7%9A%84%E6%9C%80%E5%B0%8F%E7%89%88%E6%9C%AC"><span class="toc-number">5.2.</span> <span class="toc-text">release-generic.yml：3 个核心 job 的最小版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#governance-audit-yml%EF%BC%9A%E6%9C%80%E5%B0%8F%E6%B2%BB%E7%90%86%E5%AE%A1%E8%AE%A1%E5%85%A5%E5%8F%A3"><span class="toc-number">5.3.</span> <span class="toc-text">governance-audit.yml：最小治理审计入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#version-py%EF%BC%9A%E5%8D%95%E4%B8%80%E7%89%88%E6%9C%AC%E6%BA%90%E4%B8%8E-tag-%E5%AF%B9%E6%AF%94"><span class="toc-number">5.4.</span> <span class="toc-text">version.py：单一版本源与 tag 对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A5%E6%A0%BC%E9%AA%8C%E6%94%B6%E6%B8%85%E5%8D%95"><span class="toc-number">6.</span> <span class="toc-text">严格验收清单</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E5%AE%9A%E8%A6%81%E6%9C%89%E9%AA%8C%E6%94%B6%E6%B8%85%E5%8D%95"><span class="toc-number">6.1.</span> <span class="toc-text">为什么一定要有验收清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%81%9A%E6%B3%95-2"><span class="toc-number">6.2.</span> <span class="toc-text">最小做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81"><span class="toc-number">6.3.</span> <span class="toc-text">怎么验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-number">7.</span> <span class="toc-text">常见坑与修复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-job-%E6%94%B9%E5%90%8D%E5%90%8E%EF%BC%8C%E5%88%86%E6%94%AF%E4%BF%9D%E6%8A%A4%E7%9C%8B%E8%B5%B7%E6%9D%A5%E8%BF%98%E5%9C%A8%EF%BC%8C%E5%85%B6%E5%AE%9E%E5%B7%B2%E7%BB%8F%E5%A4%B1%E6%95%88"><span class="toc-number">7.1.</span> <span class="toc-text">1. job 改名后，分支保护看起来还在，其实已经失效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-tag-%E4%B8%8D%E6%98%AF%E4%BB%8E-main-%E6%89%93%E5%87%BA%E6%9D%A5%EF%BC%8C%E4%BB%8D%E7%84%B6%E8%A7%A6%E5%8F%91%E4%BA%86%E6%AD%A3%E5%BC%8F%E5%8F%91%E5%B8%83"><span class="toc-number">7.2.</span> <span class="toc-text">2. tag 不是从 main 打出来，仍然触发了正式发布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%89%93%E5%8C%85%E8%84%9A%E6%9C%AC%E5%8F%AA%E7%9C%8B%E8%B7%AF%E5%BE%84%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%8C%E6%B2%A1%E9%98%B2-symlink-%E9%80%83%E9%80%B8"><span class="toc-number">7.3.</span> <span class="toc-text">3. 打包脚本只看路径字符串，没防 symlink 逃逸</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-required-check-%E8%A2%AB-paths-ignore-%E6%88%96%E6%9D%A1%E4%BB%B6%E5%88%A4%E6%96%AD%E8%B7%B3%E8%BF%87"><span class="toc-number">7.4.</span> <span class="toc-text">4. required check 被 paths-ignore 或条件判断跳过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%9C%AC%E5%9C%B0%E7%94%A8-venv%EF%BC%8CCI-%E5%8D%B4%E8%B7%91%E7%B3%BB%E7%BB%9F-python"><span class="toc-number">7.5.</span> <span class="toc-text">5. 本地用 venv，CI 却跑系统 python</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E8%A1%A5%E9%81%97%EF%BC%9A%E4%BB%8E-release-generic-%E8%BF%81%E5%88%B0-release-please"><span class="toc-number">8.</span> <span class="toc-text">实战补遗：从 release-generic 迁到 release-please</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%80%BC%E5%BE%97%E8%A1%A5%E8%BF%99%E4%B8%80%E6%AE%B5"><span class="toc-number">8.1.</span> <span class="toc-text">为什么值得补这一段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E9%87%8C%E6%9C%80%E5%AE%B9%E6%98%93%E8%AF%AF%E8%A7%A3%E7%9A%84%E4%B8%80%E7%82%B9%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-push-main-%E8%A7%A6%E5%8F%91"><span class="toc-number">8.2.</span> <span class="toc-text">这里最容易误解的一点：为什么是 push main 触发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E8%BF%81%E7%A7%BB%E5%81%9A%E6%B3%95"><span class="toc-number">8.3.</span> <span class="toc-text">最小迁移做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E6%AC%A1%E7%9C%9F%E5%AE%9E%E8%B8%A9%E5%88%B0%E7%9A%84%E5%9D%91%EF%BC%9Astartup-failure-%E4%B8%8D%E6%98%AF-YAML-%E8%AF%AD%E6%B3%95%E9%94%99"><span class="toc-number">8.4.</span> <span class="toc-text">这次真实踩到的坑：startup_failure 不是 YAML 语法错</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E4%BF%AE%E5%A4%8D"><span class="toc-number">8.5.</span> <span class="toc-text">最小修复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%81%E7%A7%BB%E5%90%8E%E7%9A%84%E6%9C%80%E5%B0%8F%E9%AA%8C%E6%94%B6"><span class="toc-number">8.6.</span> <span class="toc-text">迁移后的最小验收</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%AE%8C%E6%95%B4%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88%EF%BC%9A%E4%BB%8E-Mermaid-%E8%BE%93%E5%85%A5%E5%88%B0-Skill-%E5%8F%91%E5%B8%83%E9%97%AD%E7%8E%AF"><span class="toc-number">9.</span> <span class="toc-text">本项目完整工作流设计方案：从 Mermaid 输入到 Skill 发布闭环</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E8%8A%82%E8%A1%A5%E7%9A%84%E6%98%AF%E5%93%AA%E4%B8%80%E5%B1%82%E9%97%AD%E7%8E%AF"><span class="toc-number">9.1.</span> <span class="toc-text">这节补的是哪一层闭环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E9%93%BE%E8%B7%AF%EF%BC%9A%E4%BB%8E-Markdown-%E5%88%B0-PNG"><span class="toc-number">9.2.</span> <span class="toc-text">运行链路：从 Markdown 到 PNG</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A4%E4%BB%98%E9%93%BE%E8%B7%AF%EF%BC%9A%E4%BB%8E-PR-%E5%88%B0-Release-%E4%B8%8E-skill-%E5%88%86%E5%8F%91"><span class="toc-number">9.3.</span> <span class="toc-text">交付链路：从 PR 到 Release 与 skill 分发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B2%BB%E7%90%86%E9%93%BE%E8%B7%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%9D%A1%E5%8F%91%E5%B8%83%E7%BA%BF%E4%B8%8D%E4%BC%9A%E6%85%A2%E6%85%A2%E6%BC%82%E7%A7%BB"><span class="toc-number">9.4.</span> <span class="toc-text">治理链路：为什么这条发布线不会慢慢漂移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%88%B0%E7%AB%AF%E9%AA%8C%E6%94%B6%EF%BC%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%BD%93%E5%89%8D%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E8%B5%B0%E4%B8%80%E9%81%8D"><span class="toc-number">9.5.</span> <span class="toc-text">端到端验收：本项目当前应该怎么走一遍</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：这是一篇把 GitHub Actions 从“仓库里有几份 YAML”收敛成“PR、Release、治理审计都可实施”的最小教程。</p>
+<p>💡 <strong>核心理念</strong>：先达成 Go，再逐步收紧到 Go+。不要一上来堆满矩阵、变体和复用工作流，而是先把单版本发布、必跑门禁、<code>main</code> 血缘校验和治理漂移报警锁死。</p>
+</blockquote>
+<hr>
+<h2 id="问题背景"><a href="#问题背景" class="headerlink" title="问题背景"></a>问题背景</h2><p>很多团队说“我们已经有 CI 方案了”，实际状态却只是仓库里放了几份 <code>workflow</code>。只要这些 <code>workflow</code> 没有被分支保护、<code>required checks</code>、<code>tag ruleset</code> 和发布前置校验真正接住，这套方案就还是“看起来完整”，而不是“可以实施”。</p>
+<h3 id="为什么“有计划”不等于“可实施”"><a href="#为什么“有计划”不等于“可实施”" class="headerlink" title="为什么“有计划”不等于“可实施”"></a>为什么“有计划”不等于“可实施”</h3><ul>
+<li><code>job</code> 名称没有冻结时，<code>required checks</code> 很容易因为改名而漂移。</li>
+<li>Release 只看 <code>tag</code> 触发时，任何分支都可能打出正式版本。</li>
+<li>版本号分散在多个文件里时，<code>tag</code> 和代码版本迟早会不一致。</li>
+<li>仓库治理设置一旦被手工改动，如果没有审计任务，<code>include administrators</code>、<code>bypass</code> 和 <code>tag ruleset</code> 的漂移不会自动报警。</li>
+</ul>
+<blockquote>
+<p>实践案例补充：在对话记录 <code>019d5258-3b8a-7d02-bcf7-a5cc0bbb4d4c</code> 围绕 <code>m2c-pipeline</code> 的那轮审查里，我们不是先追求“满配治理”，而是先问 4 个更务实的问题：PR 是否真的会被拦住，Release 是否只能从 <code>main</code> 发，版本是否只有一个真源，治理设置漂移后能不能自动报警。本文的最小方案，就是沿着这条收紧路径整理出来的。</p>
+</blockquote>
+<pre class="mermaid">graph TD
+    A["方案草图"] --> B["冻结 6 个必跑 job"]
+    B --> C["PR 校验可阻断"]
+    C --> D["Tag / 版本一致性"]
+    D --> E["main 血缘校验"]
+    E --> F["治理审计报警"]
+    F --> G["Generic Release"]</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084309_00.webp" alt="为什么“有计划”不等于“可实施”图解：&quot;方案草图&quot;、&quot;冻结 6 个必跑 job&quot;"></p>
+</details>
+
+<h3 id="怎么验证你是不是还停留在“只有计划”的阶段"><a href="#怎么验证你是不是还停留在“只有计划”的阶段" class="headerlink" title="怎么验证你是不是还停留在“只有计划”的阶段"></a>怎么验证你是不是还停留在“只有计划”的阶段</h3><p>如果下面任意一项回答不够确定，就说明还没到“可实施”：</p>
+<ul>
+<li>你的分支保护里，是否已经锁定了固定的 <code>required checks</code> 名称。</li>
+<li>你的 Release 是否明确拒绝来自非 <code>main</code> 血缘的 <code>tag</code>。</li>
+<li>你的版本号是否只有一个来源，<code>tag</code> 校验是否直接对比它。</li>
+<li>你的仓库设置漂移时，是否会在 GitHub Actions 里自动失败。</li>
+</ul>
+<h2 id="最小目标"><a href="#最小目标" class="headerlink" title="最小目标"></a>最小目标</h2><h3 id="为什么要先收敛目标"><a href="#为什么要先收敛目标" class="headerlink" title="为什么要先收敛目标"></a>为什么要先收敛目标</h3><p>最容易把 CI 方案做散的地方，不是 YAML 不会写，而是范围一开始就太大。你一旦同时想做多版本、多个发布变体、复杂矩阵、复用工作流和治理审计，最后很容易变成每一块都做了 60 分，但没有一块真正可上线。</p>
+<h3 id="最小做法"><a href="#最小做法" class="headerlink" title="最小做法"></a>最小做法</h3><p>这篇文章只做下面这些事：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>这次要做到</th>
+<th>这次不做</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>发布物</td>
+<td>只发布 <code>generic</code> 单版本包</td>
+<td>不做 <code>codex</code> 变体</td>
+</tr>
+<tr>
+<td>版本</td>
+<td>只认一个版本源</td>
+<td>不做多处版本同步</td>
+</tr>
+<tr>
+<td>PR 门禁</td>
+<td>固定 6 个 <code>job</code> 名称</td>
+<td>不引入矩阵测试</td>
+</tr>
+<tr>
+<td>Release</td>
+<td>只加 3 个核心 guard</td>
+<td>不扩展多环境发布</td>
+</tr>
+<tr>
+<td>治理</td>
+<td>先做到可审计</td>
+<td>不一开始追求全套企业规则</td>
+</tr>
+</tbody></table>
+<p>这里的思路很简单：先把 Go 做到位，也就是“能稳定拦住不该进主干和不该发版的变更”；等这条链路跑顺以后，再补 <code>required-job-contract</code>、更严格的打包校验和更细的治理拆分，把它收紧到 Go+。</p>
+<h3 id="怎么验证范围收敛是成功的"><a href="#怎么验证范围收敛是成功的" class="headerlink" title="怎么验证范围收敛是成功的"></a>怎么验证范围收敛是成功的</h3><ul>
+<li>你能在一个仓库里只靠 3 个 <code>workflow</code> 跑通 PR、Release 和治理审计。</li>
+<li>你能解释每个 <code>job</code> 的存在理由，而不是“先加上，后面再说”。</li>
+<li>你能用一次 PR、一次 <code>tag</code> 和一次手动审计，把整条链路走完。</li>
+</ul>
+<h2 id="最小目录"><a href="#最小目录" class="headerlink" title="最小目录"></a>最小目录</h2><h3 id="为什么目录要先冻结"><a href="#为什么目录要先冻结" class="headerlink" title="为什么目录要先冻结"></a>为什么目录要先冻结</h3><p>目录一旦不稳定，后面的 <code>workflow</code>、脚本入口、版本校验和打包规则都会变成隐性耦合。最小落地时，先把“哪些文件是门禁链路的一部分”定死，后面排错会轻松很多。</p>
+<h3 id="最小做法-1"><a href="#最小做法-1" class="headerlink" title="最小做法"></a>最小做法</h3><p>下面这组文件，已经足够支撑一条可实施的最小链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">.</span><br><span class="line">|-- .github/</span><br><span class="line">|   `-- workflows/</span><br><span class="line">|       |-- ci.yml</span><br><span class="line">|       |-- release-generic.yml</span><br><span class="line">|       `-- governance-audit.yml</span><br><span class="line">|-- m2c_pipeline/</span><br><span class="line">|   `-- version.py</span><br><span class="line">|-- policy/</span><br><span class="line">|   `-- governance.json</span><br><span class="line">`-- scripts/</span><br><span class="line">    `-- ci/</span><br><span class="line">        |-- check_pr_head.py</span><br><span class="line">        |-- check_skill_spec.py</span><br><span class="line">        |-- check_repo_policy.py</span><br><span class="line">        |-- check_release_tag.py</span><br><span class="line">        |-- governance_audit.py</span><br><span class="line">        |-- package_generic.py</span><br><span class="line">        `-- check_required_job_contract.py</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><code>ci.yml</code>、<code>release-generic.yml</code>、<code>governance-audit.yml</code> 是三条主链路。</li>
+<li><code>m2c_pipeline/version.py</code> 是单一版本源。</li>
+<li><code>policy/governance.json</code> 用来冻结 <code>required checks</code>、默认分支和 <code>tag</code> 规则。</li>
+<li><code>scripts/ci/check_required_job_contract.py</code> 属于 Go+ 扩展，用来防止 <code>required checks</code> 名单和 <code>ci.yml</code> 实际 <code>job</code> 名称漂移。</li>
+</ul>
+<h3 id="怎么验证目录是够用的"><a href="#怎么验证目录是够用的" class="headerlink" title="怎么验证目录是够用的"></a>怎么验证目录是够用的</h3><ul>
+<li>删除这组文件之外的 CI 相关文件后，PR、Release 和审计仍然能跑通。</li>
+<li>任何一个 <code>workflow</code> 的核心逻辑，都能在 <code>scripts/ci/</code> 找到对应脚本。</li>
+<li>版本号变更时，你只需要改 <code>m2c_pipeline/version.py</code> 一处。</li>
+</ul>
+<h2 id="GitHub-Actions-最小落地步骤"><a href="#GitHub-Actions-最小落地步骤" class="headerlink" title="GitHub Actions 最小落地步骤"></a>GitHub Actions 最小落地步骤</h2><h3 id="第-1-步：冻结单一版本源和治理契约"><a href="#第-1-步：冻结单一版本源和治理契约" class="headerlink" title="第 1 步：冻结单一版本源和治理契约"></a>第 1 步：冻结单一版本源和治理契约</h3><p>为什么要做：</p>
+<ul>
+<li>没有单一版本源，就没有可靠的 <code>tag</code> 校验。</li>
+<li>没有治理契约，分支保护和 <code>required checks</code> 迟早会和代码脱节。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li>在 <code>m2c_pipeline/version.py</code> 里只保留一个 <code>__version__</code>。</li>
+<li>在 <code>policy/governance.json</code> 里冻结默认分支、<code>required checks</code>、<code>release_tag_regex</code> 和 <code>tag ruleset</code>。</li>
+<li>需要进一步收紧时，再加一个 <code>check_required_job_contract.py</code>，专门比对治理契约和 <code>ci.yml</code> 的 <code>job</code> 名单。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>本地执行 <code>python scripts/ci/check_release_tag.py --tag v0.1.0</code>，确认 <code>tag</code> 和版本一致时通过，不一致时失败。</li>
+<li>修改 <code>policy/governance.json</code> 里的 <code>required_checks</code> 后，再跑治理或合同校验，确认它会立刻报警。</li>
+</ul>
+<h3 id="第-2-步：把-PR-校验收敛成-6-个固定-job"><a href="#第-2-步：把-PR-校验收敛成-6-个固定-job" class="headerlink" title="第 2 步：把 PR 校验收敛成 6 个固定 job"></a>第 2 步：把 PR 校验收敛成 6 个固定 job</h3><p>为什么要做：</p>
+<ul>
+<li>GitHub 的分支保护不是“认 workflow”，而是“认 status check 名称”。</li>
+<li>所以最重要的不是 job 数量，而是 job 名称必须稳定，且和仓库设置一一对应。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li><code>ci.yml</code> 里固定这 6 个 <code>job</code> 名称：<code>policy-pr-head</code>、<code>skill-spec</code>、<code>repo-policy</code>、<code>unit-tests</code>、<code>offline-smoke</code>、<code>package-dryrun</code>。</li>
+<li>这 6 个名字同步填到分支保护的 <code>required checks</code>。</li>
+<li>不给 <code>ci.yml</code> 增加 <code>paths</code> 或 <code>paths-ignore</code>，避免 required gate 被绕过或长期 <code>pending</code>。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>提一个 PR，确认页面上恰好出现这 6 个状态名。</li>
+<li>故意把某个 <code>job</code> 改名，再看分支保护是否立刻暴露出名称漂移问题。</li>
+</ul>
+<h3 id="第-3-步：给-Release-加-3-个核心-guard"><a href="#第-3-步：给-Release-加-3-个核心-guard" class="headerlink" title="第 3 步：给 Release 加 3 个核心 guard"></a>第 3 步：给 Release 加 3 个核心 guard</h3><p>为什么要做：</p>
+<ul>
+<li>只靠 <code>on.push.tags</code> 触发 Release，解决不了“这个 <code>tag</code> 到底是不是正式代码”的问题。</li>
+<li>真正能拦住越权发布的，是版本一致性、<code>main</code> 血缘和发布动作三段式组合。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li><code>version-guard</code>：校验 <code>tag</code> 是否匹配 <code>version.py</code>。</li>
+<li><code>main-ancestry-guard</code>：用 <code>fetch-depth: 0</code> 和 <code>git merge-base --is-ancestor</code> 确认当前提交来自 <code>origin/main</code>。</li>
+<li><code>build-and-release</code>：只在前两个 guard 通过后执行，打出 <code>generic</code> 包并创建 GitHub Release。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>用 <code>vX.Y.Z</code> 给 <code>main</code> 上的提交打标签，确认流程通过。</li>
+<li>给功能分支打同样格式的 <code>tag</code>，确认血缘校验失败。</li>
+<li>把 <code>version.py</code> 改成 <code>0.1.0</code>，却打 <code>v0.1.1</code>，确认版本校验失败。</li>
+</ul>
+<h3 id="第-4-步：加-governance-audit，让设置漂移会报警"><a href="#第-4-步：加-governance-audit，让设置漂移会报警" class="headerlink" title="第 4 步：加 governance audit，让设置漂移会报警"></a>第 4 步：加 governance audit，让设置漂移会报警</h3><p>为什么要做：</p>
+<ul>
+<li>CI 代码是可见的，但仓库设置经常是“看不见的生产配置”。</li>
+<li>一旦有人手工改掉 <code>include administrators</code>、给分支保护加 bypass，或者移除了 <code>tag ruleset</code>，仓库本身不会自动告诉你。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li>准备一个有仓库治理读取权限的 <code>REPO_ADMIN_AUDIT_TOKEN</code>。</li>
+<li>通过 <code>governance_audit.py</code> 检查分支保护的 <code>required checks</code>、<code>include administrators</code> 和 <code>bypass</code>。</li>
+<li>同时检查 <code>tag ruleset</code> 是否还处于 <code>active</code> 状态，是否匹配 <code>refs/tags/v*</code>，以及 <code>update</code> &#x2F; <code>deletion</code> 规则是否都还在。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>临时移除一个 <code>required check</code>，手动触发审计，确认会失败。</li>
+<li>临时给分支保护增加 bypass 用户或团队，再跑一次审计，确认会失败。</li>
+<li>临时停用 <code>tag ruleset</code> 或删掉 <code>update</code> 规则，再跑一次审计，确认会失败。</li>
+</ul>
+<h3 id="第-5-步：跑一次端到端验收"><a href="#第-5-步：跑一次端到端验收" class="headerlink" title="第 5 步：跑一次端到端验收"></a>第 5 步：跑一次端到端验收</h3><p>为什么要做：</p>
+<ul>
+<li>只看 YAML 不够，只有把 PR、离线验证、<code>tag</code> 发布和治理审计都走一遍，才算真正落地。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li>用一个 PR 验证 6 个固定门禁。</li>
+<li>用离线 <code>fallback</code> 跑一次 dry-run，确认核心命令在本地或 CI 都能执行。</li>
+<li>用一个正式格式的 <code>tag</code> 触发 Release。</li>
+<li>手动触发一次治理审计，确认当前设置和契约一致。</li>
+</ul>
+<p>怎么验证：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m m2c_pipeline &lt;input&gt; --dry-run --translation-mode fallback</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>m2c-pipeline</code> 这个仓库里的对应验证命令是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python -m m2c_pipeline tests/fixtures/test_input.md --dry-run --translation-mode fallback</span><br></pre></td></tr></table></figure>
+
+<p>如果你的仓库已经约定了根目录 <code>venv</code> 入口，那么把上面的 <code>python</code> 统一替换成 <code>./venv/bin/python</code> 即可。我们在 <code>m2c-pipeline</code> 的实践里，后续也是沿着这条思路把本地和 GitHub Actions 的解释器入口收紧到同一套约定。</p>
+<h2 id="关键-YAML-示例"><a href="#关键-YAML-示例" class="headerlink" title="关键 YAML 示例"></a>关键 YAML 示例</h2><h3 id="ci-yml：6-个固定-job-的最小版本"><a href="#ci-yml：6-个固定-job-的最小版本" class="headerlink" title="ci.yml：6 个固定 job 的最小版本"></a><code>ci.yml</code>：6 个固定 job 的最小版本</h3><p>为什么要这样写：</p>
+<ul>
+<li>这 6 个 <code>job</code> 就是你要锁进分支保护的“门禁清单”。</li>
+<li>它们可以以后扩展实现，但名字不要轻易动。</li>
+</ul>
+<p>最小做法如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">ci</span></span><br><span class="line"></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">pull_request:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">main</span></span><br><span class="line"></span><br><span class="line"><span class="attr">permissions:</span></span><br><span class="line">  <span class="attr">contents:</span> <span class="string">read</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">policy-pr-head:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">policy-pr-head</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/check_pr_head.py</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">skill-spec:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">skill-spec</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/check_skill_spec.py</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">repo-policy:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">repo-policy</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/check_repo_policy.py</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">unit-tests:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">unit-tests</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&quot;3.11&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-r</span> <span class="string">requirements.txt</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">unittest</span> <span class="string">discover</span> <span class="string">-s</span> <span class="string">tests</span> <span class="string">-p</span> <span class="string">&quot;test_*.py&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">offline-smoke:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">offline-smoke</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&quot;3.11&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-r</span> <span class="string">requirements.txt</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">m2c_pipeline</span> <span class="string">tests/fixtures/test_input.md</span> <span class="string">--dry-run</span> <span class="string">--translation-mode</span> <span class="string">fallback</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">package-dryrun:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">package-dryrun</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&quot;3.11&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-r</span> <span class="string">requirements.txt</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/package_generic.py</span> <span class="string">--output-dir</span> <span class="string">dist</span></span><br></pre></td></tr></table></figure>
+
+<p>怎么验证：</p>
+<ul>
+<li>PR 页面上必须出现这 6 个状态名，且和分支保护配置完全一致。</li>
+<li>如果你要走 Go+，就在这个基础上再补一个 <code>required-job-contract</code>，专门防止 <code>required checks</code> 漂移。</li>
+</ul>
+<h3 id="release-generic-yml：3-个核心-job-的最小版本"><a href="#release-generic-yml：3-个核心-job-的最小版本" class="headerlink" title="release-generic.yml：3 个核心 job 的最小版本"></a><code>release-generic.yml</code>：3 个核心 job 的最小版本</h3><p>为什么要这样写：</p>
+<ul>
+<li><code>version-guard</code> 和 <code>main-ancestry-guard</code> 是正式发布前的最小闭环。</li>
+<li><code>build-and-release</code> 必须只在两个 guard 都通过后才执行。</li>
+</ul>
+<p>最小做法如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">release-generic</span></span><br><span class="line"></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">tags:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;v*&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">permissions:</span></span><br><span class="line">  <span class="attr">contents:</span> <span class="string">read</span></span><br><span class="line"></span><br><span class="line"><span class="attr">concurrency:</span></span><br><span class="line">  <span class="attr">group:</span> <span class="string">release-$&#123;&#123;</span> <span class="string">github.ref</span> <span class="string">&#125;&#125;</span></span><br><span class="line">  <span class="attr">cancel-in-progress:</span> <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">version-guard:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">version-guard</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/check_release_tag.py</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">main-ancestry-guard:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">main-ancestry-guard</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">fetch-depth:</span> <span class="number">0</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          git fetch origin main --tags</span></span><br><span class="line"><span class="string">          git merge-base --is-ancestor &quot;$GITHUB_SHA&quot; &quot;origin/main&quot;</span></span><br><span class="line"><span class="string"></span>        <span class="attr">shell:</span> <span class="string">bash</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">build-and-release:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">build-and-release</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">needs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">version-guard</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">main-ancestry-guard</span></span><br><span class="line">    <span class="attr">permissions:</span></span><br><span class="line">      <span class="attr">contents:</span> <span class="string">write</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&quot;3.11&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">-m</span> <span class="string">pip</span> <span class="string">install</span> <span class="string">-r</span> <span class="string">requirements.txt</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/package_generic.py</span> <span class="string">--output-dir</span> <span class="string">dist</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">|</span></span><br><span class="line"><span class="string">          VERSION=&quot;$(python -c &#x27;from m2c_pipeline.version import __version__; print(__version__)&#x27;)&quot;</span></span><br><span class="line"><span class="string">          ZIP_PATH=&quot;dist/m2c-pipeline-generic-v$&#123;VERSION&#125;.zip&quot;</span></span><br><span class="line"><span class="string">          SHA_PATH=&quot;$&#123;ZIP_PATH&#125;.sha256&quot;</span></span><br><span class="line"><span class="string">          gh release create &quot;$GITHUB_REF_NAME&quot; &quot;$ZIP_PATH&quot; &quot;$SHA_PATH&quot; \</span></span><br><span class="line"><span class="string">            --title &quot;$GITHUB_REF_NAME&quot; \</span></span><br><span class="line"><span class="string">            --notes &quot;Generic release package&quot;</span></span><br><span class="line"><span class="string"></span>        <span class="attr">env:</span></span><br><span class="line">          <span class="attr">GH_TOKEN:</span> <span class="string">$&#123;&#123;</span> <span class="string">github.token</span> <span class="string">&#125;&#125;</span></span><br><span class="line">        <span class="attr">shell:</span> <span class="string">bash</span></span><br></pre></td></tr></table></figure>
+
+<p>怎么验证：</p>
+<ul>
+<li><code>fetch-depth: 0</code> 和 <code>git fetch origin main --tags</code> 必须同时存在，否则 <code>main</code> 血缘判断很容易失真。</li>
+<li>在正式仓库里，可以像 <code>m2c-pipeline</code> 一样再补一个 <code>governance-precheck</code>，把治理审计前置到发布链路里。</li>
+</ul>
+<h3 id="governance-audit-yml：最小治理审计入口"><a href="#governance-audit-yml：最小治理审计入口" class="headerlink" title="governance-audit.yml：最小治理审计入口"></a><code>governance-audit.yml</code>：最小治理审计入口</h3><p>为什么要这样写：</p>
+<ul>
+<li>它的目标不是替代仓库设置，而是盯住仓库设置有没有漂移。</li>
+<li>只要支持手动触发和定时触发，最小闭环就成立了。</li>
+</ul>
+<p>最小做法如下：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">governance-audit</span></span><br><span class="line"></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">schedule:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="attr">cron:</span> <span class="string">&quot;17 2 * * *&quot;</span></span><br><span class="line">  <span class="attr">workflow_dispatch:</span></span><br><span class="line"></span><br><span class="line"><span class="attr">permissions:</span></span><br><span class="line">  <span class="attr">contents:</span> <span class="string">read</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">governance-audit:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">governance-audit</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-python@v5</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">python-version:</span> <span class="string">&quot;3.11&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">python</span> <span class="string">scripts/ci/governance_audit.py</span> <span class="string">--mode</span> <span class="string">all</span></span><br><span class="line">        <span class="attr">env:</span></span><br><span class="line">          <span class="attr">GITHUB_TOKEN:</span> <span class="string">$&#123;&#123;</span> <span class="string">secrets.REPO_ADMIN_AUDIT_TOKEN</span> <span class="string">&#125;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>对应的核心审计逻辑可以收敛成下面这组判断：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">expected_contexts = <span class="built_in">sorted</span>(contract[<span class="string">&quot;required_checks&quot;</span>])</span><br><span class="line">contexts = <span class="built_in">sorted</span>(required_checks.get(<span class="string">&quot;contexts&quot;</span>, []))</span><br><span class="line"><span class="keyword">if</span> contexts != expected_contexts:</span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;required checks drift&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> <span class="keyword">not</span> enforce_admins.get(<span class="string">&quot;enabled&quot;</span>, <span class="literal">False</span>):</span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;include administrators must stay enabled&quot;</span>)</span><br><span class="line"></span><br><span class="line">bypass_allowances = (</span><br><span class="line">    protection.get(<span class="string">&quot;required_pull_request_reviews&quot;</span>, &#123;&#125;) <span class="keyword">or</span> &#123;&#125;</span><br><span class="line">).get(<span class="string">&quot;bypass_pull_request_allowances&quot;</span>, &#123;&#125;) <span class="keyword">or</span> &#123;&#125;</span><br><span class="line"><span class="keyword">if</span> <span class="built_in">any</span>(bypass_allowances.get(key) <span class="keyword">for</span> key <span class="keyword">in</span> (<span class="string">&quot;users&quot;</span>, <span class="string">&quot;teams&quot;</span>, <span class="string">&quot;apps&quot;</span>)):</span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;branch protection bypass must stay empty&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ruleset.get(<span class="string">&quot;bypass_actors&quot;</span>, []) <span class="keyword">or</span> []:</span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;tag ruleset bypass must stay empty&quot;</span>)</span><br><span class="line"></span><br><span class="line">include_patterns = ((ruleset.get(<span class="string">&quot;conditions&quot;</span>, &#123;&#125;) <span class="keyword">or</span> &#123;&#125;).get(<span class="string">&quot;ref_name&quot;</span>, &#123;&#125;) <span class="keyword">or</span> &#123;&#125;).get(<span class="string">&quot;include&quot;</span>, [])</span><br><span class="line"><span class="keyword">if</span> <span class="string">&quot;refs/tags/v*&quot;</span> <span class="keyword">not</span> <span class="keyword">in</span> include_patterns:</span><br><span class="line">    <span class="keyword">raise</span> RuntimeError(<span class="string">&quot;tag ruleset include pattern drift&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>怎么验证：</p>
+<ul>
+<li>在分支保护里删掉一个 <code>required check</code>，再手动跑一次，应该失败。</li>
+<li>关闭 <code>include administrators</code>，再跑一次，应该失败。</li>
+<li>给 <code>tag ruleset</code> 增加 bypass actor，或者删掉 <code>update</code> &#x2F; <code>deletion</code> 规则，再跑一次，也应该失败。</li>
+</ul>
+<h3 id="version-py：单一版本源与-tag-对比"><a href="#version-py：单一版本源与-tag-对比" class="headerlink" title="version.py：单一版本源与 tag 对比"></a><code>version.py</code>：单一版本源与 <code>tag</code> 对比</h3><p>为什么要这样写：</p>
+<ul>
+<li>单一版本源越简单，发布链路越不容易漂移。</li>
+<li><code>tag</code> 校验不要自己再维护第二套版本号，直接读源码里的版本定义。</li>
+</ul>
+<p>最小做法如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># m2c_pipeline/version.py</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;Version metadata for m2c_pipeline.&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line">__version__ = <span class="string">&quot;0.1.0&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># scripts/ci/check_release_tag.py</span></span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> m2c_pipeline.version <span class="keyword">import</span> __version__</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">validate_release_tag</span>(<span class="params">tag: <span class="built_in">str</span></span>) -&gt; <span class="literal">None</span>:</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> re.fullmatch(<span class="string">r&quot;^v\d+\.\d+\.\d+$&quot;</span>, tag):</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">&quot;invalid release tag format&quot;</span>)</span><br><span class="line"></span><br><span class="line">    expected = <span class="string">f&quot;v<span class="subst">&#123;__version__&#125;</span>&quot;</span></span><br><span class="line">    <span class="keyword">if</span> tag != expected:</span><br><span class="line">        <span class="keyword">raise</span> ValueError(<span class="string">f&quot;tag <span class="subst">&#123;tag!r&#125;</span> does not match version <span class="subst">&#123;expected!r&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">validate_release_tag(os.environ[<span class="string">&quot;GITHUB_REF_NAME&quot;</span>])</span><br></pre></td></tr></table></figure>
+
+<p>怎么验证：</p>
+<ul>
+<li><code>version.py</code> 改成 <code>0.2.0</code> 时，只有 <code>v0.2.0</code> 能通过。</li>
+<li>任意 <code>v0.2</code>、<code>release-0.2.0</code> 或 <code>v0.2.1</code> 都必须失败。</li>
+</ul>
+<h2 id="严格验收清单"><a href="#严格验收清单" class="headerlink" title="严格验收清单"></a>严格验收清单</h2><h3 id="为什么一定要有验收清单"><a href="#为什么一定要有验收清单" class="headerlink" title="为什么一定要有验收清单"></a>为什么一定要有验收清单</h3><p>CI 最怕“大家都觉得已经配好了”。真正能防止回归的，不是感觉，而是一张每次发版前都能逐条勾掉的清单。</p>
+<h3 id="最小做法-2"><a href="#最小做法-2" class="headerlink" title="最小做法"></a>最小做法</h3><p>发布前，下面这些项必须全部通过：</p>
+<ul>
+<li><input disabled="" type="checkbox"> <code>ci.yml</code> 中 6 个固定 <code>job</code> 名称与分支保护中的 <code>required checks</code> 完全一致。</li>
+<li><input disabled="" type="checkbox"> PR 提交后，这 6 个状态都能真实运行，不存在被 <code>paths-ignore</code> 或条件逻辑跳过的门禁。</li>
+<li><input disabled="" type="checkbox"> <code>python -m m2c_pipeline &lt;input&gt; --dry-run --translation-mode fallback</code> 可以在本地或 CI 正常执行。</li>
+<li><input disabled="" type="checkbox"> <code>m2c_pipeline/version.py</code> 是唯一版本源，<code>tag</code> 命名满足 <code>vX.Y.Z</code>。</li>
+<li><input disabled="" type="checkbox"> <code>release-generic.yml</code> 中 <code>version-guard</code>、<code>main-ancestry-guard</code>、<code>build-and-release</code> 三个核心 <code>job</code> 都按依赖顺序执行。</li>
+<li><input disabled="" type="checkbox"> <code>main-ancestry-guard</code> 使用了 <code>fetch-depth: 0</code>，并执行了 <code>git fetch origin main --tags</code>。</li>
+<li><input disabled="" type="checkbox"> 分支保护启用了 <code>include administrators</code>，且 bypass 为空。</li>
+<li><input disabled="" type="checkbox"> <code>tag ruleset</code> 仍然处于 <code>active</code>，并覆盖 <code>refs/tags/v*</code>。</li>
+<li><input disabled="" type="checkbox"> 治理审计可以通过手动触发发现设置漂移。</li>
+<li><input disabled="" type="checkbox"> Release 产物只输出 <code>generic</code> 包与对应校验文件。</li>
+</ul>
+<h3 id="怎么验证"><a href="#怎么验证" class="headerlink" title="怎么验证"></a>怎么验证</h3><ul>
+<li>先走一次 PR，确认 6 个门禁都绿。</li>
+<li>再打一枚测试 <code>tag</code>，确认 Release 成功。</li>
+<li>最后手动触发一次治理审计，确认当前仓库设置和契约一致。</li>
+</ul>
+<h2 id="常见坑与修复"><a href="#常见坑与修复" class="headerlink" title="常见坑与修复"></a>常见坑与修复</h2><h3 id="1-job-改名后，分支保护看起来还在，其实已经失效"><a href="#1-job-改名后，分支保护看起来还在，其实已经失效" class="headerlink" title="1. job 改名后，分支保护看起来还在，其实已经失效"></a>1. <code>job</code> 改名后，分支保护看起来还在，其实已经失效</h3><p>为什么会踩坑：</p>
+<ul>
+<li>GitHub 锁的是 <code>status check</code> 名称，不是“这个功能大概还在”。</li>
+</ul>
+<p>最小修复：</p>
+<ul>
+<li>固定 6 个 <code>job</code> 名称。</li>
+<li>把这 6 个名字冻结到 <code>policy/governance.json</code>。</li>
+<li>如果要走 Go+，再加一个 <code>check_required_job_contract.py</code>，自动比对 <code>ci.yml</code> 和治理契约。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>故意把 <code>offline-smoke</code> 改名成别的，再看校验是否能及时失败。</li>
+</ul>
+<h3 id="2-tag-不是从-main-打出来，仍然触发了正式发布"><a href="#2-tag-不是从-main-打出来，仍然触发了正式发布" class="headerlink" title="2. tag 不是从 main 打出来，仍然触发了正式发布"></a>2. <code>tag</code> 不是从 <code>main</code> 打出来，仍然触发了正式发布</h3><p>为什么会踩坑：</p>
+<ul>
+<li><code>on.push.tags</code> 只认事件，不认这次事件是不是来自主干血缘。</li>
+</ul>
+<p>最小修复：</p>
+<ul>
+<li>在 <code>main-ancestry-guard</code> 里使用 <code>fetch-depth: 0</code>。</li>
+<li>显式执行 <code>git fetch origin main --tags</code>。</li>
+<li>用 <code>git merge-base --is-ancestor &quot;$GITHUB_SHA&quot; &quot;origin/main&quot;</code> 做血缘判断。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>从功能分支打一个合法格式的 <code>tag</code>，确认 Release 被拦住。</li>
+</ul>
+<h3 id="3-打包脚本只看路径字符串，没防-symlink-逃逸"><a href="#3-打包脚本只看路径字符串，没防-symlink-逃逸" class="headerlink" title="3. 打包脚本只看路径字符串，没防 symlink 逃逸"></a>3. 打包脚本只看路径字符串，没防 <code>symlink</code> 逃逸</h3><p>为什么会踩坑：</p>
+<ul>
+<li>只做字符串白名单时，软链接可能把仓库外文件偷偷带进发布包。</li>
+</ul>
+<p>最小修复：</p>
+<ul>
+<li>遍历目录时显式拒绝 <code>symlink</code> 文件和目录。</li>
+<li>用 <code>resolve_within_repo()</code> 之类的真实路径校验，确认所有文件都还在仓库根目录之下。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>故意在 allowlist 目录下放一个指向仓库外部的软链接，确认打包脚本直接失败。</li>
+</ul>
+<h3 id="4-required-check-被-paths-ignore-或条件判断跳过"><a href="#4-required-check-被-paths-ignore-或条件判断跳过" class="headerlink" title="4. required check 被 paths-ignore 或条件判断跳过"></a>4. <code>required check</code> 被 <code>paths-ignore</code> 或条件判断跳过</h3><p>为什么会踩坑：</p>
+<ul>
+<li>对 required gate 来说，“没跑”不是优化，往往只会造成 <code>pending</code>、误判，或者让门禁语义变得不稳定。</li>
+</ul>
+<p>最小修复：</p>
+<ul>
+<li>不给 <code>ci.yml</code> 增加 <code>paths</code> &#x2F; <code>paths-ignore</code>。</li>
+<li>把“可以跳过的逻辑”放在脚本内部做判断，而不是让 required <code>job</code> 本身不触发。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>修改任意路径都触发一次 PR，确认 required gate 始终按固定名称出现。</li>
+</ul>
+<h3 id="5-本地用-venv，CI-却跑系统-python"><a href="#5-本地用-venv，CI-却跑系统-python" class="headerlink" title="5. 本地用 venv，CI 却跑系统 python"></a>5. 本地用 <code>venv</code>，CI 却跑系统 <code>python</code></h3><p>为什么会踩坑：</p>
+<ul>
+<li>本地和 CI 的解释器入口不一致时，最常见的结果就是“本地绿，线上红”。</li>
+</ul>
+<p>最小修复：</p>
+<ul>
+<li>最小教程阶段可以统一写成 <code>python</code>，但一旦仓库约定了固定解释器入口，就要在本地和 GitHub Actions 一起收紧。</li>
+<li>在 <code>m2c-pipeline</code> 的实践里，后续就是把执行入口统一到 <code>./venv/bin/python</code>，避免环境语义漂移。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>本地和 CI 使用同一套依赖安装方式与 Python 入口，再跑一次 <code>unit-tests</code> 和 <code>offline-smoke</code>。</li>
+</ul>
+<h2 id="实战补遗：从-release-generic-迁到-release-please"><a href="#实战补遗：从-release-generic-迁到-release-please" class="headerlink" title="实战补遗：从 release-generic 迁到 release-please"></a>实战补遗：从 <code>release-generic</code> 迁到 <code>release-please</code></h2><h3 id="为什么值得补这一段"><a href="#为什么值得补这一段" class="headerlink" title="为什么值得补这一段"></a>为什么值得补这一段</h3><p>前文的 <code>release-generic</code> 适合先把“正式发布不能乱发”这条链路做稳，但当仓库开始想沉淀更接近成熟开源项目的工作流时，只靠 <code>tag</code> 驱动发布会慢慢暴露出两个限制：</p>
+<ul>
+<li>版本号、<code>CHANGELOG.md</code>、发布说明还是要手工维护。</li>
+<li>“PR merge 后应该怎么开版本”这件事，缺少一条标准化的 release PR 流程。</li>
+</ul>
+<p>在 <code>m2c-pipeline</code> 的后续实战里，我们把这条链路从 <code>release-generic.yml</code> 迁到了 <code>release-please.yml</code>，目标不是“再多一个 workflow”，而是把流程切成更标准的两段：</p>
+<ol>
+<li>功能 PR 进入 <code>main</code></li>
+<li><code>release-please</code> 自动创建 release PR</li>
+<li>merge release PR</li>
+<li>自动创建 <code>tag</code>、GitHub Release 和发布资产</li>
+</ol>
+<h3 id="这里最容易误解的一点：为什么是-push-main-触发"><a href="#这里最容易误解的一点：为什么是-push-main-触发" class="headerlink" title="这里最容易误解的一点：为什么是 push main 触发"></a>这里最容易误解的一点：为什么是 <code>push main</code> 触发</h3><p>很多人第一次看到 <code>release-please.yml</code> 写成 <code>on.push.branches: [main]</code>，会以为这意味着“可以直接 push main”。实际上不是。</p>
+<p>在 GitHub Actions 语义里，PR merge 到 <code>main</code> 之后，GitHub 会把合并结果写入 <code>main</code>。这次“写入 <code>main</code>”本身就是一次 <code>push</code> 事件，所以 workflow 会在这里启动。</p>
+<p>对应时序可以收敛成下面这张图：</p>
+<pre class="mermaid">sequenceDiagram
+    participant You as You
+    participant Dev as dev branch
+    participant PR as dev -> main PR
+    participant Main as main branch
+    participant RP as release-please workflow
+    participant RPR as release PR
+
+    You->>Dev: push commits to dev
+    You->>PR: open PR to main
+    You->>PR: merge PR
+    PR->>Main: GitHub writes merge commit to main
+    Main->>RP: push event on main triggers workflow
+    RP->>RPR: create or update release PR</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084411_01.webp" alt="这里最容易误解的一点：为什么是 push main 触发图解"></p>
+</details>
+
+<p>所以这条链路并没有绕过分支保护，反而是严格建立在“只能通过 PR 改 <code>main</code>”的前提上。</p>
+<h3 id="最小迁移做法"><a href="#最小迁移做法" class="headerlink" title="最小迁移做法"></a>最小迁移做法</h3><p>这次迁移里，我们实际收敛成了下面这组文件：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">.github/workflows/release-please.yml</span><br><span class="line">release-please-config.json</span><br><span class="line">.release-please-manifest.json</span><br><span class="line">CHANGELOG.md</span><br></pre></td></tr></table></figure>
+
+<p>同时配套做了三类收紧：</p>
+<ul>
+<li>保留 <code>main</code> 作为唯一发布分支，<code>dev</code> 继续作为集成分支。</li>
+<li><code>dev -&gt; main</code> 默认使用 <code>merge commit</code>，避免 squash 后丢失 conventional commit 语义。</li>
+<li>版本号不再在功能 PR 里手工改，交给 release PR 统一更新。</li>
+</ul>
+<p>在 <code>m2c-pipeline</code> 的这次实现里，<code>release-please.yml</code> 不再拆成“workflow A 打 tag，workflow B 靠 tag 再发 release”的链式设计，而是把 release PR、GitHub Release 和 zip&#x2F;sha256 资产上传收进同一个 workflow，避免 <code>GITHUB_TOKEN</code> 触发链断掉。</p>
+<h3 id="这次真实踩到的坑：startup-failure-不是-YAML-语法错"><a href="#这次真实踩到的坑：startup-failure-不是-YAML-语法错" class="headerlink" title="这次真实踩到的坑：startup_failure 不是 YAML 语法错"></a>这次真实踩到的坑：<code>startup_failure</code> 不是 YAML 语法错</h3><p>这轮迁移里，最有价值的排障结论其实不是 <code>release-please</code> 配置本身，而是 GitHub 仓库侧的 Actions policy。</p>
+<p>现象是：</p>
+<ul>
+<li><code>dev -&gt; main</code> 的验证 PR 一开始没有正常跑 <code>ci</code></li>
+<li>GitHub 里显示的是 <code>startup_failure</code></li>
+<li><code>actionlint</code> 本地检查又是全绿</li>
+</ul>
+<p>最后定位到的真正原因是：仓库的 Actions policy 被设成了 <code>local_only</code>。这会把 <code>actions/checkout</code>、<code>googleapis/release-please-action</code> 这类外部 action 一起拦掉，所以 workflow 会在“启动前”直接失败，而不是在某个 step 里报错。</p>
+<h3 id="最小修复"><a href="#最小修复" class="headerlink" title="最小修复"></a>最小修复</h3><p>把仓库的 Actions policy 从 <code>local_only</code> 收紧成 <code>selected</code>，然后只放行当前确实需要的动作：</p>
+<ul>
+<li>GitHub-owned actions</li>
+<li><code>anthropics/claude-code-action</code></li>
+<li><code>googleapis/release-please-action</code></li>
+</ul>
+<p>这一点非常适合写进自己的方法论：如果 workflow 表面没问题，但 GitHub 显示 <code>startup_failure</code>，先查仓库级 Actions policy，不要一上来就怀疑 YAML。</p>
+<h3 id="迁移后的最小验收"><a href="#迁移后的最小验收" class="headerlink" title="迁移后的最小验收"></a>迁移后的最小验收</h3><p>这次实战最后确认通过的验收链路是：</p>
+<ol>
+<li>补发历史缺失的 <code>v0.2.0</code>，让旧的 tag 驱动 release 正式收口。</li>
+<li>把 <code>release-please</code> 迁移提交合入 <code>dev</code>。</li>
+<li>从 <code>dev</code> 发 PR 到 <code>main</code>，并用 <code>merge commit</code> 合并。</li>
+<li>确认 <code>release-please.yml</code> 在 <code>main</code> 更新后跑起来。</li>
+<li>确认自动生成 release PR。</li>
+</ol>
+<p>在 <code>m2c-pipeline</code> 这次验证里，<code>dev -&gt; main</code> 合并后，<code>release-please.yml</code> 成功运行，并自动创建了形如 <code>release-please--branches--main--components--m2c-pipeline</code> 的 release PR。这说明“主线集成 PR”和“正式发版 PR”已经被拆成了两层，仓库从“手工 tag 驱动”切到了更标准的 release PR 模型。</p>
+<h2 id="本项目完整工作流设计方案：从-Mermaid-输入到-Skill-发布闭环"><a href="#本项目完整工作流设计方案：从-Mermaid-输入到-Skill-发布闭环" class="headerlink" title="本项目完整工作流设计方案：从 Mermaid 输入到 Skill 发布闭环"></a>本项目完整工作流设计方案：从 Mermaid 输入到 Skill 发布闭环</h2><p>这一节补的不是“再给一个更复杂的 YAML 示例”，而是把前文的教学态最小方案，和 <code>m2c-pipeline</code> 当前仓库里的真实闭环接起来。前文里的 <code>release-generic</code> 仍然适合作为 Go 基线理解；但如果你想知道这个项目现在实际上怎么从 Mermaid 输入一路跑到 Release、资产上传和 <code>skill</code> 分支发布，就要看这一层。</p>
+<pre class="mermaid">graph LR
+    A["Markdown 输入"] --> B["CLI / 配置加载"]
+    B --> C["Extract / Translate"]
+    C --> D["Paint / Store"]
+    D --> E["PR 门禁（7 checks）"]
+    E --> F["merge 到 main"]
+    F --> G["release-please + 资产上传"]
+    G --> H["skill 分支发布 + governance audit"]</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/diagram_20260417_084511_02.webp" alt="本项目完整工作流设计方案：从 Mermaid 输入到 Skill 发布闭环图解：&quot;Markdown 输入&quot;、&quot;CLI &#x2F; 配置加载&quot;"></p>
+</details>
+
+<h3 id="这节补的是哪一层闭环"><a href="#这节补的是哪一层闭环" class="headerlink" title="这节补的是哪一层闭环"></a>这节补的是哪一层闭环</h3><p>为什么要单独补这一节：</p>
+<ul>
+<li>前文主要回答“最小门禁应该怎么搭”，所以刻意把链路收敛成 6 个 PR job、3 个 Release guard 和 1 条治理审计线。</li>
+<li>但 <code>m2c-pipeline</code> 当前仓库已经演进到另一层：PR 门禁里补上了 <code>required-job-contract</code>，发布侧改成 <code>release-please</code> 主导，发布后还会自动推送 <code>skill</code> 分支。</li>
+<li>也就是说，前文是教学用的最小实现，本节是仓库当前真实运行的完整设计图。</li>
+</ul>
+<p>怎么理解这两层关系：</p>
+<ul>
+<li>如果你在搭第一版 CI，前文那套 Go 基线更容易上手。</li>
+<li>如果你在对照 <code>m2c-pipeline</code> 仓库本身排查问题，就应该以本节描述的真实闭环为准。</li>
+</ul>
+<h3 id="运行链路：从-Markdown-到-PNG"><a href="#运行链路：从-Markdown-到-PNG" class="headerlink" title="运行链路：从 Markdown 到 PNG"></a>运行链路：从 Markdown 到 PNG</h3><p>为什么要先看运行链路：</p>
+<ul>
+<li>这个仓库不是“先有 CI，再想办法找个命令塞进去”，而是先有一条固定的产品流水线，再围绕它加门禁和发布。</li>
+<li>所以 GitHub Actions 里的每个 job，本质上都在保护这条 CLI-first 的运行链路不要失真。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li>统一入口是 <code>./venv/bin/python -m m2c_pipeline &lt;input.md&gt;</code>，本仓库后续新增命令都应该沿用这套解释器约定，而不是继续泛化成系统 <code>python</code>。</li>
+<li>配置来源先读 <code>.env</code>，再由 CLI 参数通过 <code>apply_overrides()</code> 覆盖，这样本地默认值和临时试验值不会混在一起。</li>
+<li><code>fallback</code> 翻译模式只允许搭配 <code>--dry-run</code> 使用；如果要走 <code>vertex</code> 模式，就必须提供 <code>M2C_PROJECT_ID</code>。</li>
+<li><code>M2CPipeline.run()</code> 的阶段顺序是固定的：<code>Extract -&gt; Translate -&gt; Paint -&gt; Store</code>。</li>
+<li><code>--dry-run</code> 只做提取和提词，不初始化 painter 或 storage；这一点也被测试显式锁住了。</li>
+<li>正式生成时，如果图片生成失败，会把 prompt 落成 <code>*_FAILED.txt</code>；如果成功，输出 PNG 会写入 <code>mermaid_source</code>、<code>image_prompt</code>、<code>generated_at</code> 等元数据。</li>
+</ul>
+<p>怎么验证：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">./venv/bin/python -m m2c_pipeline tests/fixtures/test_input.md --dry-run --translation-mode fallback</span><br><span class="line">./venv/bin/python -m m2c_pipeline tests/fixtures/test_input.md --translation-mode vertex --output-dir ./output</span><br></pre></td></tr></table></figure>
+
+<p>第一条命令验证“无云凭据时也能先检查提词链路”，第二条命令才是真正调用 Vertex AI 生成图片。</p>
+<h3 id="交付链路：从-PR-到-Release-与-skill-分发"><a href="#交付链路：从-PR-到-Release-与-skill-分发" class="headerlink" title="交付链路：从 PR 到 Release 与 skill 分发"></a>交付链路：从 PR 到 Release 与 skill 分发</h3><p>为什么要单独看交付链路：</p>
+<ul>
+<li>运行链路保证“东西能跑”，交付链路保证“只有符合约束的东西才能进主线、出版本、被分发给 skill 用户”。</li>
+<li>这也是 <code>m2c-pipeline</code> 和前文教学态最小方案最容易产生语义错位的地方。</li>
+</ul>
+<p>最小做法：</p>
+<ul>
+<li><code>ci.yml</code> 现在的 required checks 已经不是前文教学态的 6 个，而是 7 个：<ul>
+<li><code>policy-pr-head</code></li>
+<li><code>skill-spec</code></li>
+<li><code>repo-policy</code></li>
+<li><code>unit-tests</code></li>
+<li><code>offline-smoke</code></li>
+<li><code>package-dryrun</code></li>
+<li><code>required-job-contract</code></li>
+</ul>
+</li>
+<li>这 7 个名字同时冻结在 <code>policy/governance.json</code> 和 <code>ci.yml</code> 里，<code>required-job-contract</code> 专门防止治理契约和 workflow 实际 job 名称漂移。</li>
+<li><code>release-please.yml</code> 的触发点是 <code>push main</code>。它的职责不是“每次 push main 都直接发版”，而是在主线更新后创建或更新 release PR。</li>
+<li>只有在 <code>release-please</code> 真的创建了 release 之后，workflow 才会继续做后半段动作：checkout 已发布 tag、校验 <code>tag</code> 与版本契约、构建通用 zip 包、上传 <code>zip + sha256</code> 资产，并发布 <code>skill</code> 分支。</li>
+<li><code>claude-review.yml</code> 在这里是协作型补充 workflow：它响应评论中的 <code>@claude</code>，帮助处理代码审查或局部修复，但它不是 required gate，也不属于主发布闭环的一部分。</li>
+</ul>
+<p>怎么验证：</p>
+<ul>
+<li>提一个普通功能 PR，确认页面出现的是上面这 7 个固定状态名，而不是前文教学示例里的 6 个。</li>
+<li>PR merge 到 <code>main</code> 之后，确认 <code>release-please.yml</code> 运行并创建或更新 release PR。</li>
+<li>release 真正创建后，确认 Release 页面拿到 <code>m2c-pipeline-generic-vX.Y.Z.zip</code> 和对应 <code>.sha256</code>，同时 <code>skill</code> 分支被自动刷新。</li>
+</ul>
+<h3 id="治理链路：为什么这条发布线不会慢慢漂移"><a href="#治理链路：为什么这条发布线不会慢慢漂移" class="headerlink" title="治理链路：为什么这条发布线不会慢慢漂移"></a>治理链路：为什么这条发布线不会慢慢漂移</h3><p>为什么要单独看治理链路：</p>
+<ul>
+<li>很多仓库到这一步会卡住，不是因为 CI 不会写，而是因为仓库设置、ruleset 和分发白名单慢慢漂移了。</li>
+<li><code>m2c-pipeline</code> 的做法不是“希望大家别改坏”，而是把这些高风险配置变成可审计的契约。</li>
+</ul>
+<p>最小做法：</p>
+<table>
+<thead>
+<tr>
+<th>链路</th>
+<th>触发点</th>
+<th>守护对象</th>
+<th>漂移后会怎样</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>branch protection audit</td>
+<td><code>governance-audit.yml</code> 的 <code>push main</code>、定时任务、手动触发</td>
+<td><code>main</code> 的 required checks、<code>include administrators</code>、bypass 为空</td>
+<td>分支保护和治理契约不一致时直接失败</td>
+</tr>
+<tr>
+<td>tag ruleset audit</td>
+<td>同一条 <code>governance-audit.yml</code></td>
+<td><code>refs/tags/v*</code> 的 active ruleset，以及 <code>update</code> &#x2F; <code>deletion</code> 规则</td>
+<td>tag 规则缺失、停用或被放宽时直接失败</td>
+</tr>
+<tr>
+<td>skill branch ruleset audit</td>
+<td>同一条 <code>governance-audit.yml</code></td>
+<td><code>refs/heads/skill</code> 的分支 ruleset</td>
+<td><code>skill</code> 分支保护被删或收紧方向错误时直接失败</td>
+</tr>
+<tr>
+<td>package allowlist</td>
+<td><code>package-dryrun</code> 与正式打包阶段</td>
+<td>真正允许进入发布包和 <code>skill</code> 分支的文件集合</td>
+<td>多余文件混入、缺失文件或 <code>symlink</code> 逃逸时直接失败</td>
+</tr>
+</tbody></table>
+<p>怎么验证：</p>
+<ul>
+<li>临时改掉 <code>policy/governance.json</code> 里的 required checks，再跑治理或合同校验，应该立刻报警。</li>
+<li>临时破坏 tag ruleset 或 <code>skill</code> 分支 ruleset，再手动触发 <code>governance-audit.yml</code>，应该失败。</li>
+<li>临时往 allowlist 目录塞不该进包的内容，<code>package-dryrun</code> 应该失败，而不是静默打进发布物。</li>
+</ul>
+<h3 id="端到端验收：本项目当前应该怎么走一遍"><a href="#端到端验收：本项目当前应该怎么走一遍" class="headerlink" title="端到端验收：本项目当前应该怎么走一遍"></a>端到端验收：本项目当前应该怎么走一遍</h3><p>为什么要这样验收：</p>
+<ul>
+<li>如果你只验证 PR 门禁，说明不了 release 资产和 <code>skill</code> 分发是否真的连起来。</li>
+<li>如果你只验证 release，又说明不了本地 CLI、离线 smoke 和治理契约是不是一致。</li>
+</ul>
+<p>最小做法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">./venv/bin/python -m unittest \</span><br><span class="line">  tests.test_m2c_config \</span><br><span class="line">  tests.test_m2c_cli \</span><br><span class="line">  tests.test_m2c_extractor \</span><br><span class="line">  tests.test_m2c_pipeline \</span><br><span class="line">  tests.test_m2c_storage \</span><br><span class="line">  tests.test_m2c_translator</span><br><span class="line"></span><br><span class="line">./venv/bin/python tests/smoke_test.py --input tests/fixtures/test_input.md</span><br><span class="line">./venv/bin/python -m m2c_pipeline tests/fixtures/test_input.md --dry-run --translation-mode fallback</span><br><span class="line">./venv/bin/python -m m2c_pipeline tests/fixtures/test_input.md --translation-mode vertex --output-dir ./output</span><br></pre></td></tr></table></figure>
+
+<p>建议按下面这个顺序走：</p>
+<ol>
+<li>先跑单元测试，确认配置、CLI、提取、编排、存储和翻译都没回归。</li>
+<li>再跑 <code>tests/smoke_test.py</code>，检查真实输入能不能完成提词级联验证；如果要看完整出图，再加 <code>--with-image</code>。</li>
+<li>再跑一次 <code>--dry-run --translation-mode fallback</code>，确认离线链路在无云调用前也能自检通过。</li>
+<li>凭据和项目 ID 都准备好以后，再做一次可选 live run，验证正式图片输出和元数据写入。</li>
+<li>之后提 PR，观察 7 个 required checks 是否全部通过。</li>
+<li>PR merge 到 <code>main</code> 后，确认 <code>release-please</code> 创建或更新 release PR。</li>
+<li>release 真正创建后，确认 zip、sha256、GitHub Release 资产和 <code>skill</code> 分支发布全部到位。</li>
+</ol>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>把 GitHub Actions 做成“可实施门禁”，关键不在于写了多少 <code>workflow</code>，而在于你有没有把 PR、Release 和治理这三条链路连成一个闭环。对 <code>m2c-pipeline</code> 这样的仓库来说，最小闭环就是 6 个固定 PR <code>job</code>、3 个 Release guard、1 条治理审计线，再加一个单一版本源。</p>
+<p>更重要的是，顺序要对。先把 <code>generic</code> 单版本发布做通，先让 <code>tag</code> 不能乱发、门禁不能乱飘、治理漂移会报警；等这条 Go 链路稳定以后，再补 <code>required-job-contract</code>、更严格的打包校验和更统一的 Python 执行约定，把它收紧成 Go+。这比一开始追求“大而全”更容易落地，也更不容易烂尾。</p>
+<p>如果把前半部分看成“最小门禁怎么搭”，那新增这一节讲的就是“<code>m2c-pipeline</code> 当前真实闭环怎么落地”：它已经从教学态最小方案，演进到了 <code>release-please + skill branch 自动发布 + governance audit</code> 的完整工作流。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-04</td>
+<td>初始版本，整理 <code>m2c-pipeline</code> 的 GitHub Actions 最小落地方案与治理收紧路径。</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-05</td>
+<td>补充从 <code>release-generic</code> 迁到 <code>release-please</code> 的实战经验，增加 <code>main push</code> 触发语义、Actions policy <code>local_only</code> 坑位和最小验收链路。</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-05</td>
+<td>补充 <code>m2c-pipeline</code> 当前完整工作流设计方案，串起运行链路、交付链路、治理链路与 <code>skill</code> 分支发布闭环。</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CI/" rel="tag">CI</a>, <a class="tag-none-link" href="/tags/DevOps/" rel="tag">DevOps</a>, <a class="tag-none-link" href="/tags/GitHub-Actions/" rel="tag">GitHub-Actions</a>, <a class="tag-none-link" href="/tags/Skill/" rel="tag">Skill</a>, <a class="tag-none-link" href="/tags/m2c-pipeline/" rel="tag">m2c-pipeline</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.766Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Vertex AI 本地鉴权与预算治理实践" href="/2026/04/02/tech/ai/2026-04-03-vertex-ai-adc-service-account-budget-practice/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Codex Plugin 实战工作流：在 Claude Code 里调用 Codex 做审查与任务委派" href="/2026/04/06/tech/ai/2026-04-07-codex-plugin-claude-code-commands/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E6%9C%89%E8%AE%A1%E5%88%92%E2%80%9D%E4%B8%8D%E7%AD%89%E4%BA%8E%E2%80%9C%E5%8F%AF%E5%AE%9E%E6%96%BD%E2%80%9D"><span class="toc-number">1.1.</span> <span class="toc-text">为什么“有计划”不等于“可实施”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81%E4%BD%A0%E6%98%AF%E4%B8%8D%E6%98%AF%E8%BF%98%E5%81%9C%E7%95%99%E5%9C%A8%E2%80%9C%E5%8F%AA%E6%9C%89%E8%AE%A1%E5%88%92%E2%80%9D%E7%9A%84%E9%98%B6%E6%AE%B5"><span class="toc-number">1.2.</span> <span class="toc-text">怎么验证你是不是还停留在“只有计划”的阶段</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E7%9B%AE%E6%A0%87"><span class="toc-number">2.</span> <span class="toc-text">最小目标</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%85%88%E6%94%B6%E6%95%9B%E7%9B%AE%E6%A0%87"><span class="toc-number">2.1.</span> <span class="toc-text">为什么要先收敛目标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%81%9A%E6%B3%95"><span class="toc-number">2.2.</span> <span class="toc-text">最小做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81%E8%8C%83%E5%9B%B4%E6%94%B6%E6%95%9B%E6%98%AF%E6%88%90%E5%8A%9F%E7%9A%84"><span class="toc-number">2.3.</span> <span class="toc-text">怎么验证范围收敛是成功的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E7%9B%AE%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">最小目录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%AE%E5%BD%95%E8%A6%81%E5%85%88%E5%86%BB%E7%BB%93"><span class="toc-number">3.1.</span> <span class="toc-text">为什么目录要先冻结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%81%9A%E6%B3%95-1"><span class="toc-number">3.2.</span> <span class="toc-text">最小做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81%E7%9B%AE%E5%BD%95%E6%98%AF%E5%A4%9F%E7%94%A8%E7%9A%84"><span class="toc-number">3.3.</span> <span class="toc-text">怎么验证目录是够用的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#GitHub-Actions-%E6%9C%80%E5%B0%8F%E8%90%BD%E5%9C%B0%E6%AD%A5%E9%AA%A4"><span class="toc-number">4.</span> <span class="toc-text">GitHub Actions 最小落地步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-1-%E6%AD%A5%EF%BC%9A%E5%86%BB%E7%BB%93%E5%8D%95%E4%B8%80%E7%89%88%E6%9C%AC%E6%BA%90%E5%92%8C%E6%B2%BB%E7%90%86%E5%A5%91%E7%BA%A6"><span class="toc-number">4.1.</span> <span class="toc-text">第 1 步：冻结单一版本源和治理契约</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-2-%E6%AD%A5%EF%BC%9A%E6%8A%8A-PR-%E6%A0%A1%E9%AA%8C%E6%94%B6%E6%95%9B%E6%88%90-6-%E4%B8%AA%E5%9B%BA%E5%AE%9A-job"><span class="toc-number">4.2.</span> <span class="toc-text">第 2 步：把 PR 校验收敛成 6 个固定 job</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-3-%E6%AD%A5%EF%BC%9A%E7%BB%99-Release-%E5%8A%A0-3-%E4%B8%AA%E6%A0%B8%E5%BF%83-guard"><span class="toc-number">4.3.</span> <span class="toc-text">第 3 步：给 Release 加 3 个核心 guard</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-4-%E6%AD%A5%EF%BC%9A%E5%8A%A0-governance-audit%EF%BC%8C%E8%AE%A9%E8%AE%BE%E7%BD%AE%E6%BC%82%E7%A7%BB%E4%BC%9A%E6%8A%A5%E8%AD%A6"><span class="toc-number">4.4.</span> <span class="toc-text">第 4 步：加 governance audit，让设置漂移会报警</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AC%AC-5-%E6%AD%A5%EF%BC%9A%E8%B7%91%E4%B8%80%E6%AC%A1%E7%AB%AF%E5%88%B0%E7%AB%AF%E9%AA%8C%E6%94%B6"><span class="toc-number">4.5.</span> <span class="toc-text">第 5 步：跑一次端到端验收</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-YAML-%E7%A4%BA%E4%BE%8B"><span class="toc-number">5.</span> <span class="toc-text">关键 YAML 示例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ci-yml%EF%BC%9A6-%E4%B8%AA%E5%9B%BA%E5%AE%9A-job-%E7%9A%84%E6%9C%80%E5%B0%8F%E7%89%88%E6%9C%AC"><span class="toc-number">5.1.</span> <span class="toc-text">ci.yml：6 个固定 job 的最小版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#release-generic-yml%EF%BC%9A3-%E4%B8%AA%E6%A0%B8%E5%BF%83-job-%E7%9A%84%E6%9C%80%E5%B0%8F%E7%89%88%E6%9C%AC"><span class="toc-number">5.2.</span> <span class="toc-text">release-generic.yml：3 个核心 job 的最小版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#governance-audit-yml%EF%BC%9A%E6%9C%80%E5%B0%8F%E6%B2%BB%E7%90%86%E5%AE%A1%E8%AE%A1%E5%85%A5%E5%8F%A3"><span class="toc-number">5.3.</span> <span class="toc-text">governance-audit.yml：最小治理审计入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#version-py%EF%BC%9A%E5%8D%95%E4%B8%80%E7%89%88%E6%9C%AC%E6%BA%90%E4%B8%8E-tag-%E5%AF%B9%E6%AF%94"><span class="toc-number">5.4.</span> <span class="toc-text">version.py：单一版本源与 tag 对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A5%E6%A0%BC%E9%AA%8C%E6%94%B6%E6%B8%85%E5%8D%95"><span class="toc-number">6.</span> <span class="toc-text">严格验收清单</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%80%E5%AE%9A%E8%A6%81%E6%9C%89%E9%AA%8C%E6%94%B6%E6%B8%85%E5%8D%95"><span class="toc-number">6.1.</span> <span class="toc-text">为什么一定要有验收清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%81%9A%E6%B3%95-2"><span class="toc-number">6.2.</span> <span class="toc-text">最小做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E9%AA%8C%E8%AF%81"><span class="toc-number">6.3.</span> <span class="toc-text">怎么验证</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E4%B8%8E%E4%BF%AE%E5%A4%8D"><span class="toc-number">7.</span> <span class="toc-text">常见坑与修复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-job-%E6%94%B9%E5%90%8D%E5%90%8E%EF%BC%8C%E5%88%86%E6%94%AF%E4%BF%9D%E6%8A%A4%E7%9C%8B%E8%B5%B7%E6%9D%A5%E8%BF%98%E5%9C%A8%EF%BC%8C%E5%85%B6%E5%AE%9E%E5%B7%B2%E7%BB%8F%E5%A4%B1%E6%95%88"><span class="toc-number">7.1.</span> <span class="toc-text">1. job 改名后，分支保护看起来还在，其实已经失效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-tag-%E4%B8%8D%E6%98%AF%E4%BB%8E-main-%E6%89%93%E5%87%BA%E6%9D%A5%EF%BC%8C%E4%BB%8D%E7%84%B6%E8%A7%A6%E5%8F%91%E4%BA%86%E6%AD%A3%E5%BC%8F%E5%8F%91%E5%B8%83"><span class="toc-number">7.2.</span> <span class="toc-text">2. tag 不是从 main 打出来，仍然触发了正式发布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%89%93%E5%8C%85%E8%84%9A%E6%9C%AC%E5%8F%AA%E7%9C%8B%E8%B7%AF%E5%BE%84%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%8C%E6%B2%A1%E9%98%B2-symlink-%E9%80%83%E9%80%B8"><span class="toc-number">7.3.</span> <span class="toc-text">3. 打包脚本只看路径字符串，没防 symlink 逃逸</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-required-check-%E8%A2%AB-paths-ignore-%E6%88%96%E6%9D%A1%E4%BB%B6%E5%88%A4%E6%96%AD%E8%B7%B3%E8%BF%87"><span class="toc-number">7.4.</span> <span class="toc-text">4. required check 被 paths-ignore 或条件判断跳过</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%9C%AC%E5%9C%B0%E7%94%A8-venv%EF%BC%8CCI-%E5%8D%B4%E8%B7%91%E7%B3%BB%E7%BB%9F-python"><span class="toc-number">7.5.</span> <span class="toc-text">5. 本地用 venv，CI 却跑系统 python</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E6%88%98%E8%A1%A5%E9%81%97%EF%BC%9A%E4%BB%8E-release-generic-%E8%BF%81%E5%88%B0-release-please"><span class="toc-number">8.</span> <span class="toc-text">实战补遗：从 release-generic 迁到 release-please</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E5%80%BC%E5%BE%97%E8%A1%A5%E8%BF%99%E4%B8%80%E6%AE%B5"><span class="toc-number">8.1.</span> <span class="toc-text">为什么值得补这一段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E9%87%8C%E6%9C%80%E5%AE%B9%E6%98%93%E8%AF%AF%E8%A7%A3%E7%9A%84%E4%B8%80%E7%82%B9%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF-push-main-%E8%A7%A6%E5%8F%91"><span class="toc-number">8.2.</span> <span class="toc-text">这里最容易误解的一点：为什么是 push main 触发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E8%BF%81%E7%A7%BB%E5%81%9A%E6%B3%95"><span class="toc-number">8.3.</span> <span class="toc-text">最小迁移做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E6%AC%A1%E7%9C%9F%E5%AE%9E%E8%B8%A9%E5%88%B0%E7%9A%84%E5%9D%91%EF%BC%9Astartup-failure-%E4%B8%8D%E6%98%AF-YAML-%E8%AF%AD%E6%B3%95%E9%94%99"><span class="toc-number">8.4.</span> <span class="toc-text">这次真实踩到的坑：startup_failure 不是 YAML 语法错</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E4%BF%AE%E5%A4%8D"><span class="toc-number">8.5.</span> <span class="toc-text">最小修复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%81%E7%A7%BB%E5%90%8E%E7%9A%84%E6%9C%80%E5%B0%8F%E9%AA%8C%E6%94%B6"><span class="toc-number">8.6.</span> <span class="toc-text">迁移后的最小验收</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%AE%8C%E6%95%B4%E5%B7%A5%E4%BD%9C%E6%B5%81%E8%AE%BE%E8%AE%A1%E6%96%B9%E6%A1%88%EF%BC%9A%E4%BB%8E-Mermaid-%E8%BE%93%E5%85%A5%E5%88%B0-Skill-%E5%8F%91%E5%B8%83%E9%97%AD%E7%8E%AF"><span class="toc-number">9.</span> <span class="toc-text">本项目完整工作流设计方案：从 Mermaid 输入到 Skill 发布闭环</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E8%8A%82%E8%A1%A5%E7%9A%84%E6%98%AF%E5%93%AA%E4%B8%80%E5%B1%82%E9%97%AD%E7%8E%AF"><span class="toc-number">9.1.</span> <span class="toc-text">这节补的是哪一层闭环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%90%E8%A1%8C%E9%93%BE%E8%B7%AF%EF%BC%9A%E4%BB%8E-Markdown-%E5%88%B0-PNG"><span class="toc-number">9.2.</span> <span class="toc-text">运行链路：从 Markdown 到 PNG</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%A4%E4%BB%98%E9%93%BE%E8%B7%AF%EF%BC%9A%E4%BB%8E-PR-%E5%88%B0-Release-%E4%B8%8E-skill-%E5%88%86%E5%8F%91"><span class="toc-number">9.3.</span> <span class="toc-text">交付链路：从 PR 到 Release 与 skill 分发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B2%BB%E7%90%86%E9%93%BE%E8%B7%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%9D%A1%E5%8F%91%E5%B8%83%E7%BA%BF%E4%B8%8D%E4%BC%9A%E6%85%A2%E6%85%A2%E6%BC%82%E7%A7%BB"><span class="toc-number">9.4.</span> <span class="toc-text">治理链路：为什么这条发布线不会慢慢漂移</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%AB%AF%E5%88%B0%E7%AB%AF%E9%AA%8C%E6%94%B6%EF%BC%9A%E6%9C%AC%E9%A1%B9%E7%9B%AE%E5%BD%93%E5%89%8D%E5%BA%94%E8%AF%A5%E6%80%8E%E4%B9%88%E8%B5%B0%E4%B8%80%E9%81%8D"><span class="toc-number">9.5.</span> <span class="toc-text">端到端验收：本项目当前应该怎么走一遍</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

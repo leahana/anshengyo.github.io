@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>用 UNLINK 清理 Redis Key：从一次线上操作引发的缓存清理思考 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/05/tech/backend/2026-03-06-redis-unlink-cache-cleanup/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Redis, UNLINK, 内存优化, 后端优化, 缓存清理" />
+  
+  <meta name="description" content="在服务器清理冗余 Redis Key 时，用 UNLINK 替代 DEL 避免主线程阻塞，由此梳理 Redis 缓存清理的核心机制与生产实践。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="用 UNLINK 清理 Redis Key：从一次线上操作引发的缓存清理思考">
+<meta property="og:url" content="https://leahana.github.io/2026/03/05/tech/backend/2026-03-06-redis-unlink-cache-cleanup/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="在服务器清理冗余 Redis Key 时，用 UNLINK 替代 DEL 避免主线程阻塞，由此梳理 Redis 缓存清理的核心机制与生产实践。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-06-redis-unlink-cache-cleanup/diagram_20260417_145327_00.webp">
+<meta property="article:published_time" content="2026-03-05T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="UNLINK">
+<meta property="article:tag" content="内存优化">
+<meta property="article:tag" content="后端优化">
+<meta property="article:tag" content="缓存清理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-06-redis-unlink-cache-cleanup/diagram_20260417_145327_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"用 UNLINK 清理 Redis Key：从一次线上操作引发的缓存清理思考","description":"在服务器清理冗余 Redis Key 时，用 UNLINK 替代 DEL 避免主线程阻塞，由此梳理 Redis 缓存清理的核心机制与生产实践。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-05T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/05/tech/backend/2026-03-06-redis-unlink-cache-cleanup/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/05/tech/backend/2026-03-06-redis-unlink-cache-cleanup/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">用 UNLINK 清理 Redis Key：从一次线上操作引发的缓存清理思考</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-05T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-06</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~6.00K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">🔍 方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="toc-number">2.1.</span> <span class="toc-text">方案调研</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%90%86%E7%94%B1"><span class="toc-number">2.2.</span> <span class="toc-text">选择理由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">💡 核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">3.1.</span> <span class="toc-text">实现思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shell-%E8%84%9A%E6%9C%AC%EF%BC%88%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">Shell 脚本（快速使用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Java-%E4%BB%A3%E7%A0%81%EF%BC%88%E7%A8%8B%E5%BA%8F%E5%8C%96%E6%B8%85%E7%90%86%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">Java 代码（程序化清理）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">3.4.</span> <span class="toc-text">关键点说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">⚡ 性能分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DEL-vs-UNLINK-%E9%98%BB%E5%A1%9E%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">DEL vs UNLINK 阻塞对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE"><span class="toc-number">4.2.</span> <span class="toc-text">优化建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6"><span class="toc-number">5.1.</span> <span class="toc-text">边界条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">5.2.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87"><span class="toc-number">5.3.</span> <span class="toc-text">监控指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.4.</span> <span class="toc-text">最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">6.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：生产环境清理 Redis Key，用 UNLINK 代替 DEL，异步释放内存不阻塞主线程——这个替换背后，藏着 Redis 内存管理的核心逻辑。</p>
+<p>💡 <strong>核心理念</strong>：缓存清理不是简单地”执行删除”，理解 Redis 的内存释放机制、过期策略和批量操作方式，才能做到安全、高效、不影响线上服务。</p>
+</blockquote>
+<hr>
+<h2 id="📋-问题背景"><a href="#📋-问题背景" class="headerlink" title="📋 问题背景"></a>📋 问题背景</h2><h3 id="业务场景"><a href="#业务场景" class="headerlink" title="业务场景"></a>业务场景</h3><p>服务器运行一段时间后，Redis 中积累了大量冗余数据：</p>
+<ul>
+<li>用户 session key（用户已注销但 key 未及时清理）</li>
+<li>临时计算结果（业务逻辑变更后遗留的旧格式 key）</li>
+<li>批量任务中间态数据（任务完成后未清理）</li>
+<li>旧版本缓存（上线新版本后遗留的 v1 格式数据）</li>
+</ul>
+<p>运维同学登录服务器，用 <code>keys pattern:*</code> + <code>del</code> 逐批清理。起初很顺畅，但当碰到 value 很大的 key（list 有数万条、hash 有几千个 field）时，删除操作变得”卡顿”——Redis 命令响应时间飙升，线上业务开始报超时。</p>
+<p>排查后发现：<strong>DEL 是同步操作，删除大 key 会阻塞 Redis 主线程。</strong></p>
+<h3 id="痛点分析"><a href="#痛点分析" class="headerlink" title="痛点分析"></a>痛点分析</h3><ul>
+<li><strong>痛点 1：DEL 阻塞主线程</strong>：删除大 key 时（value &gt; 1MB 或元素数 &gt; 千级），Redis 单线程同步执行，期间所有其他命令排队等待</li>
+<li><strong>痛点 2：KEYS 命令本身也是阻塞</strong>：<code>KEYS pattern*</code> 全量扫描，线上禁止使用</li>
+<li><strong>痛点 3：内存未如预期释放</strong>：清理后 Redis 内存指标并未立刻下降，不理解原因</li>
+</ul>
+<h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><p>在不影响线上服务的前提下，安全清理 Redis 中指定模式的冗余 key，释放内存。</p>
+<hr>
+<h2 id="🔍-方案对比"><a href="#🔍-方案对比" class="headerlink" title="🔍 方案对比"></a>🔍 方案对比</h2><h3 id="方案调研"><a href="#方案调研" class="headerlink" title="方案调研"></a>方案调研</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>核心思路</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DEL</td>
+<td>同步删除 key</td>
+<td>简单直接，删除后立即释放引用</td>
+<td>阻塞主线程，大 key 危险</td>
+<td>小 key、开发 &#x2F; 测试环境</td>
+</tr>
+<tr>
+<td>UNLINK</td>
+<td>主线程仅移除引用，内存回收由后台线程异步完成</td>
+<td>非阻塞，生产安全</td>
+<td>Redis 4.0+，有极短延迟</td>
+<td>生产环境，尤其是大 key</td>
+</tr>
+<tr>
+<td>SCAN + 批量 UNLINK</td>
+<td>用 SCAN 游标分批扫描 key，每批用 UNLINK 删除</td>
+<td>非阻塞扫描 + 非阻塞删除，双重保障</td>
+<td>实现稍复杂，需控制批次大小</td>
+<td>生产环境批量清理首选</td>
+</tr>
+</tbody></table>
+<h3 id="选择理由"><a href="#选择理由" class="headerlink" title="选择理由"></a>选择理由</h3><ul>
+<li>生产环境：SCAN（替代 KEYS）+ UNLINK（替代 DEL），双重非阻塞</li>
+<li>开发 &#x2F; 临时操作：DEL 可接受，但仍建议养成用 UNLINK 的习惯</li>
+<li>核心原则：<strong>所有涉及大 key 或大批量的删除操作，必须用 UNLINK</strong></li>
+</ul>
+<hr>
+<h2 id="💡-核心实现"><a href="#💡-核心实现" class="headerlink" title="💡 核心实现"></a>💡 核心实现</h2><h3 id="实现思路"><a href="#实现思路" class="headerlink" title="实现思路"></a>实现思路</h3><pre class="mermaid">graph TD
+    A["确定要清理的 key 模式"] --> B["SCAN 游标扫描，每批 100 个"]
+    B --> C{"还有更多 key?"}
+    C -->|是| D["UNLINK 批量删除当前批次"]
+    D --> B
+    C -->|否| E["清理完成，查看内存变化"]
+
+    style A fill:#e3f2fd,stroke:#333,color:#000
+    style E fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-06-redis-unlink-cache-cleanup/diagram_20260417_145327_00.webp" alt="实现思路流程图：确定要清理的 key 模式、SCAN 游标扫描、UNLINK 批量删除当前批次"></p>
+</details>
+
+<h3 id="Shell-脚本（快速使用）"><a href="#Shell-脚本（快速使用）" class="headerlink" title="Shell 脚本（快速使用）"></a>Shell 脚本（快速使用）</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="comment"># 安全批量清理 Redis key，使用 SCAN + UNLINK 避免阻塞</span></span><br><span class="line"><span class="comment"># 用法：./redis-cleanup.sh &lt;pattern&gt; [batch_size]</span></span><br><span class="line"><span class="comment"># 示例：./redis-cleanup.sh &quot;session:*&quot; 100</span></span><br><span class="line"></span><br><span class="line">PATTERN=<span class="variable">$&#123;1:-&quot;*&quot;&#125;</span></span><br><span class="line">BATCH_SIZE=<span class="variable">$&#123;2:-100&#125;</span></span><br><span class="line">CURSOR=0</span><br><span class="line">TOTAL=0</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;开始清理 pattern: <span class="variable">$PATTERN</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span>; <span class="keyword">do</span></span><br><span class="line">    <span class="comment"># SCAN 非阻塞扫描，每次返回 cursor 和 key 列表</span></span><br><span class="line">    RESULT=$(redis-cli SCAN <span class="variable">$CURSOR</span> MATCH <span class="string">&quot;<span class="variable">$PATTERN</span>&quot;</span> COUNT <span class="variable">$BATCH_SIZE</span>)</span><br><span class="line">    CURSOR=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$RESULT</span>&quot;</span> | <span class="built_in">head</span> -1)</span><br><span class="line">    KEYS=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$RESULT</span>&quot;</span> | <span class="built_in">tail</span> -n +2)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> [ -n <span class="string">&quot;<span class="variable">$KEYS</span>&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">        COUNT=$(<span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$KEYS</span>&quot;</span> | <span class="built_in">wc</span> -l)</span><br><span class="line">        <span class="comment"># UNLINK 异步删除，不阻塞主线程</span></span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;<span class="variable">$KEYS</span>&quot;</span> | xargs redis-cli UNLINK &gt; /dev/null</span><br><span class="line">        TOTAL=$((TOTAL + COUNT))</span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;已处理 <span class="variable">$TOTAL</span> 个 key (cursor: <span class="variable">$CURSOR</span>)&quot;</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># cursor 回到 0 表示扫描完成</span></span><br><span class="line">    <span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$CURSOR</span>&quot;</span> -eq 0 ]; <span class="keyword">then</span></span><br><span class="line">        <span class="built_in">break</span></span><br><span class="line">    <span class="keyword">fi</span></span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;✅ 清理完成，共删除 <span class="variable">$TOTAL</span> 个 key&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Java-代码（程序化清理）"><a href="#Java-代码（程序化清理）" class="headerlink" title="Java 代码（程序化清理）"></a>Java 代码（程序化清理）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 使用 SCAN + UNLINK 批量清理 Redis Key</span></span><br><span class="line"><span class="comment"> * 生产安全：非阻塞扫描 + 异步删除</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisCacheCleanupService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedisTemplate&lt;String, Object&gt; redisTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">cleanupByPattern</span><span class="params">(String pattern, <span class="type">int</span> batchSize)</span> &#123;</span><br><span class="line">        <span class="type">long</span> <span class="variable">totalDeleted</span> <span class="operator">=</span> <span class="number">0</span>;</span><br><span class="line">        <span class="type">ScanOptions</span> <span class="variable">options</span> <span class="operator">=</span> ScanOptions.scanOptions()</span><br><span class="line">            .match(pattern)</span><br><span class="line">            .count(batchSize)</span><br><span class="line">            .build();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> (Cursor&lt;<span class="type">byte</span>[]&gt; cursor = redisTemplate.getConnectionFactory()</span><br><span class="line">                .getConnection()</span><br><span class="line">                .scan(options)) &#123;</span><br><span class="line"></span><br><span class="line">            List&lt;String&gt; batch = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">            <span class="keyword">while</span> (cursor.hasNext()) &#123;</span><br><span class="line">                batch.add(<span class="keyword">new</span> <span class="title class_">String</span>(cursor.next()));</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> (batch.size() &gt;= batchSize) &#123;</span><br><span class="line">                    <span class="comment">// UNLINK 异步删除，不阻塞</span></span><br><span class="line">                    totalDeleted += unlinkKeys(batch);</span><br><span class="line">                    batch.clear();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 处理最后一批</span></span><br><span class="line">            <span class="keyword">if</span> (!batch.isEmpty()) &#123;</span><br><span class="line">                totalDeleted += unlinkKeys(batch);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> totalDeleted;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">long</span> <span class="title function_">unlinkKeys</span><span class="params">(List&lt;String&gt; keys)</span> &#123;</span><br><span class="line">        <span class="comment">// 使用 UNLINK 而非 DEL</span></span><br><span class="line">        <span class="keyword">return</span> redisTemplate.execute((RedisCallback&lt;Long&gt;) connection -&gt;</span><br><span class="line">            connection.unlink(keys.stream()</span><br><span class="line">                .map(String::getBytes)</span><br><span class="line">                .toArray(<span class="type">byte</span>[][]::<span class="keyword">new</span>))</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h3><ul>
+<li><strong>UNLINK vs DEL 本质区别</strong>：DEL 同步删除（阻塞），UNLINK 仅在主线程移除 key 的引用（O(1) 非阻塞），实际内存回收由 <code>lazyfree</code> 后台线程异步完成</li>
+<li><strong>SCAN 的 COUNT 参数不是精确限制</strong>：COUNT 是提示 Redis 每次扫描的槽位数量，实际返回 key 数量可能多也可能少，不能作为精确分页依据</li>
+<li><strong>为什么内存没有立刻降</strong>：UNLINK 后内存释放是异步的，有毫秒级延迟；另外 Redis 默认不会立刻将内存还给操作系统（内存池机制），需配合 <code>activedefrag</code> 或等待新分配触发回收</li>
+</ul>
+<hr>
+<h2 id="⚡-性能分析"><a href="#⚡-性能分析" class="headerlink" title="⚡ 性能分析"></a>⚡ 性能分析</h2><h3 id="DEL-vs-UNLINK-阻塞对比"><a href="#DEL-vs-UNLINK-阻塞对比" class="headerlink" title="DEL vs UNLINK 阻塞对比"></a>DEL vs UNLINK 阻塞对比</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>DEL（大 key）</th>
+<th>UNLINK（大 key）</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>主线程耗时</td>
+<td>10ms ~ 500ms+</td>
+<td>&lt; 1ms</td>
+<td>UNLINK 仅做引用移除</td>
+</tr>
+<tr>
+<td>内存回收时机</td>
+<td>立即（同步）</td>
+<td>异步（毫秒级延迟）</td>
+<td>lazyfree 后台线程</td>
+</tr>
+<tr>
+<td>影响线上请求</td>
+<td>是（明显延迟）</td>
+<td>否</td>
+<td>生产必用 UNLINK</td>
+</tr>
+</tbody></table>
+<h3 id="优化建议"><a href="#优化建议" class="headerlink" title="优化建议"></a>优化建议</h3><ul>
+<li><strong>批次大小控制在 100-500</strong>：过大会导致单次 UNLINK 提交量大，虽然异步但也有积压压力</li>
+<li><strong>扫描批次间加短暂间隔</strong>：两批之间可加 10ms 间隔，避免 SCAN 本身过于密集占用 CPU</li>
+<li><strong>选择业务低峰期执行</strong>：即使 UNLINK 非阻塞，大批量清理也会增加 CPU 和网络压力</li>
+</ul>
+<hr>
+<h2 id="🚧-生产实践"><a href="#🚧-生产实践" class="headerlink" title="🚧 生产实践"></a>🚧 生产实践</h2><h3 id="边界条件"><a href="#边界条件" class="headerlink" title="边界条件"></a>边界条件</h3><ul>
+<li><input checked="" disabled="" type="checkbox"> <strong>KEYS 命令禁止生产使用</strong>：全量扫描阻塞时间不可控，必须用 SCAN 替代</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>确认 Redis 版本 ≥ 4.0</strong>：UNLINK 命令在 4.0 引入，低版本只能用 DEL</li>
+<li><input checked="" disabled="" type="checkbox"> <strong>清理前确认 key 模式</strong>：先用 SCAN 小批量采样，确认 pattern 只命中预期 key，避免误删</li>
+</ul>
+<h3 id="常见坑点"><a href="#常见坑点" class="headerlink" title="常见坑点"></a>常见坑点</h3><ol>
+<li><p><strong>pattern 写错误删业务 key</strong></p>
+<ul>
+<li><strong>现象</strong>：清理后业务报缓存 miss，查询量暴增，数据库压力飙升</li>
+<li><strong>原因</strong>：pattern 过于宽泛，如 <code>user:*</code> 误删了活跃用户的缓存</li>
+<li><strong>解决</strong>：清理前先执行 <code>SCAN 0 MATCH pattern COUNT 20</code> 采样确认，再全量执行</li>
+</ul>
+</li>
+<li><p><strong>Redis Cluster 模式 SCAN 不完整</strong></p>
+<ul>
+<li><strong>现象</strong>：清理脚本执行完，仍有大量目标 key 残留</li>
+<li><strong>原因</strong>：Cluster 模式下 SCAN 是节点级别的，单节点执行只扫描该节点的 slot</li>
+<li><strong>解决</strong>：Cluster 模式需对每个节点分别执行 SCAN，或使用客户端库的 cluster-aware scan</li>
+</ul>
+</li>
+<li><p><strong>UNLINK 后内存指标不降</strong></p>
+<ul>
+<li><strong>现象</strong>：执行完清理，<code>INFO memory</code> 的 <code>used_memory</code> 几乎没变</li>
+<li><strong>原因</strong>：Redis 采用内存池，释放的内存优先供内部复用，不立即还给 OS；另外可能存在内存碎片</li>
+<li><strong>解决</strong>：开启 <code>activedefrag yes</code> 让 Redis 自动整理碎片；或执行 <code>MEMORY PURGE</code>（Redis 4.0+）强制将空闲内存归还 OS</li>
+</ul>
+</li>
+</ol>
+<h3 id="监控指标"><a href="#监控指标" class="headerlink" title="监控指标"></a>监控指标</h3><ul>
+<li><code>INFO memory</code> → <code>used_memory_human</code>：清理前后内存变化</li>
+<li><code>INFO stats</code> → <code>expired_keys</code>：累计过期 key 数量（验证 TTL 策略是否合理）</li>
+<li><code>INFO keyspace</code> → key 总数：验证清理效果</li>
+</ul>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><ul>
+<li><strong>生产删除永远用 UNLINK</strong>：养成习惯，DEL 仅限开发环境使用</li>
+<li><strong>新 key 尽量设置 TTL</strong>：主动控制 key 生命周期，减少手动清理依赖；临时数据、session 等必须设 TTL</li>
+<li><strong>大 key 提前预警</strong>：定期用 <code>redis-cli --bigkeys</code> 扫描，发现大 key 及时拆分或设 TTL，避免积累到需要手动干预的地步</li>
+</ul>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>UNLINK 是生产环境删除 key 的正确姿势</strong>：主线程仅做引用移除（O(1) 非阻塞），实际内存回收由 lazyfree 后台线程异步完成</li>
+<li><strong>批量清理必须用 SCAN + UNLINK</strong>：SCAN 非阻塞游标扫描替代 KEYS，UNLINK 异步删除替代 DEL，生产双重安全</li>
+<li><strong>内存不立刻降是正常的</strong>：Redis 内存池 + lazyfree 异步回收，清理后内存会逐步释放；若需立刻整理可执行 <code>MEMORY PURGE</code></li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><p>线上 Redis 清理冗余 &#x2F; 过期 key、删除大 key（list、hash、set 元素数量级较大）、程序化定期清理业务 key（如 session 清理、临时数据回收）。</p>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>清理前务必采样确认 pattern，避免误删活跃业务 key</li>
+<li>Redis Cluster 模式下 SCAN 需按节点分别执行</li>
+<li>Redis &lt; 4.0 无 UNLINK 命令，需升级或接受 DEL 的阻塞风险</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-06</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Redis/" rel="tag">Redis</a>, <a class="tag-none-link" href="/tags/UNLINK/" rel="tag">UNLINK</a>, <a class="tag-none-link" href="/tags/%E5%86%85%E5%AD%98%E4%BC%98%E5%8C%96/" rel="tag">内存优化</a>, <a class="tag-none-link" href="/tags/%E5%90%8E%E7%AB%AF%E4%BC%98%E5%8C%96/" rel="tag">后端优化</a>, <a class="tag-none-link" href="/tags/%E7%BC%93%E5%AD%98%E6%B8%85%E7%90%86/" rel="tag">缓存清理</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Claude Code Skill 设计与优化实践：用多模型协作迭代 optimize-doc" href="/2026/03/05/tech/ai/2026-03-05-skill-optimization-practice/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 用 Map&lt;Class&lt;?&gt;, Field[]&gt; 缓存优化 Java 反射：从慢 10 倍到接近原生性能" href="/2026/03/11/tech/backend/2026-03-12-java-reflection-field-cache/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">🔍 方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="toc-number">2.1.</span> <span class="toc-text">方案调研</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%90%86%E7%94%B1"><span class="toc-number">2.2.</span> <span class="toc-text">选择理由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">💡 核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%80%9D%E8%B7%AF"><span class="toc-number">3.1.</span> <span class="toc-text">实现思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Shell-%E8%84%9A%E6%9C%AC%EF%BC%88%E5%BF%AB%E9%80%9F%E4%BD%BF%E7%94%A8%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">Shell 脚本（快速使用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Java-%E4%BB%A3%E7%A0%81%EF%BC%88%E7%A8%8B%E5%BA%8F%E5%8C%96%E6%B8%85%E7%90%86%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">Java 代码（程序化清理）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">3.4.</span> <span class="toc-text">关键点说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">⚡ 性能分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DEL-vs-UNLINK-%E9%98%BB%E5%A1%9E%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">DEL vs UNLINK 阻塞对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE"><span class="toc-number">4.2.</span> <span class="toc-text">优化建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6"><span class="toc-number">5.1.</span> <span class="toc-text">边界条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">5.2.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%91%E6%8E%A7%E6%8C%87%E6%A0%87"><span class="toc-number">5.3.</span> <span class="toc-text">监控指标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.4.</span> <span class="toc-text">最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">6.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

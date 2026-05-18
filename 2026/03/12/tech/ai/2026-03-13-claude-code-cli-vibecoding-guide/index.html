@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI 编程, CLI, Claude Code, vibecoding, 工作流, 开发效率" />
+  
+  <meta name="description" content="从传统编码到 vibecoding 的转变——如何用 Claude Code CLI 构建高效的人机协作编程工作流，涵盖核心功能、实战场景与最佳实践。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流">
+<meta property="og:url" content="https://leahana.github.io/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="从传统编码到 vibecoding 的转变——如何用 Claude Code CLI 构建高效的人机协作编程工作流，涵盖核心功能、实战场景与最佳实践。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/diagram_20260417_044331_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/diagram_20260417_044332_01.webp">
+<meta property="article:published_time" content="2026-03-12T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI 编程">
+<meta property="article:tag" content="CLI">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="vibecoding">
+<meta property="article:tag" content="工作流">
+<meta property="article:tag" content="开发效率">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/diagram_20260417_044331_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流","description":"从传统编码到 vibecoding 的转变——如何用 Claude Code CLI 构建高效的人机协作编程工作流，涵盖核心功能、实战场景与最佳实践。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-12T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-12T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-13</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~6.95K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Vibecoding"><span class="toc-number">1.1.</span> <span class="toc-text">什么是 Vibecoding</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-Claude-Code-%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%E9%80%9F%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">🔍 Claude Code 核心能力速览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E6%98%AF%E8%81%8A%E5%A4%A9%E6%9C%BA%E5%99%A8%E4%BA%BA%EF%BC%8C%E6%98%AF%E7%BB%88%E7%AB%AF%E9%87%8C%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%90%AD%E6%A1%A3"><span class="toc-number">2.1.</span> <span class="toc-text">不是聊天机器人，是终端里的工程搭档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E7%9F%A9%E9%98%B5"><span class="toc-number">2.2.</span> <span class="toc-text">核心功能矩阵</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E5%9B%9B%E5%A4%A7%E6%94%AF%E6%9F%B1%EF%BC%9A%E6%9E%84%E5%BB%BA%E4%BD%A0%E7%9A%84-Vibecoding-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="toc-number">3.</span> <span class="toc-text">💡 四大支柱：构建你的 Vibecoding 基础设施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E4%B8%80%EF%BC%9ACLAUDE-md-%E2%80%94-%E9%A1%B9%E7%9B%AE%E7%9A%84%E2%80%9D%E5%A4%A7%E8%84%91%E2%80%9D"><span class="toc-number">3.1.</span> <span class="toc-text">支柱一：CLAUDE.md — 项目的”大脑”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E4%BA%8C%EF%BC%9AMCP-Server-%E2%80%94-%E8%BF%9E%E6%8E%A5%E5%A4%96%E9%83%A8%E4%B8%96%E7%95%8C"><span class="toc-number">3.2.</span> <span class="toc-text">支柱二：MCP Server — 连接外部世界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E4%B8%89%EF%BC%9AHooks-%E2%80%94-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%8A%A4%E6%A0%8F"><span class="toc-number">3.3.</span> <span class="toc-text">支柱三：Hooks — 自动化护栏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E5%9B%9B%EF%BC%9ASkills-%E2%80%94-%E5%8F%AF%E5%A4%8D%E7%94%A8%E7%9A%84%E4%B8%93%E5%AE%B6%E6%A8%A1%E5%9D%97"><span class="toc-number">3.4.</span> <span class="toc-text">支柱四：Skills — 可复用的专家模块</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-Vibecoding-%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF"><span class="toc-number">4.</span> <span class="toc-text">🚧 Vibecoding 实战场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E5%8A%9F%E8%83%BD"><span class="toc-number">4.1.</span> <span class="toc-text">场景一：从零创建功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E8%B0%83%E8%AF%95%E5%92%8C%E4%BF%AE%E5%A4%8D"><span class="toc-number">4.2.</span> <span class="toc-text">场景二：调试和修复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E4%B8%8E%E9%87%8D%E6%9E%84"><span class="toc-number">4.3.</span> <span class="toc-text">场景三：代码审查与重构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-Vibecoding-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">⚡ Vibecoding 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%BA%E6%9C%BA%E5%88%86%E5%B7%A5%E5%8E%9F%E5%88%99"><span class="toc-number">5.1.</span> <span class="toc-text">人机分工原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B2%9F%E9%80%9A%E6%8A%80%E5%B7%A7"><span class="toc-number">5.2.</span> <span class="toc-text">沟通技巧</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">5.3.</span> <span class="toc-text">常见坑点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">6.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：Vibecoding 不是”让 AI 写代码”，而是用自然语言驱动的方式，与 AI 协作完成从构思到交付的完整编程工作流。</p>
+<p>💡 <strong>核心理念</strong>：好的 vibecoding 不在于 prompt 写得多巧妙，而在于你为 AI 构建了多好的工作上下文——CLAUDE.md 是地基，MCP 是桥梁，hooks 是护栏。</p>
+</blockquote>
+<hr>
+<h2 id="📋-问题背景"><a href="#📋-问题背景" class="headerlink" title="📋 问题背景"></a>📋 问题背景</h2><h3 id="什么是-Vibecoding"><a href="#什么是-Vibecoding" class="headerlink" title="什么是 Vibecoding"></a>什么是 Vibecoding</h3><p>2025 年初，Andrej Karpathy 提出了 vibecoding 这个概念：不再逐行敲代码，而是用自然语言描述意图，让 AI 生成代码，开发者负责审查、引导和验证。这不是偷懒，而是一种新的人机分工——人类负责 “what” 和 “why”，AI 负责 “how”。</p>
+<p>Claude Code CLI 是 Anthropic 官方推出的命令行 AI 编程工具，直接运行在终端中，没有 IDE 插件的限制，能深度接触项目文件系统、Git 历史和 shell 环境。它天然适合 vibecoding 工作流。</p>
+<h3 id="痛点分析"><a href="#痛点分析" class="headerlink" title="痛点分析"></a>痛点分析</h3><ul>
+<li><strong>上下文断裂</strong>：IDE 内置的 AI 助手每次对话都从零开始，不了解你的项目规范和偏好</li>
+<li><strong>工具割裂</strong>：写代码用 Copilot，搜索用 Google，运行命令用终端，上下文在多个工具间碎片化</li>
+<li><strong>审查负担</strong>：AI 生成大量代码后，逐行审查的成本有时比自己写还高</li>
+</ul>
+<h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><p>建立一套可复用的 vibecoding 工作流：让 Claude Code 理解项目上下文，自动遵守规范，在需要时调用外部工具，同时保持人类对关键决策的控制权。</p>
+<hr>
+<h2 id="🔍-Claude-Code-核心能力速览"><a href="#🔍-Claude-Code-核心能力速览" class="headerlink" title="🔍 Claude Code 核心能力速览"></a>🔍 Claude Code 核心能力速览</h2><h3 id="不是聊天机器人，是终端里的工程搭档"><a href="#不是聊天机器人，是终端里的工程搭档" class="headerlink" title="不是聊天机器人，是终端里的工程搭档"></a>不是聊天机器人，是终端里的工程搭档</h3><p>Claude Code 和 ChatGPT 类产品的本质区别在于：它有 <strong>行动能力</strong>。它可以读写文件、执行命令、搜索代码、操作 Git——不是给你建议，而是直接做事。</p>
+<p>一个典型的工作流对比：</p>
+<table>
+<thead>
+<tr>
+<th>传统方式</th>
+<th>Vibecoding 方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>打开文件，定位函数，手动修改</td>
+<td>“把 getUserList 的返回类型从 any 改成 User[]”</td>
+</tr>
+<tr>
+<td>打开浏览器查文档，复制配置</td>
+<td>“帮我配置 ESLint flat config，启用 TypeScript 规则”</td>
+</tr>
+<tr>
+<td>手动写测试，运行，调试</td>
+<td>“给 parseConfig 函数写单元测试，覆盖边界情况”</td>
+</tr>
+<tr>
+<td>git log + git diff 分析变更</td>
+<td>“总结这个分支相对 main 的所有改动，写一个 PR 描述”</td>
+</tr>
+</tbody></table>
+<h3 id="核心功能矩阵"><a href="#核心功能矩阵" class="headerlink" title="核心功能矩阵"></a>核心功能矩阵</h3><pre class="mermaid">graph TD
+    A["Claude Code CLI"] -->|"上下文感知"| B["CLAUDE.md"]
+    A -->|"外部集成"| C["MCP Server"]
+    A -->|"安全护栏"| D["Hooks"]
+    A -->|"能力扩展"| E["Skills"]
+    A -->|"自主执行"| F["Agent 模式"]
+
+    style A fill:#e3f2fd,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#ffccbc,stroke:#333,color:#000
+    style E fill:#c8e6c9,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/diagram_20260417_044331_00.webp" alt="Claude Code CLI 核心功能矩阵"></p>
+</details>
+
+<hr>
+<h2 id="💡-四大支柱：构建你的-Vibecoding-基础设施"><a href="#💡-四大支柱：构建你的-Vibecoding-基础设施" class="headerlink" title="💡 四大支柱：构建你的 Vibecoding 基础设施"></a>💡 四大支柱：构建你的 Vibecoding 基础设施</h2><h3 id="支柱一：CLAUDE-md-—-项目的”大脑”"><a href="#支柱一：CLAUDE-md-—-项目的”大脑”" class="headerlink" title="支柱一：CLAUDE.md — 项目的”大脑”"></a>支柱一：CLAUDE.md — 项目的”大脑”</h3><p>CLAUDE.md 是 Claude Code 每次启动时自动加载的项目说明书。它告诉 AI：这个项目是什么、用什么技术栈、有什么规范、常用命令是什么。</p>
+<p><strong>为什么重要</strong>：没有 CLAUDE.md，每次对话你都要重复解释”这是一个 Hexo 博客””用 pnpm 不用 npm””提交前要跑安全检查”。有了它，Claude 从第一句话就理解你的上下文。</p>
+<p><strong>实际示例</strong>——本博客项目的 CLAUDE.md 关键片段：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## Common Commands</span></span><br><span class="line"><span class="bullet">-</span> <span class="code">`pnpm dev`</span> - Start local development server</span><br><span class="line"><span class="bullet">-</span> <span class="code">`pnpm build`</span> - Generate static site</span><br><span class="line"><span class="bullet">-</span> <span class="code">`pnpm check:secrets`</span> - Check for sensitive information</span><br><span class="line"></span><br><span class="line"><span class="section">## Content Management</span></span><br><span class="line"><span class="section">### File Naming Convention</span></span><br><span class="line"><span class="bullet">-</span> Format: <span class="code">`YYYY-MM-DD-&#123;kebab-title&#125;.md`</span></span><br><span class="line"><span class="bullet">-</span> Date represents initial publication date, NEVER change after creation</span><br><span class="line"></span><br><span class="line"><span class="section">### Update Records</span></span><br><span class="line">When modifying content, NEVER rename the file. Add an entry to &quot;更新记录&quot;.</span><br></pre></td></tr></table></figure>
+
+<p><strong>写好 CLAUDE.md 的要点</strong>：</p>
+<ul>
+<li><strong>命令清单</strong>：把 dev、build、test、lint 等常用命令列出来，Claude 就不会猜错包管理器</li>
+<li><strong>规范约束</strong>：文件命名、代码风格、Git 提交规范——写一次，终身受益</li>
+<li><strong>架构概览</strong>：目录结构、关键配置文件位置，帮助 Claude 快速定位代码</li>
+<li><strong>不要做什么</strong>：明确的禁止项（如”不要用 hexo deploy””不要修改文件名中的日期”）比正面描述更有效</li>
+</ul>
+<h3 id="支柱二：MCP-Server-—-连接外部世界"><a href="#支柱二：MCP-Server-—-连接外部世界" class="headerlink" title="支柱二：MCP Server — 连接外部世界"></a>支柱二：MCP Server — 连接外部世界</h3><p>MCP（Model Context Protocol）让 Claude Code 能调用外部服务。比如：</p>
+<ul>
+<li><strong>GitHub MCP</strong>：直接创建 PR、查看 issue、搜索代码，不用切到浏览器</li>
+<li><strong>Context7 MCP</strong>：查询最新的库文档，不再依赖训练数据中可能过时的版本</li>
+<li><strong>Web Search MCP</strong>：搜索互联网获取最新信息</li>
+</ul>
+<p>配置方式很简单，在项目根目录创建 <code>.mcp.json</code>：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;github&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;npx&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;-y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;@modelcontextprotocol/server-github&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;GITHUB_PERSONAL_ACCESS_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;GITHUB_TOKEN&#125;&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;context7&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;npx&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;-y&quot;</span><span class="punctuation">,</span> <span class="string">&quot;@upstash/context7-mcp&quot;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>实际收益</strong>：当我说”帮我查一下 Hexo 8.x 的 tag 插件语法有没有变化”，Claude 通过 Context7 MCP 直接拉取最新文档，而不是凭记忆回答一个可能过时的答案。</p>
+<h3 id="支柱三：Hooks-—-自动化护栏"><a href="#支柱三：Hooks-—-自动化护栏" class="headerlink" title="支柱三：Hooks — 自动化护栏"></a>支柱三：Hooks — 自动化护栏</h3><p>Hooks 是 Claude Code 在特定事件触发时自动执行的脚本，类似 Git hooks。它们在 <code>~/.claude/settings.json</code> 或项目 <code>.claude/settings.json</code> 中配置。</p>
+<p>常见用途：</p>
+<ul>
+<li><strong>PreToolUse</strong>：在 Claude 执行工具前检查，比如阻止修改特定文件</li>
+<li><strong>PostToolUse</strong>：工具执行后自动触发，比如保存文件后自动运行 linter</li>
+<li><strong>Notification</strong>：任务完成时发送通知</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;PostToolUse&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;matcher&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Write|Edit&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;echo &#x27;File modified: check formatting&#x27;&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>与 Git Hooks 的关系</strong>：Git hooks 守护代码仓库（commit 前扫密钥），Claude Code hooks 守护 AI 行为（修改文件后验证格式）。两者互补，不冲突。</p>
+<h3 id="支柱四：Skills-—-可复用的专家模块"><a href="#支柱四：Skills-—-可复用的专家模块" class="headerlink" title="支柱四：Skills — 可复用的专家模块"></a>支柱四：Skills — 可复用的专家模块</h3><p>Skills 是预定义的任务模板，封装了特定领域的知识和工作流。用 <code>/skill-name</code> 调用，Claude 就变成该领域的专家。</p>
+<p>本博客项目使用的 Skills：</p>
+<table>
+<thead>
+<tr>
+<th>Skill</th>
+<th>用途</th>
+<th>触发方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>auto-post</code></td>
+<td>从主题到完整文章的全流程生成</td>
+<td><code>/auto-post &lt;topic&gt;</code></td>
+</tr>
+<tr>
+<td><code>optimize-doc</code></td>
+<td>按专业标准优化文档结构和可读性</td>
+<td><code>/optimize-doc &lt;path&gt;</code></td>
+</tr>
+<tr>
+<td><code>security-review</code></td>
+<td>AI 驱动的安全审查</td>
+<td><code>/security-review</code></td>
+</tr>
+</tbody></table>
+<p><strong>Skill vs 直接 prompt 的区别</strong>：直接 prompt 每次都要重新描述需求；Skill 把工作流固化下来，包括参考资源的加载顺序、输出格式的约束、质量检查的清单。一个好的 Skill 相当于一本”操作手册 + 检查清单”。</p>
+<hr>
+<h2 id="🚧-Vibecoding-实战场景"><a href="#🚧-Vibecoding-实战场景" class="headerlink" title="🚧 Vibecoding 实战场景"></a>🚧 Vibecoding 实战场景</h2><h3 id="场景一：从零创建功能"><a href="#场景一：从零创建功能" class="headerlink" title="场景一：从零创建功能"></a>场景一：从零创建功能</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; 给博客添加一个 pre-push hook，在推送前检查所有文章中的图片 URL 是否返回 200</span><br><span class="line"></span><br><span class="line">Claude 的工作流：</span><br><span class="line">1. 读取现有 .githooks/ 目录，理解 hook 结构</span><br><span class="line">2. 编写 check-images.sh 脚本</span><br><span class="line">3. 更新 pre-push hook 集成新检查</span><br><span class="line">4. 在 package.json 添加对应 npm script</span><br><span class="line">5. 执行测试验证</span><br></pre></td></tr></table></figure>
+
+<p>我不需要告诉 Claude 用什么语言写、放在哪个目录、怎么集成——CLAUDE.md 已经提供了这些上下文。</p>
+<h3 id="场景二：调试和修复"><a href="#场景二：调试和修复" class="headerlink" title="场景二：调试和修复"></a>场景二：调试和修复</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&gt; pnpm build 报错：FATAL ERROR: RangeError - Invalid count value</span><br><span class="line">&gt; 帮我查一下是什么问题</span><br><span class="line"></span><br><span class="line">Claude 的工作流：</span><br><span class="line">1. 运行 pnpm build 复现错误</span><br><span class="line">2. 分析错误堆栈</span><br><span class="line">3. Grep 搜索相关源文件</span><br><span class="line">4. 定位问题根因</span><br><span class="line">5. 提出修复方案并实施</span><br></pre></td></tr></table></figure>
+
+<p>关键在于 Claude 能直接执行命令复现问题，而不是让你复制粘贴错误日志。</p>
+<h3 id="场景三：代码审查与重构"><a href="#场景三：代码审查与重构" class="headerlink" title="场景三：代码审查与重构"></a>场景三：代码审查与重构</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&gt; 审查 scripts/ 目录下所有 shell 脚本的安全性，特别关注命令注入风险</span><br></pre></td></tr></table></figure>
+
+<p>Claude 会逐文件读取、分析，给出具体的行号和修复建议。这比手动审查高效得多，尤其是对 shell 脚本这种容易出安全问题的代码。</p>
+<hr>
+<h2 id="⚡-Vibecoding-最佳实践"><a href="#⚡-Vibecoding-最佳实践" class="headerlink" title="⚡ Vibecoding 最佳实践"></a>⚡ Vibecoding 最佳实践</h2><h3 id="人机分工原则"><a href="#人机分工原则" class="headerlink" title="人机分工原则"></a>人机分工原则</h3><pre class="mermaid">graph LR
+    H["人类"] -->|"定义"| W["What & Why"]
+    H -->|"审查"| R["关键决策"]
+    H -->|"验证"| V["最终结果"]
+    AI["Claude"] -->|"执行"| HOW["How"]
+    AI -->|"搜索"| S["信息收集"]
+    AI -->|"生成"| G["代码 & 文档"]
+
+    style H fill:#e3f2fd,stroke:#333,color:#000
+    style AI fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/diagram_20260417_044332_01.webp" alt="Vibecoding 人机分工模式"></p>
+</details>
+
+<ul>
+<li><strong>人类擅长</strong>：定义需求、判断优先级、审查架构决策、验证业务逻辑</li>
+<li><strong>AI 擅长</strong>：搜索代码、生成样板、执行重复性任务、遵守格式规范</li>
+</ul>
+<h3 id="沟通技巧"><a href="#沟通技巧" class="headerlink" title="沟通技巧"></a>沟通技巧</h3><p><strong>1. 给上下文，不给步骤</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 不够好</span><br><span class="line">&quot;打开 _config.yml，找到 theme 字段，改成 kratos-rebirth&quot;</span><br><span class="line"></span><br><span class="line"># 更好</span><br><span class="line">&quot;把博客主题切换到 kratos-rebirth&quot;</span><br></pre></td></tr></table></figure>
+
+<p>Claude 知道 Hexo 的配置文件在哪里，不需要你手把手指导。过度指定步骤反而限制了 AI 选择最优路径的能力。</p>
+<p><strong>2. 分批交付，而非一次性大需求</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 不够好</span><br><span class="line">&quot;重构整个项目的构建系统，迁移到 Vite，添加单元测试，配置 CI/CD&quot;</span><br><span class="line"></span><br><span class="line"># 更好</span><br><span class="line">&quot;先把构建系统从 webpack 迁移到 Vite&quot;</span><br><span class="line">→ 验证通过</span><br><span class="line">&quot;接下来给核心模块添加单元测试&quot;</span><br><span class="line">→ 验证通过</span><br><span class="line">&quot;最后更新 CI/CD 配置&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>3. 善用 CLAUDE.md 积累项目知识</strong></p>
+<p>每次 Claude 做了一个好的决策，考虑把那个知识点加入 CLAUDE.md。比如：</p>
+<ul>
+<li>“部署不用 hexo deploy，用 GitHub Actions” → 写入 CLAUDE.md</li>
+<li>“source 目录下的 CNAME 不要删” → 写入 CLAUDE.md</li>
+<li>“图片统一托管在 blog-images 仓库” → 写入 CLAUDE.md</li>
+</ul>
+<p>这样知识会随着项目持续积累，而不是每次对话都从头来。</p>
+<h3 id="常见坑点"><a href="#常见坑点" class="headerlink" title="常见坑点"></a>常见坑点</h3><ol>
+<li><p><strong>Context 溢出</strong></p>
+<ul>
+<li><strong>现象</strong>：长对话后 Claude 开始忘记早期指令，行为不一致</li>
+<li><strong>原因</strong>：上下文窗口有限，早期消息被压缩</li>
+<li><strong>解决</strong>：关键约束放在 CLAUDE.md（始终加载），而非对话中口头说明；长任务拆分为多次对话</li>
+</ul>
+</li>
+<li><p><strong>过度信任 AI 输出</strong></p>
+<ul>
+<li><strong>现象</strong>：Claude 生成的代码看起来合理，但有隐蔽的逻辑错误</li>
+<li><strong>原因</strong>：AI 擅长模式匹配，但不真正”理解”业务逻辑</li>
+<li><strong>解决</strong>：核心业务逻辑必须人工审查；让 Claude 写测试来验证自己的代码</li>
+</ul>
+</li>
+<li><p><strong>权限过度放开</strong></p>
+<ul>
+<li><strong>现象</strong>：Claude 执行了不该执行的操作（如 force push）</li>
+<li><strong>原因</strong>：默认权限模式过于宽松</li>
+<li><strong>解决</strong>：使用 hooks 限制危险操作；关键命令保持手动确认模式</li>
+</ul>
+</li>
+</ol>
+<hr>
+<blockquote>
+<p>版本更新日志持续追踪：<a href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/" title="Claude Code 更新追踪">Claude Code 更新追踪</a></p>
+</blockquote>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>CLAUDE.md 是基础</strong>：投入 30 分钟写好项目说明书，后续每次对话都节省时间</li>
+<li><strong>工作流 &gt; 单次 prompt</strong>：vibecoding 的价值不在于某个 prompt 写得好，而在于 CLAUDE.md + MCP + Hooks + Skills 构成的完整基础设施</li>
+<li><strong>人机各司其职</strong>：人类负责 “what” 和 “why” 的决策，AI 负责 “how” 的执行——这是效率最高的协作模式</li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>个人项目和小团队：CLAUDE.md 就是你的”团队规范文档”，Claude 是你的”新同事”</li>
+<li>博客和内容管理：Skills 封装写作规范，批量生产高质量内容</li>
+<li>运维和脚本编写：Claude 对 shell 脚本、配置文件的理解很强，适合自动化任务</li>
+<li>代码审查：安全扫描、风格检查、重构建议——AI 不会累</li>
+</ul>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><p>Vibecoding 不意味着放弃编程能力。你仍然需要能读懂代码、判断方案优劣、发现 AI 的错误。把 AI 当作一个高效但需要监督的同事，而不是一个不会犯错的神谕。最好的 vibecoding 工程师，是既懂编程又懂如何与 AI 协作的人。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-13</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-09</td>
+<td>追加 Claude Code 近期增量更新，补充 2.1.89 到 2.1.97 的变化</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-13</td>
+<td>将增量更新段迁移至独立 tracking 文章，原文加引用链接</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-17</td>
+<td>为 2 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI-%E7%BC%96%E7%A8%8B/" rel="tag">AI 编程</a>, <a class="tag-none-link" href="/tags/CLI/" rel="tag">CLI</a>, <a class="tag-none-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a>, <a class="tag-none-link" href="/tags/vibecoding/" rel="tag">vibecoding</a>, <a class="tag-none-link" href="/tags/%E5%B7%A5%E4%BD%9C%E6%B5%81/" rel="tag">工作流</a>, <a class="tag-none-link" href="/tags/%E5%BC%80%E5%8F%91%E6%95%88%E7%8E%87/" rel="tag">开发效率</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 博客安全检查方案优化——从 Git Hooks 到 AI 审查的多层防护" href="/2026/03/12/tech/tools/2026-03-13-blog-security-check-optimization/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" float[][] 矩阵序列化：用 Base64 二进制编码替代 JSON 文本，避免 OOM" href="/2026/03/15/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF-Vibecoding"><span class="toc-number">1.1.</span> <span class="toc-text">什么是 Vibecoding</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-Claude-Code-%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%E9%80%9F%E8%A7%88"><span class="toc-number">2.</span> <span class="toc-text">🔍 Claude Code 核心能力速览</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8D%E6%98%AF%E8%81%8A%E5%A4%A9%E6%9C%BA%E5%99%A8%E4%BA%BA%EF%BC%8C%E6%98%AF%E7%BB%88%E7%AB%AF%E9%87%8C%E7%9A%84%E5%B7%A5%E7%A8%8B%E6%90%AD%E6%A1%A3"><span class="toc-number">2.1.</span> <span class="toc-text">不是聊天机器人，是终端里的工程搭档</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%8A%9F%E8%83%BD%E7%9F%A9%E9%98%B5"><span class="toc-number">2.2.</span> <span class="toc-text">核心功能矩阵</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E5%9B%9B%E5%A4%A7%E6%94%AF%E6%9F%B1%EF%BC%9A%E6%9E%84%E5%BB%BA%E4%BD%A0%E7%9A%84-Vibecoding-%E5%9F%BA%E7%A1%80%E8%AE%BE%E6%96%BD"><span class="toc-number">3.</span> <span class="toc-text">💡 四大支柱：构建你的 Vibecoding 基础设施</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E4%B8%80%EF%BC%9ACLAUDE-md-%E2%80%94-%E9%A1%B9%E7%9B%AE%E7%9A%84%E2%80%9D%E5%A4%A7%E8%84%91%E2%80%9D"><span class="toc-number">3.1.</span> <span class="toc-text">支柱一：CLAUDE.md — 项目的”大脑”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E4%BA%8C%EF%BC%9AMCP-Server-%E2%80%94-%E8%BF%9E%E6%8E%A5%E5%A4%96%E9%83%A8%E4%B8%96%E7%95%8C"><span class="toc-number">3.2.</span> <span class="toc-text">支柱二：MCP Server — 连接外部世界</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E4%B8%89%EF%BC%9AHooks-%E2%80%94-%E8%87%AA%E5%8A%A8%E5%8C%96%E6%8A%A4%E6%A0%8F"><span class="toc-number">3.3.</span> <span class="toc-text">支柱三：Hooks — 自动化护栏</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%AF%E6%9F%B1%E5%9B%9B%EF%BC%9ASkills-%E2%80%94-%E5%8F%AF%E5%A4%8D%E7%94%A8%E7%9A%84%E4%B8%93%E5%AE%B6%E6%A8%A1%E5%9D%97"><span class="toc-number">3.4.</span> <span class="toc-text">支柱四：Skills — 可复用的专家模块</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-Vibecoding-%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF"><span class="toc-number">4.</span> <span class="toc-text">🚧 Vibecoding 实战场景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E4%BB%8E%E9%9B%B6%E5%88%9B%E5%BB%BA%E5%8A%9F%E8%83%BD"><span class="toc-number">4.1.</span> <span class="toc-text">场景一：从零创建功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E8%B0%83%E8%AF%95%E5%92%8C%E4%BF%AE%E5%A4%8D"><span class="toc-number">4.2.</span> <span class="toc-text">场景二：调试和修复</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5%E4%B8%8E%E9%87%8D%E6%9E%84"><span class="toc-number">4.3.</span> <span class="toc-text">场景三：代码审查与重构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A1-Vibecoding-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">⚡ Vibecoding 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%BA%E6%9C%BA%E5%88%86%E5%B7%A5%E5%8E%9F%E5%88%99"><span class="toc-number">5.1.</span> <span class="toc-text">人机分工原则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B2%9F%E9%80%9A%E6%8A%80%E5%B7%A7"><span class="toc-number">5.2.</span> <span class="toc-text">沟通技巧</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">5.3.</span> <span class="toc-text">常见坑点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">6.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>GitHub Actions 与 Harness 怎么选：CI/CD 与交付治理判断框架 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CI-CD, DevOps, GitHub-Actions, Harness, 平台选型" />
+  
+  <meta name="description" content="把 GitHub Actions 和 Harness 放回各自真正的问题域，帮助团队快速 判断自己需要的是仓库原生自动化，还是企业级交付治理平台。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GitHub Actions 与 Harness 怎么选：CI&#x2F;CD 与交付治理判断框架">
+<meta property="og:url" content="https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="把 GitHub Actions 和 Harness 放回各自真正的问题域，帮助团队快速 判断自己需要的是仓库原生自动化，还是企业级交付治理平台。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_083300_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_083454_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_091808_00.webp">
+<meta property="article:published_time" content="2026-03-30T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.765Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CI-CD">
+<meta property="article:tag" content="DevOps">
+<meta property="article:tag" content="GitHub-Actions">
+<meta property="article:tag" content="Harness">
+<meta property="article:tag" content="平台选型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_083300_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"GitHub Actions 与 Harness 怎么选：CI/CD 与交付治理判断框架","description":"把 GitHub Actions 和 Harness 放回各自真正的问题域，帮助团队快速 判断自己需要的是仓库原生自动化，还是企业级交付治理平台。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-30T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.765Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">GitHub Actions 与 Harness 怎么选：CI/CD 与交付治理判断框架</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-30T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-31</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~6.55K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E4%B8%80%E5%BC%A0%E8%A1%A8%E5%85%88%E7%9C%8B%E7%BB%93%E8%AE%BA"><span class="toc-number">1.2.</span> <span class="toc-text">💎 一张表先看结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%80%89%E8%B0%81"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 什么时候选谁</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%85%88%E7%9C%8B%E6%9C%AC%E8%B4%A8%EF%BC%8C%E4%B8%8D%E8%A6%81%E5%85%88%E7%9C%8B%E5%8A%9F%E8%83%BD%E6%B8%85%E5%8D%95"><span class="toc-number">2.1.</span> <span class="toc-text">1. 先看本质，不要先看功能清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1-GitHub-Actions-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.1.1.</span> <span class="toc-text">1.1 GitHub Actions 解决什么问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-Harness-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.1.2.</span> <span class="toc-text">1.2 Harness 解决什么问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-%E7%94%A8-5W1H-%E5%BF%AB%E9%80%9F%E5%88%A4%E6%96%AD"><span class="toc-number">2.1.3.</span> <span class="toc-text">1.3 用 5W1H 快速判断</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%9C%9F%E6%AD%A3%E5%BD%B1%E5%93%8D%E9%80%89%E5%9E%8B%E7%9A%84%E4%BA%94%E4%B8%AA%E7%BB%B4%E5%BA%A6"><span class="toc-number">2.2.</span> <span class="toc-text">2. 真正影响选型的五个维度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%8D%E6%83%B3%E4%BA%8C%E9%80%89%E4%B8%80%E6%97%B6%EF%BC%8C%E5%88%86%E5%B1%82%E7%BB%84%E5%90%88%E9%80%9A%E5%B8%B8%E6%9B%B4%E7%A8%B3"><span class="toc-number">2.3.</span> <span class="toc-text">3. 不想二选一时，分层组合通常更稳</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97%EF%BC%9A%E4%B8%80%E5%91%A8%E5%81%9A%E5%AE%8C-PoC"><span class="toc-number">2.4.</span> <span class="toc-text">4. 实战指南：一周做完 PoC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-%E5%85%88%E5%86%99%E6%B8%85%E6%A5%9A%E4%B8%89%E4%BB%B6%E4%BA%8B"><span class="toc-number">2.4.1.</span> <span class="toc-text">4.1 先写清楚三件事</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-GitHub-Actions-%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E8%B5%B7%E6%AD%A5"><span class="toc-number">2.4.2.</span> <span class="toc-text">4.2 GitHub Actions 最小可用起步</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-3-Harness-%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E8%AF%95%E7%82%B9"><span class="toc-number">2.4.3.</span> <span class="toc-text">4.3 Harness 最小可用试点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-4-%E9%80%89%E5%9E%8B%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">2.4.4.</span> <span class="toc-text">4.4 选型检查清单</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%8A%8A%E6%88%90%E6%9C%AC%E7%AE%97%E5%85%A8%EF%BC%8C%E4%B8%8D%E5%8F%AA%E7%AE%97-License"><span class="toc-number">2.5.</span> <span class="toc-text">5. 最佳实践：把成本算全，不只算 License</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-1-%E5%AE%89%E5%85%A8"><span class="toc-number">2.5.1.</span> <span class="toc-text">5.1 安全</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-%E6%B2%BB%E7%90%86"><span class="toc-number">2.5.2.</span> <span class="toc-text">5.2 治理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-%E8%A7%82%E6%B5%8B"><span class="toc-number">2.5.3.</span> <span class="toc-text">5.3 观测</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%88%A4%E4%B8%8E%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">2.6.</span> <span class="toc-text">6. 常见误判与故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-1-%E8%AF%AF%E6%8A%8A%E2%80%9C%E9%9C%80%E8%A6%81%E9%83%A8%E7%BD%B2%E2%80%9D%E5%BD%93%E6%88%90%E2%80%9C%E9%9C%80%E8%A6%81%E4%BA%A4%E4%BB%98%E5%B9%B3%E5%8F%B0%E2%80%9D"><span class="toc-number">2.6.1.</span> <span class="toc-text">6.1 误把“需要部署”当成“需要交付平台”</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-%E8%AF%AF%E6%8A%8A%E2%80%9CGitHub-%E4%B8%8A%E8%83%BD%E5%81%9A%E2%80%9D%E5%BD%93%E6%88%90%E2%80%9CGitHub-%E4%B8%8A%E9%80%82%E5%90%88%E5%81%9A%E2%80%9D"><span class="toc-number">2.6.2.</span> <span class="toc-text">6.2 误把“GitHub 上能做”当成“GitHub 上适合做”</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-3-Runner-%E6%88%96-Delegate-%E6%8E%A5%E5%85%A5%E7%8E%AF%E5%A2%83%E5%90%8E%E6%9D%83%E9%99%90%E8%BF%87%E5%A4%A7"><span class="toc-number">2.6.3.</span> <span class="toc-text">6.3 Runner 或 Delegate 接入环境后权限过大</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-4-%E5%8F%AA%E7%9C%8B%E5%B7%A5%E5%85%B7%E6%8A%A5%E4%BB%B7%EF%BC%8C%E4%B8%8D%E7%9C%8B%E7%BB%84%E7%BB%87%E7%BB%B4%E6%8A%A4%E6%88%90%E6%9C%AC"><span class="toc-number">2.6.4.</span> <span class="toc-text">6.4 只看工具报价，不看组织维护成本</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E5%9C%BA%E6%99%AF%E6%A1%88%E4%BE%8B"><span class="toc-number">2.7.</span> <span class="toc-text">7. 场景案例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">2.8.</span> <span class="toc-text">8. 工具与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#8-1-%E5%BC%80%E4%BC%9A%E5%89%8D%E5%8F%AF%E4%BB%A5%E5%85%88%E5%87%86%E5%A4%87%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">2.8.1.</span> <span class="toc-text">8.1 开会前可以先准备的问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-2-%E5%AE%98%E6%96%B9%E8%B5%84%E6%96%99"><span class="toc-number">2.8.2.</span> <span class="toc-text">8.2 官方资料</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-FAQ"><span class="toc-number">2.9.</span> <span class="toc-text">9. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Q1%EF%BC%9AGitHub-Actions-%E8%83%BD%E4%B8%8D%E8%83%BD%E5%81%9A-CD%EF%BC%9F"><span class="toc-number">2.9.1.</span> <span class="toc-text">Q1：GitHub Actions 能不能做 CD？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q2%EF%BC%9AHarness-%E6%98%AF%E4%B8%8D%E6%98%AF%E5%8F%AA%E6%9C%89%E5%A4%A7%E5%85%AC%E5%8F%B8%E6%89%8D%E9%9C%80%E8%A6%81%EF%BC%9F"><span class="toc-number">2.9.2.</span> <span class="toc-text">Q2：Harness 是不是只有大公司才需要？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q3%EF%BC%9A%E5%A6%82%E6%9E%9C%E4%BB%A3%E7%A0%81%E4%B8%8D%E5%9C%A8-GitHub%EF%BC%8CGitHub-Actions-%E8%BF%98%E5%80%BC%E5%BE%97%E4%BC%98%E5%85%88%E8%80%83%E8%99%91%E5%90%97%EF%BC%9F"><span class="toc-number">2.9.3.</span> <span class="toc-text">Q3：如果代码不在 GitHub，GitHub Actions 还值得优先考虑吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q4%EF%BC%9A%E5%88%86%E5%B1%82%E7%BB%84%E5%90%88%E4%BC%9A%E4%B8%8D%E4%BC%9A%E8%AE%A9%E7%B3%BB%E7%BB%9F%E6%9B%B4%E5%A4%8D%E6%9D%82%EF%BC%9F"><span class="toc-number">2.9.4.</span> <span class="toc-text">Q4：分层组合会不会让系统更复杂？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q5%EF%BC%9A%E7%AC%AC%E4%B8%80%E6%AC%A1-PoC-%E6%9C%80%E5%AE%B9%E6%98%93%E7%8A%AF%E4%BB%80%E4%B9%88%E9%94%99%EF%BC%9F"><span class="toc-number">2.9.5.</span> <span class="toc-text">Q5：第一次 PoC 最容易犯什么错？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q6%EF%BC%9A%E5%A6%82%E6%9E%9C%E7%8E%B0%E5%9C%A8%E8%BF%98%E6%8B%BF%E4%B8%8D%E5%87%86%EF%BC%8C%E6%9C%80%E7%A8%B3%E7%9A%84%E4%B8%8B%E4%B8%80%E6%AD%A5%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">2.9.6.</span> <span class="toc-text">Q6：如果现在还拿不准，最稳的下一步是什么？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-%E6%80%BB%E7%BB%93"><span class="toc-number">2.10.</span> <span class="toc-text">10. 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：这不是一篇“谁的功能更多”的对比，而是一套判断<br>“应该选仓库原生自动化，还是企业级交付平台”的思路。</p>
+<p>💡 <strong>核心理念</strong>：先看交付复杂度，再看功能清单。团队真正要解决的<br>问题，决定了平台选型的上限和性价比。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3-分钟速览版"><a href="#📖-3-分钟速览版" class="headerlink" title="📖 3 分钟速览版"></a>📖 3 分钟速览版</h2><details>
+<summary>📊 点击展开核心结论</summary>
+
+<h3 id="🔌-核心概念"><a href="#🔌-核心概念" class="headerlink" title="🔌 核心概念"></a>🔌 核心概念</h3><pre class="mermaid">graph LR
+    A["代码仓库驱动"] --> B["GitHub Actions"]
+    C["交付治理驱动"] --> D["Harness"]
+    B --> E["CI / PR 检查 / 基础部署"]
+    D --> F["审批 / GitOps / 发布治理"]
+
+    style B fill:#bbdefb,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,color:#000
+    style E fill:#e3f2fd,stroke:#333,color:#000
+    style F fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_083300_00.webp" alt="核心概念图解：&quot;代码仓库驱动&quot;、&quot;GitHub Actions&quot;"></p>
+</details>
+
+<p><strong>简要说明</strong>：<code>GitHub Actions</code> 强在和 GitHub 仓库、PR、事件流深度绑定，<br>适合把 CI 和基础部署快速跑起来；<code>Harness</code> 强在把部署、审批、策略、<br>GitOps 和审计收敛成统一交付平台。</p>
+<h3 id="💎-一张表先看结论"><a href="#💎-一张表先看结论" class="headerlink" title="💎 一张表先看结论"></a>💎 一张表先看结论</h3><table>
+<thead>
+<tr>
+<th>你最关心什么</th>
+<th>更适合 GitHub Actions</th>
+<th>更适合 Harness</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>快速把 CI 跑起来</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>仓库、PR、事件流一体化</td>
+<td>是</td>
+<td>否</td>
+</tr>
+<tr>
+<td>多环境发布编排</td>
+<td>一般</td>
+<td>是</td>
+</tr>
+<tr>
+<td>强审批与策略治理</td>
+<td>一般</td>
+<td>是</td>
+</tr>
+<tr>
+<td>团队平台化复用</td>
+<td>一般</td>
+<td>是</td>
+</tr>
+<tr>
+<td>低门槛、低运维试点</td>
+<td>是</td>
+<td>否</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-什么时候选谁"><a href="#🎯-什么时候选谁" class="headerlink" title="🎯 什么时候选谁"></a>🎯 什么时候选谁</h3><pre class="mermaid">graph TD
+    A["当前最核心的问题是什么?"] -->|CI / PR 检查| B["优先 GitHub Actions"]
+    A -->|多环境发布与审批| C["优先 Harness"]
+    A -->|两者都重要| D["采用分层组合"]
+    B --> E["低门槛试点"]
+    C --> F["平台化治理"]
+    D --> G["GitHub 做开发流，Harness 做交付流"]
+
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#ffccbc,stroke:#333,color:#000
+    style D fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_083454_01.webp" alt="什么时候选谁图解：&quot;当前最核心的问题是什么?&quot;、&quot;优先 GitHub Actions&quot;"></p>
+</details>
+
+<p><strong>适用条件</strong>：</p>
+<ul>
+<li><code>GitHub Actions</code>：代码主要在 GitHub，团队先解决 CI、PR 检查和基础部署。</li>
+<li><code>Harness</code>：需要多环境审批、发布编排、GitOps、模板治理和审计能力。</li>
+<li>分层组合：希望保留 GitHub 开发体验，同时把交付治理独立出来。</li>
+</ul>
+<p><strong>不适用情况</strong>：</p>
+<ul>
+<li>只有 1 到 2 个服务、1 套环境、审批链也很简单，不必过早引入 Harness。</li>
+<li>发布治理已经很复杂，却还把所有 CD 逻辑堆在 GitHub Actions 里，后续维护会很痛。</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><p>本文基于截至 2026-03-31 可公开确认的官方文档整理。目标不是替你做唯一<br>决定，而是帮你缩短试错时间，把讨论重点从“功能多不多”切回“问题像不像”。</p>
+<h3 id="1-先看本质，不要先看功能清单"><a href="#1-先看本质，不要先看功能清单" class="headerlink" title="1. 先看本质，不要先看功能清单"></a>1. 先看本质，不要先看功能清单</h3><h4 id="1-1-GitHub-Actions-解决什么问题"><a href="#1-1-GitHub-Actions-解决什么问题" class="headerlink" title="1.1 GitHub Actions 解决什么问题"></a>1.1 GitHub Actions 解决什么问题</h4><p><code>GitHub Actions</code> 本质上是 GitHub 仓库原生的工作流自动化能力。它最强的<br>地方不是“能写 YAML”，而是和 <code>push</code>、<code>pull_request</code>、<code>workflow_call</code><br>这类开发事件天然耦合。只要团队的核心流程仍然围绕 GitHub 仓库展开，<br>它就很容易成为 CI、检查、构建、测试和基础部署的默认入口。</p>
+<h4 id="1-2-Harness-解决什么问题"><a href="#1-2-Harness-解决什么问题" class="headerlink" title="1.2 Harness 解决什么问题"></a>1.2 Harness 解决什么问题</h4><p><code>Harness</code> 更像软件交付平台，而不是单纯的 CI 工具。它关注的是部署编排、<br>审批流程、策略治理、GitOps、环境连接、模板复用和审计留痕。换句话说，<br>当团队的问题已经从“怎么跑起来”升级为“怎么稳定、合规、可复用地交付”，<br>Harness 的价值才会真正被放大。</p>
+<h4 id="1-3-用-5W1H-快速判断"><a href="#1-3-用-5W1H-快速判断" class="headerlink" title="1.3 用 5W1H 快速判断"></a>1.3 用 5W1H 快速判断</h4><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>GitHub Actions 更像</th>
+<th>Harness 更像</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>What</td>
+<td>仓库原生自动化</td>
+<td>企业级交付平台</td>
+</tr>
+<tr>
+<td>Why</td>
+<td>快速完成 CI 和基础部署</td>
+<td>管理复杂发布与治理</td>
+</tr>
+<tr>
+<td>Who</td>
+<td>中小团队、GitHub 为中心团队</td>
+<td>平台团队、多环境、多云、合规团队</td>
+</tr>
+<tr>
+<td>When</td>
+<td>从 0 到 1 建交付链路</td>
+<td>交付复杂度明显上升之后</td>
+</tr>
+<tr>
+<td>How</td>
+<td>YAML + Marketplace + Runner</td>
+<td>Pipeline + Stage + Template + Delegate</td>
+</tr>
+<tr>
+<td>How much</td>
+<td>工具成本低、学习成本低</td>
+<td>平台能力强、学习和治理成本更高</td>
+</tr>
+</tbody></table>
+<h3 id="2-真正影响选型的五个维度"><a href="#2-真正影响选型的五个维度" class="headerlink" title="2. 真正影响选型的五个维度"></a>2. 真正影响选型的五个维度</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>GitHub Actions 更优时机</th>
+<th>Harness 更优时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发流耦合</td>
+<td>代码、评审、检查都围绕 GitHub</td>
+<td>开发流和交付流需要解耦</td>
+</tr>
+<tr>
+<td>部署复杂度</td>
+<td>少量环境、简单回滚、基础自动化</td>
+<td>多环境、多阶段审批、复杂发布编排</td>
+</tr>
+<tr>
+<td>治理要求</td>
+<td>团队约束主要靠约定和少量保护规则</td>
+<td>需要模板、审批、策略和审计留痕</td>
+</tr>
+<tr>
+<td>基础设施边界</td>
+<td>公网 Runner 或简单自托管即可</td>
+<td>需要连 VPC、内网资源、专用环境</td>
+</tr>
+<tr>
+<td>成本结构</td>
+<td>更看重低门槛和快速落地</td>
+<td>更看重长期平台复用和治理收益</td>
+</tr>
+</tbody></table>
+<p>如果你在评审会上只能讲一句话，我建议讲这个：<code>GitHub Actions</code> 优势在<br>“贴近开发流”，<code>Harness</code> 优势在“接住交付复杂度”。两者不是简单的高低配，<br>而是解决问题的边界不同。</p>
+<h3 id="3-不想二选一时，分层组合通常更稳"><a href="#3-不想二选一时，分层组合通常更稳" class="headerlink" title="3. 不想二选一时，分层组合通常更稳"></a>3. 不想二选一时，分层组合通常更稳</h3><p>很多团队最后落地的不是“全选 A”或“全选 B”，而是保留 GitHub 做代码托管<br>和开发流，把更重的发布治理交给 Harness。这个组合的好处是迁移成本低，<br>而且组织边界更清晰。</p>
+<pre class="mermaid">graph LR
+    A["GitHub Repo"] --> B["GitHub Actions"]
+    B --> C["Build / Test / PR Check"]
+    B --> D["Harness"]
+    D --> E["Deploy / Approval / Policy"]
+    E --> F["Staging / Production"]
+
+    style B fill:#bbdefb,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,color:#000
+    style E fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/diagram_20260417_091808_00.webp" alt="不想二选一时，分层组合通常更稳架构图：&quot;GitHub Repo&quot;、&quot;GitHub Actions&quot;"></p>
+</details>
+
+<p>这种分层模式尤其适合下面两类团队：</p>
+<ul>
+<li>开发团队已经很依赖 GitHub PR 流程，不希望一下子重做开发入口。</li>
+<li>平台团队希望把审批、模板、策略和多环境交付统一收口。</li>
+</ul>
+<p>另外，Harness 官方文档也明确提供了 <code>GitHub Action</code> 相关能力，这意味着<br>你不一定要一次性抛弃已有的 GitHub Action 资产，而是可以把它们逐步纳入<br>新的交付链路。</p>
+<h3 id="4-实战指南：一周做完-PoC"><a href="#4-实战指南：一周做完-PoC" class="headerlink" title="4. 实战指南：一周做完 PoC"></a>4. 实战指南：一周做完 PoC</h3><h4 id="4-1-先写清楚三件事"><a href="#4-1-先写清楚三件事" class="headerlink" title="4.1 先写清楚三件事"></a>4.1 先写清楚三件事</h4><ol>
+<li>PoC 成功标准是什么，例如构建时长、部署成功率、回滚时间和审批链路。</li>
+<li>PoC 边界是什么，例如只选一个服务、一个环境、一条最核心发布路径。</li>
+<li>PoC 失败标准是什么，例如平台学习成本过高、接入内网困难或治理收益不明显。</li>
+</ol>
+<h4 id="4-2-GitHub-Actions-最小可用起步"><a href="#4-2-GitHub-Actions-最小可用起步" class="headerlink" title="4.2 GitHub Actions 最小可用起步"></a>4.2 GitHub Actions 最小可用起步</h4><p>如果你的目标是先把 PR 检查和 CI 跑起来，可以从一份最小工作流开始：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">name:</span> <span class="string">ci</span></span><br><span class="line"></span><br><span class="line"><span class="attr">on:</span></span><br><span class="line">  <span class="attr">pull_request:</span></span><br><span class="line">  <span class="attr">push:</span></span><br><span class="line">    <span class="attr">branches:</span> [<span class="string">main</span>]</span><br><span class="line"></span><br><span class="line"><span class="attr">permissions:</span></span><br><span class="line">  <span class="attr">contents:</span> <span class="string">read</span></span><br><span class="line">  <span class="attr">id-token:</span> <span class="string">write</span></span><br><span class="line"></span><br><span class="line"><span class="attr">jobs:</span></span><br><span class="line">  <span class="attr">build-test:</span></span><br><span class="line">    <span class="attr">runs-on:</span> <span class="string">ubuntu-latest</span></span><br><span class="line">    <span class="attr">steps:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/checkout@v4</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">uses:</span> <span class="string">actions/setup-node@v4</span></span><br><span class="line">        <span class="attr">with:</span></span><br><span class="line">          <span class="attr">node-version:</span> <span class="number">20</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">corepack</span> <span class="string">enable</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">pnpm</span> <span class="string">install</span> <span class="string">--frozen-lockfile</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">run:</span> <span class="string">pnpm</span> <span class="string">test</span></span><br></pre></td></tr></table></figure>
+
+<p>这份配置的价值不在于复杂，而在于它能快速验证三件事：Runner 是否稳定、<br>依赖安装是否顺畅、测试是否适合放进统一工作流。</p>
+<h4 id="4-3-Harness-最小可用试点"><a href="#4-3-Harness-最小可用试点" class="headerlink" title="4.3 Harness 最小可用试点"></a>4.3 Harness 最小可用试点</h4><p>如果你的目标是验证“平台化治理是否值得”，建议先做一个最小 CD 或混合 PoC，<br>而不是一上来就重做全部流水线。下面这个片段展示了 Harness 在 CI 中使用<br>GitHub Action 风格步骤的能力：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">step:</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">Action</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">setup</span> <span class="string">nodejs</span></span><br><span class="line">    <span class="attr">identifier:</span> <span class="string">setup_nodejs</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">uses:</span> <span class="string">actions/setup-node@v3</span></span><br><span class="line">      <span class="attr">with:</span></span><br><span class="line">        <span class="attr">node-version:</span> <span class="string">&quot;20&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>PoC 时请优先验证下面四件事：</p>
+<ul>
+<li>Delegate 或 Runner 能否顺利访问你的目标环境和制品仓库。</li>
+<li>审批、模板和策略是否真的减少了脚本散落问题。</li>
+<li>发布回滚链路是否比现有方案更可控。</li>
+<li>团队是否能接受平台模型的学习成本。</li>
+</ul>
+<h4 id="4-4-选型检查清单"><a href="#4-4-选型检查清单" class="headerlink" title="4.4 选型检查清单"></a>4.4 选型检查清单</h4><ul>
+<li><input disabled="" type="checkbox"> 代码仓库是否主要在 GitHub</li>
+<li><input disabled="" type="checkbox"> 是否需要多环境审批和发布编排</li>
+<li><input disabled="" type="checkbox"> 是否有 GitOps 或审计合规要求</li>
+<li><input disabled="" type="checkbox"> 是否需要连接内网、VPC 或受限环境</li>
+<li><input disabled="" type="checkbox"> 是否需要跨团队共享模板与统一治理</li>
+<li><input disabled="" type="checkbox"> 是否愿意为平台化建设承担额外学习成本</li>
+</ul>
+<h3 id="5-最佳实践：把成本算全，不只算-License"><a href="#5-最佳实践：把成本算全，不只算-License" class="headerlink" title="5. 最佳实践：把成本算全，不只算 License"></a>5. 最佳实践：把成本算全，不只算 License</h3><h4 id="5-1-安全"><a href="#5-1-安全" class="headerlink" title="5.1 安全"></a>5.1 安全</h4><p>如果使用 <code>GitHub Actions</code>，尽量优先采用 <code>OIDC</code>、环境保护规则和最小权限<br>原则，减少长效密钥在工作流中的暴露。如果使用 <code>Harness</code>，则应重点关注<br><code>Delegate</code> 的网络边界、权限收敛和凭据管理，把“能连进去”变成“只允许<br>它访问必要资源”。</p>
+<h4 id="5-2-治理"><a href="#5-2-治理" class="headerlink" title="5.2 治理"></a>5.2 治理</h4><p>治理能力不是越多越好，而是越“能被团队持续维护”越好。中小团队很容易在<br>还没形成稳定交付模式时，就先搭了过重的审批和模板体系，结果平台本身变成<br>新的维护负担。</p>
+<h4 id="5-3-观测"><a href="#5-3-观测" class="headerlink" title="5.3 观测"></a>5.3 观测</h4><p>无论选哪个平台，都建议至少跟踪下面这些指标：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>构建成功率</td>
+<td>反映 CI 稳定性</td>
+</tr>
+<tr>
+<td>部署成功率</td>
+<td>反映发布链路可靠性</td>
+</tr>
+<tr>
+<td>回滚耗时</td>
+<td>反映风险控制能力</td>
+</tr>
+<tr>
+<td>变更失败率</td>
+<td>反映交付质量</td>
+</tr>
+<tr>
+<td>Lead Time</td>
+<td>反映从提交到上线的真实效率</td>
+</tr>
+</tbody></table>
+<h3 id="6-常见误判与故障排查"><a href="#6-常见误判与故障排查" class="headerlink" title="6. 常见误判与故障排查"></a>6. 常见误判与故障排查</h3><h4 id="6-1-误把“需要部署”当成“需要交付平台”"><a href="#6-1-误把“需要部署”当成“需要交付平台”" class="headerlink" title="6.1 误把“需要部署”当成“需要交付平台”"></a>6.1 误把“需要部署”当成“需要交付平台”</h4><p><strong>症状</strong>：团队只有少量服务和环境，却想一步到位上完整交付平台。<br><strong>原因</strong>：把未来复杂度当成当前复杂度。<br><strong>解决</strong>：先用 <code>GitHub Actions</code> 跑通基础链路，再观察审批和治理需求是否真的出现。</p>
+<h4 id="6-2-误把“GitHub-上能做”当成“GitHub-上适合做”"><a href="#6-2-误把“GitHub-上能做”当成“GitHub-上适合做”" class="headerlink" title="6.2 误把“GitHub 上能做”当成“GitHub 上适合做”"></a>6.2 误把“GitHub 上能做”当成“GitHub 上适合做”</h4><p><strong>症状</strong>：部署、审批、回滚逻辑全都写在 workflow 和脚本里，越来越难维护。<br><strong>原因</strong>：早期方案成功后，团队继续把平台问题塞回仓库工作流。<br><strong>解决</strong>：当发布链路明显复杂化时，把 CD 和治理部分独立出来。</p>
+<h4 id="6-3-Runner-或-Delegate-接入环境后权限过大"><a href="#6-3-Runner-或-Delegate-接入环境后权限过大" class="headerlink" title="6.3 Runner 或 Delegate 接入环境后权限过大"></a>6.3 Runner 或 Delegate 接入环境后权限过大</h4><p><strong>症状</strong>：流水线能访问太多资源，安全边界不清。<br><strong>原因</strong>：为了先跑通流程，直接给了过宽权限。<br><strong>解决</strong>：收紧最小权限、隔离环境、分离非生产与生产访问策略。</p>
+<h4 id="6-4-只看工具报价，不看组织维护成本"><a href="#6-4-只看工具报价，不看组织维护成本" class="headerlink" title="6.4 只看工具报价，不看组织维护成本"></a>6.4 只看工具报价，不看组织维护成本</h4><p><strong>症状</strong>：评审时只比较账面费用，忽略脚本维护、审批沟通和平台治理投入。<br><strong>原因</strong>：把成本理解成“采购价”，而不是“总拥有成本”。<br><strong>解决</strong>：把人力维护成本、治理收益和故障恢复成本一起纳入评估。</p>
+<h3 id="7-场景案例"><a href="#7-场景案例" class="headerlink" title="7. 场景案例"></a>7. 场景案例</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>更推荐的方案</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GitHub 为中心的中小团队</td>
+<td>GitHub Actions</td>
+<td>上手快，能最快形成稳定 CI</td>
+</tr>
+<tr>
+<td>多环境、多团队协作</td>
+<td>Harness</td>
+<td>审批、模板、策略治理价值更明显</td>
+</tr>
+<tr>
+<td>既想保留 GitHub 流程，又要强化交付治理</td>
+<td>分层组合</td>
+<td>开发流和交付流职责清晰，迁移风险更低</td>
+</tr>
+</tbody></table>
+<h3 id="8-工具与资源"><a href="#8-工具与资源" class="headerlink" title="8. 工具与资源"></a>8. 工具与资源</h3><h4 id="8-1-开会前可以先准备的问题"><a href="#8-1-开会前可以先准备的问题" class="headerlink" title="8.1 开会前可以先准备的问题"></a>8.1 开会前可以先准备的问题</h4><ul>
+<li>我们现在最痛的是 CI 慢，还是发布过程乱。</li>
+<li>我们是否已经有必须落地的审批、审计或 GitOps 诉求。</li>
+<li>我们是否真的需要平台治理，还是只需要把现有 CI 补齐。</li>
+<li>我们未来半年内的复杂度，大概率会不会继续上升。</li>
+</ul>
+<h4 id="8-2-官方资料"><a href="#8-2-官方资料" class="headerlink" title="8.2 官方资料"></a>8.2 官方资料</h4><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.github.com/en/actions">GitHub Actions Docs</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows">Reuse Workflows</a></li>
+<li><a target="_blank" rel="noopener" href="https://docs.github.com/en/actions/concepts/security/openid-connect">OpenID Connect</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.harness.io/docs/continuous-delivery/">Harness Continuous Delivery</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.harness.io/docs/platform/get-started/tutorials/install-delegate">Install Delegate</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.harness.io/docs/platform/governance/policy-as-code/harness-governance-overview/">Policy as Code</a></li>
+<li><a target="_blank" rel="noopener" href="https://developer.harness.io/docs/software-supply-chain-assurance/slsa/verify-slsa-with-github-actions/">Harness GitHub Actions</a></li>
+</ul>
+<h3 id="9-FAQ"><a href="#9-FAQ" class="headerlink" title="9. FAQ"></a>9. FAQ</h3><h4 id="Q1：GitHub-Actions-能不能做-CD？"><a href="#Q1：GitHub-Actions-能不能做-CD？" class="headerlink" title="Q1：GitHub Actions 能不能做 CD？"></a>Q1：<code>GitHub Actions</code> 能不能做 CD？</h4><p>能做，而且对简单部署场景已经足够好用。问题不在“能不能”，而在“当审批、<br>回滚、环境治理越来越复杂时，是否还适合继续堆在同一层工作流里”。</p>
+<h4 id="Q2：Harness-是不是只有大公司才需要？"><a href="#Q2：Harness-是不是只有大公司才需要？" class="headerlink" title="Q2：Harness 是不是只有大公司才需要？"></a>Q2：<code>Harness</code> 是不是只有大公司才需要？</h4><p>不一定。真正的判断标准不是公司大小，而是交付复杂度。如果你已经有明显的<br>多环境审批、审计或平台治理诉求，Harness 就可能值得评估。</p>
+<h4 id="Q3：如果代码不在-GitHub，GitHub-Actions-还值得优先考虑吗？"><a href="#Q3：如果代码不在-GitHub，GitHub-Actions-还值得优先考虑吗？" class="headerlink" title="Q3：如果代码不在 GitHub，GitHub Actions 还值得优先考虑吗？"></a>Q3：如果代码不在 GitHub，<code>GitHub Actions</code> 还值得优先考虑吗？</h4><p>价值会明显下降。<code>GitHub Actions</code> 的核心优势就是和 GitHub 仓库、PR、<br>事件流的原生耦合；一旦这个前提不成立，它的吸引力就会减弱。</p>
+<h4 id="Q4：分层组合会不会让系统更复杂？"><a href="#Q4：分层组合会不会让系统更复杂？" class="headerlink" title="Q4：分层组合会不会让系统更复杂？"></a>Q4：分层组合会不会让系统更复杂？</h4><p>会增加一定的系统边界，但如果职责划分清楚，整体复杂度反而更低。关键不是<br>“用了几个平台”，而是“每个平台是否只承担自己擅长的事情”。</p>
+<h4 id="Q5：第一次-PoC-最容易犯什么错？"><a href="#Q5：第一次-PoC-最容易犯什么错？" class="headerlink" title="Q5：第一次 PoC 最容易犯什么错？"></a>Q5：第一次 PoC 最容易犯什么错？</h4><p>最常见的错是试图一次性覆盖所有服务和环境。更稳的做法是只选一条关键链路，<br>先验证最核心的收益，再决定是否扩大范围。</p>
+<h4 id="Q6：如果现在还拿不准，最稳的下一步是什么？"><a href="#Q6：如果现在还拿不准，最稳的下一步是什么？" class="headerlink" title="Q6：如果现在还拿不准，最稳的下一步是什么？"></a>Q6：如果现在还拿不准，最稳的下一步是什么？</h4><p>先做一个轻量 PoC。对于偏开发流的问题，用 <code>GitHub Actions</code> 验证最小 CI；<br>对于偏交付治理的问题，用 <code>Harness</code> 验证一条带审批的发布链路。</p>
+<h3 id="10-总结"><a href="#10-总结" class="headerlink" title="10. 总结"></a>10. 总结</h3><ol>
+<li><code>GitHub Actions</code> 更适合解决 GitHub 为中心的 CI 和基础自动化问题。</li>
+<li><code>Harness</code> 更适合解决多环境发布、审批、策略和交付治理问题。</li>
+<li>如果两类问题同时存在，分层组合通常比“彻底替换”更现实。</li>
+</ol>
+<p>如果你现在正准备做选型，我建议先别问“哪个公司功能更多”，先问“我们最痛<br>的问题究竟发生在开发流，还是交付流”。这个问题想清楚，答案往往已经出来了。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-31</td>
+<td>基于对话记录整理为选型笔记</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-31</td>
+<td>重构为双版本结构，补充实战指南、FAQ 与故障排查</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CI-CD/" rel="tag">CI-CD</a>, <a class="tag-none-link" href="/tags/DevOps/" rel="tag">DevOps</a>, <a class="tag-none-link" href="/tags/GitHub-Actions/" rel="tag">GitHub-Actions</a>, <a class="tag-none-link" href="/tags/Harness/" rel="tag">Harness</a>, <a class="tag-none-link" href="/tags/%E5%B9%B3%E5%8F%B0%E9%80%89%E5%9E%8B/" rel="tag">平台选型</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.765Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Harness Engineering：为什么 AI Coding 正在从 Prompt 走向 Context 与 Harness" href="/2026/03/29/tech/ai/2026-03-30-prompt-context-harness-engineering/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Kaggle x Google Agent 5 Days 白皮书精读：Day 1 Agent 基础架构" href="/2026/03/30/tech/ai/2026-03-31-kaggle-google-agent-5days-day1-whitepaper-reading/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E4%B8%80%E5%BC%A0%E8%A1%A8%E5%85%88%E7%9C%8B%E7%BB%93%E8%AE%BA"><span class="toc-number">1.2.</span> <span class="toc-text">💎 一张表先看结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%80%89%E8%B0%81"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 什么时候选谁</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%85%88%E7%9C%8B%E6%9C%AC%E8%B4%A8%EF%BC%8C%E4%B8%8D%E8%A6%81%E5%85%88%E7%9C%8B%E5%8A%9F%E8%83%BD%E6%B8%85%E5%8D%95"><span class="toc-number">2.1.</span> <span class="toc-text">1. 先看本质，不要先看功能清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1-GitHub-Actions-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.1.1.</span> <span class="toc-text">1.1 GitHub Actions 解决什么问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-Harness-%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.1.2.</span> <span class="toc-text">1.2 Harness 解决什么问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-3-%E7%94%A8-5W1H-%E5%BF%AB%E9%80%9F%E5%88%A4%E6%96%AD"><span class="toc-number">2.1.3.</span> <span class="toc-text">1.3 用 5W1H 快速判断</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%9C%9F%E6%AD%A3%E5%BD%B1%E5%93%8D%E9%80%89%E5%9E%8B%E7%9A%84%E4%BA%94%E4%B8%AA%E7%BB%B4%E5%BA%A6"><span class="toc-number">2.2.</span> <span class="toc-text">2. 真正影响选型的五个维度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%8D%E6%83%B3%E4%BA%8C%E9%80%89%E4%B8%80%E6%97%B6%EF%BC%8C%E5%88%86%E5%B1%82%E7%BB%84%E5%90%88%E9%80%9A%E5%B8%B8%E6%9B%B4%E7%A8%B3"><span class="toc-number">2.3.</span> <span class="toc-text">3. 不想二选一时，分层组合通常更稳</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97%EF%BC%9A%E4%B8%80%E5%91%A8%E5%81%9A%E5%AE%8C-PoC"><span class="toc-number">2.4.</span> <span class="toc-text">4. 实战指南：一周做完 PoC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-1-%E5%85%88%E5%86%99%E6%B8%85%E6%A5%9A%E4%B8%89%E4%BB%B6%E4%BA%8B"><span class="toc-number">2.4.1.</span> <span class="toc-text">4.1 先写清楚三件事</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-2-GitHub-Actions-%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E8%B5%B7%E6%AD%A5"><span class="toc-number">2.4.2.</span> <span class="toc-text">4.2 GitHub Actions 最小可用起步</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-3-Harness-%E6%9C%80%E5%B0%8F%E5%8F%AF%E7%94%A8%E8%AF%95%E7%82%B9"><span class="toc-number">2.4.3.</span> <span class="toc-text">4.3 Harness 最小可用试点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-4-%E9%80%89%E5%9E%8B%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">2.4.4.</span> <span class="toc-text">4.4 选型检查清单</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%EF%BC%9A%E6%8A%8A%E6%88%90%E6%9C%AC%E7%AE%97%E5%85%A8%EF%BC%8C%E4%B8%8D%E5%8F%AA%E7%AE%97-License"><span class="toc-number">2.5.</span> <span class="toc-text">5. 最佳实践：把成本算全，不只算 License</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#5-1-%E5%AE%89%E5%85%A8"><span class="toc-number">2.5.1.</span> <span class="toc-text">5.1 安全</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-2-%E6%B2%BB%E7%90%86"><span class="toc-number">2.5.2.</span> <span class="toc-text">5.2 治理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-3-%E8%A7%82%E6%B5%8B"><span class="toc-number">2.5.3.</span> <span class="toc-text">5.3 观测</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%88%A4%E4%B8%8E%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">2.6.</span> <span class="toc-text">6. 常见误判与故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-1-%E8%AF%AF%E6%8A%8A%E2%80%9C%E9%9C%80%E8%A6%81%E9%83%A8%E7%BD%B2%E2%80%9D%E5%BD%93%E6%88%90%E2%80%9C%E9%9C%80%E8%A6%81%E4%BA%A4%E4%BB%98%E5%B9%B3%E5%8F%B0%E2%80%9D"><span class="toc-number">2.6.1.</span> <span class="toc-text">6.1 误把“需要部署”当成“需要交付平台”</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-2-%E8%AF%AF%E6%8A%8A%E2%80%9CGitHub-%E4%B8%8A%E8%83%BD%E5%81%9A%E2%80%9D%E5%BD%93%E6%88%90%E2%80%9CGitHub-%E4%B8%8A%E9%80%82%E5%90%88%E5%81%9A%E2%80%9D"><span class="toc-number">2.6.2.</span> <span class="toc-text">6.2 误把“GitHub 上能做”当成“GitHub 上适合做”</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-3-Runner-%E6%88%96-Delegate-%E6%8E%A5%E5%85%A5%E7%8E%AF%E5%A2%83%E5%90%8E%E6%9D%83%E9%99%90%E8%BF%87%E5%A4%A7"><span class="toc-number">2.6.3.</span> <span class="toc-text">6.3 Runner 或 Delegate 接入环境后权限过大</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-4-%E5%8F%AA%E7%9C%8B%E5%B7%A5%E5%85%B7%E6%8A%A5%E4%BB%B7%EF%BC%8C%E4%B8%8D%E7%9C%8B%E7%BB%84%E7%BB%87%E7%BB%B4%E6%8A%A4%E6%88%90%E6%9C%AC"><span class="toc-number">2.6.4.</span> <span class="toc-text">6.4 只看工具报价，不看组织维护成本</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E5%9C%BA%E6%99%AF%E6%A1%88%E4%BE%8B"><span class="toc-number">2.7.</span> <span class="toc-text">7. 场景案例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">2.8.</span> <span class="toc-text">8. 工具与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#8-1-%E5%BC%80%E4%BC%9A%E5%89%8D%E5%8F%AF%E4%BB%A5%E5%85%88%E5%87%86%E5%A4%87%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">2.8.1.</span> <span class="toc-text">8.1 开会前可以先准备的问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#8-2-%E5%AE%98%E6%96%B9%E8%B5%84%E6%96%99"><span class="toc-number">2.8.2.</span> <span class="toc-text">8.2 官方资料</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-FAQ"><span class="toc-number">2.9.</span> <span class="toc-text">9. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Q1%EF%BC%9AGitHub-Actions-%E8%83%BD%E4%B8%8D%E8%83%BD%E5%81%9A-CD%EF%BC%9F"><span class="toc-number">2.9.1.</span> <span class="toc-text">Q1：GitHub Actions 能不能做 CD？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q2%EF%BC%9AHarness-%E6%98%AF%E4%B8%8D%E6%98%AF%E5%8F%AA%E6%9C%89%E5%A4%A7%E5%85%AC%E5%8F%B8%E6%89%8D%E9%9C%80%E8%A6%81%EF%BC%9F"><span class="toc-number">2.9.2.</span> <span class="toc-text">Q2：Harness 是不是只有大公司才需要？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q3%EF%BC%9A%E5%A6%82%E6%9E%9C%E4%BB%A3%E7%A0%81%E4%B8%8D%E5%9C%A8-GitHub%EF%BC%8CGitHub-Actions-%E8%BF%98%E5%80%BC%E5%BE%97%E4%BC%98%E5%85%88%E8%80%83%E8%99%91%E5%90%97%EF%BC%9F"><span class="toc-number">2.9.3.</span> <span class="toc-text">Q3：如果代码不在 GitHub，GitHub Actions 还值得优先考虑吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q4%EF%BC%9A%E5%88%86%E5%B1%82%E7%BB%84%E5%90%88%E4%BC%9A%E4%B8%8D%E4%BC%9A%E8%AE%A9%E7%B3%BB%E7%BB%9F%E6%9B%B4%E5%A4%8D%E6%9D%82%EF%BC%9F"><span class="toc-number">2.9.4.</span> <span class="toc-text">Q4：分层组合会不会让系统更复杂？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q5%EF%BC%9A%E7%AC%AC%E4%B8%80%E6%AC%A1-PoC-%E6%9C%80%E5%AE%B9%E6%98%93%E7%8A%AF%E4%BB%80%E4%B9%88%E9%94%99%EF%BC%9F"><span class="toc-number">2.9.5.</span> <span class="toc-text">Q5：第一次 PoC 最容易犯什么错？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q6%EF%BC%9A%E5%A6%82%E6%9E%9C%E7%8E%B0%E5%9C%A8%E8%BF%98%E6%8B%BF%E4%B8%8D%E5%87%86%EF%BC%8C%E6%9C%80%E7%A8%B3%E7%9A%84%E4%B8%8B%E4%B8%80%E6%AD%A5%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">2.9.6.</span> <span class="toc-text">Q6：如果现在还拿不准，最稳的下一步是什么？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-%E6%80%BB%E7%BB%93"><span class="toc-number">2.10.</span> <span class="toc-text">10. 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

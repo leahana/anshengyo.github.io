@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Lombok @Data 与 MyBatis PropertyNamer 命名冲突踩坑记录 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2023/06/18/tech/backend/2023-06-19-lombok-data-naming-pitfall/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Java, Lombok, MyBatis, 命名规范, 生产事故" />
+  
+  <meta name="description" content="记录 Lombok @Data 注解生成的 getter&#x2F;setter 方法与 MyBatis PropertyNamer 命名规则不一致导致的字段映射问题，附源码分析和解决方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Lombok @Data 与 MyBatis PropertyNamer 命名冲突踩坑记录">
+<meta property="og:url" content="https://leahana.github.io/2023/06/18/tech/backend/2023-06-19-lombok-data-naming-pitfall/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="记录 Lombok @Data 注解生成的 getter&#x2F;setter 方法与 MyBatis PropertyNamer 命名规则不一致导致的字段映射问题，附源码分析和解决方案。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-19-lombok-data-naming-pitfall/diagram_20260417_080056_00.webp">
+<meta property="article:published_time" content="2023-06-18T19:08:54.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Java">
+<meta property="article:tag" content="Lombok">
+<meta property="article:tag" content="MyBatis">
+<meta property="article:tag" content="命名规范">
+<meta property="article:tag" content="生产事故">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-19-lombok-data-naming-pitfall/diagram_20260417_080056_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Lombok @Data 与 MyBatis PropertyNamer 命名冲突踩坑记录","description":"记录 Lombok @Data 注解生成的 getter/setter 方法与 MyBatis PropertyNamer 命名规则不一致导致的字段映射问题，附源码分析和解决方案。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2023-06-18T19:08:54.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2023/06/18/tech/backend/2023-06-19-lombok-data-naming-pitfall/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2023/06/18/tech/backend/2023-06-19-lombok-data-naming-pitfall/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Lombok @Data 与 MyBatis PropertyNamer 命名冲突踩坑记录</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2023-06-18T19:08:54.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-06-19</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~8.66K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E5%91%BD%E5%90%8D%E5%86%B2%E7%AA%81%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 命名冲突流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E5%91%BD%E5%90%8D%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">1.2.</span> <span class="toc-text">💎 命名对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%BD%B1%E5%93%8D%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 影响总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">1. 问题背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%9E%E4%BD%93%E7%B1%BB%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.</span> <span class="toc-text">2. 实体类示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Lombok-%E7%94%9F%E6%88%90%E7%9A%84-Getter-%E5%92%8C-Setter"><span class="toc-number">5.</span> <span class="toc-text">3. Lombok 生成的 Getter 和 Setter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-IDEA%E3%80%81MyBatis-%E5%92%8C-Java-%E9%BB%98%E8%AE%A4%E7%9A%84-Getter-%E5%92%8C-Setter"><span class="toc-number">6.</span> <span class="toc-text">4. IDEA、MyBatis 和 Java 默认的 Getter 和 Setter</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B8%E5%BF%83%E5%B7%AE%E5%BC%82%E5%AF%B9%E6%AF%94"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 核心差异对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-MyBatis-PropertyNamer-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">5. MyBatis PropertyNamer 源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-PropertyNamer-%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99%E6%80%BB%E7%BB%93"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 PropertyNamer 命名规则总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-PropertyNamer-%E6%B5%8B%E8%AF%95%E9%AA%8C%E8%AF%81"><span class="toc-number">8.</span> <span class="toc-text">6. PropertyNamer 测试验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">9.</span> <span class="toc-text">7. 解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%A7%84%E8%8C%83%E5%B1%9E%E6%80%A7%E5%91%BD%E5%90%8D%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">9.1.</span> <span class="toc-text">7.1 方案一：规范属性命名（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99-Getter-Setter"><span class="toc-number">9.2.</span> <span class="toc-text">7.2 方案二：手动编写 Getter&#x2F;Setter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8-Accessor-%E6%B3%A8%E8%A7%A3"><span class="toc-number">9.3.</span> <span class="toc-text">7.3 方案三：使用 @Accessor 注解</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E5%8F%AA%E6%9C%89-MyBatis-%E4%BC%9A%E5%8F%97%E5%88%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E7%9A%84%E5%BD%B1%E5%93%8D%E5%90%97%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1: 只有 MyBatis 会受到这个问题的影响吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-Boolean-%E7%B1%BB%E5%9E%8B%E7%9A%84-isDelete-%E5%AD%97%E6%AE%B5%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B9%9F%E6%9C%89%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2: Boolean 类型的 isDelete 字段为什么也有问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A6%82%E4%BD%95%E5%BF%AB%E9%80%9F%E6%A3%80%E6%9F%A5%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E8%BF%99%E7%B1%BB%E5%91%BD%E5%90%8D%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3: 如何快速检查项目中是否存在这类命名问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%8D%87%E7%BA%A7-Lombok-%E7%89%88%E6%9C%AC%E8%83%BD%E8%A7%A3%E5%86%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4: 升级 Lombok 版本能解决这个问题吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E4%BD%BF%E7%94%A8-MyBatis-Plus-%E4%BC%9A%E6%9C%89%E5%90%8C%E6%A0%B7%E7%9A%84%E9%97%AE%E9%A2%98%E5%90%97%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5: 使用 MyBatis-Plus 会有同样的问题吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">11.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">12.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：Lombok @Data 与 MyBatis PropertyNamer 对特殊命名字段生成不同的 getter&#x2F;setter，导致字段映射失败的排查与解决方案<br>💡 <strong>核心理念</strong>：属性命名规范是框架兼容性的基础，前两个字母统一小写可以从根本上避免 Lombok 与 MyBatis 的命名冲突</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开核心概念</strong></summary>
+
+<h3 id="🔌-命名冲突流程"><a href="#🔌-命名冲突流程" class="headerlink" title="🔌 命名冲突流程"></a>🔌 命名冲突流程</h3><pre class="mermaid">graph TD
+    A["字段: nMetaType"] --> B["Lombok @Data"]
+    A --> C["MyBatis PropertyNamer"]
+    B --> D["getNMetaType()"]
+    C --> E["getnMetaType()"]
+    D --> F["映射属性: NMetaType"]
+    E --> G["映射属性: nMetaType"]
+    F --> H["❌ 字段映射失败"]
+
+    style A fill:#e3f2fd
+    style B fill:#fff3e0
+    style C fill:#fff3e0
+    style D fill:#ffcdd2
+    style E fill:#c8e6c9
+    style H fill:#ffcdd2</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-19-lombok-data-naming-pitfall/diagram_20260417_080056_00.webp" alt="命名冲突流程：&quot;字段: nMetaType&quot;、&quot;Lombok @Data&quot;"></p>
+</details>
+
+<h3 id="💎-命名对比表"><a href="#💎-命名对比表" class="headerlink" title="💎 命名对比表"></a>💎 命名对比表</h3><table>
+<thead>
+<tr>
+<th>字段声明</th>
+<th>生成方</th>
+<th>Getter 方法</th>
+<th>推导属性名</th>
+<th>是否一致</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>String name</code></td>
+<td>Lombok</td>
+<td><code>getName()</code></td>
+<td>name</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td><code>String name</code></td>
+<td>MyBatis</td>
+<td><code>getName()</code></td>
+<td>name</td>
+<td>✅ 一致</td>
+</tr>
+<tr>
+<td><code>Boolean isDelete</code></td>
+<td>Lombok</td>
+<td><code>getIsDelete()</code></td>
+<td>isDelete</td>
+<td>❌ 不一致</td>
+</tr>
+<tr>
+<td><code>Boolean isDelete</code></td>
+<td>MyBatis</td>
+<td><code>getDelete()</code></td>
+<td>delete</td>
+<td>❌ 不一致</td>
+</tr>
+<tr>
+<td><code>NMetaType nMetaType</code></td>
+<td>Lombok</td>
+<td><code>getNMetaType()</code></td>
+<td>NMetaType</td>
+<td>❌ 不一致</td>
+</tr>
+<tr>
+<td><code>NMetaType nMetaType</code></td>
+<td>MyBatis</td>
+<td><code>getnMetaType()</code></td>
+<td>nMetaType</td>
+<td>✅ 符合预期</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-影响总结"><a href="#🎯-影响总结" class="headerlink" title="🎯 影响总结"></a>🎯 影响总结</h3><ul>
+<li><strong>触发条件</strong>：属性名第一个字母小写、第二个字母大写（如 <code>nMetaType</code>、<code>xOffset</code>）</li>
+<li><strong>影响范围</strong>：MyBatis 结果集映射、JSON 序列化&#x2F;反序列化、BeanUtils 属性拷贝</li>
+<li><strong>根因</strong>：Lombok 统一首字母大写拼接前缀，而 JavaBean 规范要求保留原始大小写</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-问题背景"><a href="#1-问题背景" class="headerlink" title="1. 问题背景"></a>1. 问题背景</h2><p>在 Java 编程中，我们经常使用 Lombok 库提供的 <code>@Data</code> 注解来自动生成 getter 和 setter 方法。然而，如果不了解它的生成规则，可能会导致一些不符合预期的结果。特别是在使用 MyBatis 等其他框架时，会因为 getter 和 setter 方法的命名规则不同，产生字段映射失败的问题。</p>
+<h2 id="2-实体类示例"><a href="#2-实体类示例" class="headerlink" title="2. 实体类示例"></a>2. 实体类示例</h2><p>以下实体类包含三种典型的字段命名：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestEntity</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String name;         <span class="comment">// 普通命名</span></span><br><span class="line">    <span class="keyword">private</span> Boolean isDelete;    <span class="comment">// is 前缀命名</span></span><br><span class="line">    <span class="keyword">private</span> NMetaType nMetaType; <span class="comment">// 首字母小写、第二字母大写</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-Lombok-生成的-Getter-和-Setter"><a href="#3-Lombok-生成的-Getter-和-Setter" class="headerlink" title="3. Lombok 生成的 Getter 和 Setter"></a>3. Lombok 生成的 Getter 和 Setter</h2><p>使用 Lombok 的 <code>@Data</code> 注解生成的 getter 和 setter 方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">TestEntityLombok</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> Boolean isDelete;</span><br><span class="line">    <span class="keyword">private</span> NMetaType nMetaType;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">TestEntityLombok</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> Boolean <span class="title function_">getIsDelete</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.isDelete;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⚠️ 注意：首字母 n 被大写为 N</span></span><br><span class="line">    <span class="keyword">public</span> NMetaType <span class="title function_">getNMetaType</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">this</span>.nMetaType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setIsDelete</span><span class="params">(Boolean isDelete)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.isDelete = isDelete;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⚠️ 注意：首字母 n 被大写为 N</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setNMetaType</span><span class="params">(NMetaType nMetaType)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.nMetaType = nMetaType;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>Lombok 的规则</strong>：统一将属性名首字母大写，然后拼接 <code>get</code>&#x2F;<code>set</code> 前缀。</p>
+<h2 id="4-IDEA、MyBatis-和-Java-默认的-Getter-和-Setter"><a href="#4-IDEA、MyBatis-和-Java-默认的-Getter-和-Setter" class="headerlink" title="4. IDEA、MyBatis 和 Java 默认的 Getter 和 Setter"></a>4. IDEA、MyBatis 和 Java 默认的 Getter 和 Setter</h2><p>使用 IDEA、MyBatis 或者 Java 默认（JavaBean 规范）的方式生成的 getter 和 setter 方法如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">TestEntityMybatis</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> Boolean isDelete;</span><br><span class="line">    <span class="keyword">private</span> NMetaType nMetaType;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getName</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setName</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.name = name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⚠️ 注意：is 前缀被去除</span></span><br><span class="line">    <span class="keyword">public</span> Boolean <span class="title function_">getDelete</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> isDelete;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setDelete</span><span class="params">(Boolean delete)</span> &#123;</span><br><span class="line">        isDelete = delete;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// ⚠️ 注意：首字母 n 保持小写</span></span><br><span class="line">    <span class="keyword">public</span> NMetaType <span class="title function_">getnMetaType</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> nMetaType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setnMetaType</span><span class="params">(NMetaType nMetaType)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.nMetaType = nMetaType;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>JavaBean 规范的规则</strong>：</p>
+<ul>
+<li><code>is</code> 前缀的 Boolean 字段：去掉 <code>is</code>，用 <code>get</code>&#x2F;<code>set</code> + 剩余部分</li>
+<li>属性名长度 &gt; 1 且第二个字母小写：首字母小写保留（<code>getnMetaType</code>）</li>
+<li>属性名长度 &gt; 1 且第二个字母大写：首字母大小写保留（<code>getNMetaType</code> 不会出现，因为不需要变换）</li>
+</ul>
+<h3 id="4-1-核心差异对比"><a href="#4-1-核心差异对比" class="headerlink" title="4.1 核心差异对比"></a>4.1 核心差异对比</h3><table>
+<thead>
+<tr>
+<th>字段</th>
+<th>Lombok Getter</th>
+<th>JavaBean&#x2F;MyBatis Getter</th>
+<th>差异原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td><code>getName()</code></td>
+<td><code>getName()</code></td>
+<td>无差异</td>
+</tr>
+<tr>
+<td><code>isDelete</code></td>
+<td><code>getIsDelete()</code></td>
+<td><code>getDelete()</code></td>
+<td>Lombok 不处理 <code>is</code> 前缀</td>
+</tr>
+<tr>
+<td><code>nMetaType</code></td>
+<td><code>getNMetaType()</code></td>
+<td><code>getnMetaType()</code></td>
+<td>Lombok 统一首字母大写</td>
+</tr>
+</tbody></table>
+<h2 id="5-MyBatis-PropertyNamer-源码解析"><a href="#5-MyBatis-PropertyNamer-源码解析" class="headerlink" title="5. MyBatis PropertyNamer 源码解析"></a>5. MyBatis PropertyNamer 源码解析</h2><p>MyBatis 3.5.1 PropertyNamer 源码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.apache.ibatis.reflection.property;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Locale;</span><br><span class="line"><span class="keyword">import</span> org.apache.ibatis.reflection.ReflectionException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">PropertyNamer</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="title function_">PropertyNamer</span><span class="params">()</span> &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> String <span class="title function_">methodToProperty</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="keyword">if</span> (name.startsWith(<span class="string">&quot;is&quot;</span>)) &#123;</span><br><span class="line">            name = name.substring(<span class="number">2</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!name.startsWith(<span class="string">&quot;get&quot;</span>) &amp;&amp; !name.startsWith(<span class="string">&quot;set&quot;</span>)) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ReflectionException</span>(</span><br><span class="line">                    <span class="string">&quot;Error parsing property name &#x27;&quot;</span> + name</span><br><span class="line">                    + <span class="string">&quot;&#x27;.  Didn&#x27;t start with &#x27;is&#x27;, &#x27;get&#x27; or &#x27;set&#x27;.&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            name = name.substring(<span class="number">3</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 关键逻辑：长度为1 或 第二个字母非大写 → 首字母转小写</span></span><br><span class="line">        <span class="keyword">if</span> (name.length() == <span class="number">1</span></span><br><span class="line">            || name.length() &gt; <span class="number">1</span> &amp;&amp; !Character.isUpperCase(name.charAt(<span class="number">1</span>))) &#123;</span><br><span class="line">            name = name.substring(<span class="number">0</span>, <span class="number">1</span>).toLowerCase(Locale.ENGLISH)</span><br><span class="line">                   + name.substring(<span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> name;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">isProperty</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> isGetter(name) || isSetter(name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">isGetter</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> name.startsWith(<span class="string">&quot;get&quot;</span>) &amp;&amp; name.length() &gt; <span class="number">3</span></span><br><span class="line">            || name.startsWith(<span class="string">&quot;is&quot;</span>) &amp;&amp; name.length() &gt; <span class="number">2</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">boolean</span> <span class="title function_">isSetter</span><span class="params">(String name)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> name.startsWith(<span class="string">&quot;set&quot;</span>) &amp;&amp; name.length() &gt; <span class="number">3</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-1-PropertyNamer-命名规则总结"><a href="#5-1-PropertyNamer-命名规则总结" class="headerlink" title="5.1 PropertyNamer 命名规则总结"></a>5.1 PropertyNamer 命名规则总结</h3><ul>
+<li><strong><code>is</code> 前缀</strong>：一般为布尔类型，例如 <code>isDelete</code>，对应的 getter 方法为 <code>getDelete()</code> 和 <code>setDelete(Boolean delete)</code></li>
+<li><strong>单字母属性</strong>：例如 <code>private int x;</code>，对应的 getter 和 setter 方法是 <code>getX()</code> 和 <code>setX(int x)</code></li>
+<li><strong>长度 &gt; 1 且第二个字母小写</strong>：例如 <code>private NMetaType nMetaType;</code>，对应的 getter 和 setter 方法是 <code>getnMetaType()</code> 和 <code>setnMetaType(NMetaType nMetaType)</code></li>
+</ul>
+<h2 id="6-PropertyNamer-测试验证"><a href="#6-PropertyNamer-测试验证" class="headerlink" title="6. PropertyNamer 测试验证"></a>6. PropertyNamer 测试验证</h2><p>通过以下代码验证上述规则：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Test</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">foundPropertyNamer</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">isName</span> <span class="operator">=</span> <span class="string">&quot;isName&quot;</span>;</span><br><span class="line">    <span class="type">String</span> <span class="variable">getName</span> <span class="operator">=</span> <span class="string">&quot;getName&quot;</span>;</span><br><span class="line">    <span class="type">String</span> <span class="variable">getnMetaType</span> <span class="operator">=</span> <span class="string">&quot;getnMetaType&quot;</span>;</span><br><span class="line">    <span class="type">String</span> <span class="variable">getNMetaType</span> <span class="operator">=</span> <span class="string">&quot;getNMetaType&quot;</span>;</span><br><span class="line"></span><br><span class="line">    Stream.of(isName, getName, getnMetaType, getNMetaType)</span><br><span class="line">            .forEach(methodName -&gt;</span><br><span class="line">                System.out.println(<span class="string">&quot;方法名字是:&quot;</span> + methodName</span><br><span class="line">                    + <span class="string">&quot; 属性名字:&quot;</span> + PropertyNamer.methodToProperty(methodName)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>测试结果如下：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">方法名字是:isName 属性名字:name</span><br><span class="line">方法名字是:getName 属性名字:name</span><br><span class="line">方法名字是:getnMetaType 属性名字:nMetaType</span><br><span class="line">方法名字是:getNMetaType 属性名字:NMetaType</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键发现</strong>：<code>getNMetaType</code> 被 MyBatis 反推为属性 <code>NMetaType</code>（首字母大写），而实际字段名是 <code>nMetaType</code>（首字母小写），导致映射失败。</p>
+<h2 id="7-解决方案"><a href="#7-解决方案" class="headerlink" title="7. 解决方案"></a>7. 解决方案</h2><h3 id="7-1-方案一：规范属性命名（推荐）"><a href="#7-1-方案一：规范属性命名（推荐）" class="headerlink" title="7.1 方案一：规范属性命名（推荐）"></a>7.1 方案一：规范属性命名（推荐）</h3><p>修改属性名，确保前两个字母统一小写：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ❌ 有问题的命名</span></span><br><span class="line"><span class="keyword">private</span> NMetaType nMetaType;</span><br><span class="line"></span><br><span class="line"><span class="comment">// ✅ 推荐的命名</span></span><br><span class="line"><span class="keyword">private</span> NMetaType metaType;</span><br><span class="line"><span class="comment">// 或</span></span><br><span class="line"><span class="keyword">private</span> NMetaType nmetaType;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-2-方案二：手动编写-Getter-Setter"><a href="#7-2-方案二：手动编写-Getter-Setter" class="headerlink" title="7.2 方案二：手动编写 Getter&#x2F;Setter"></a>7.2 方案二：手动编写 Getter&#x2F;Setter</h3><p>如果数据库已设计好，且前后端接口已对接完毕不便修改，可以为特殊属性单独使用 IDEA 生成 getter 和 setter 方法：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestEntity</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> String name;</span><br><span class="line">    <span class="keyword">private</span> NMetaType nMetaType;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 手动覆盖 Lombok 生成的方法</span></span><br><span class="line">    <span class="keyword">public</span> NMetaType <span class="title function_">getnMetaType</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> nMetaType;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">setnMetaType</span><span class="params">(NMetaType nMetaType)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.nMetaType = nMetaType;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-3-方案三：使用-Accessor-注解"><a href="#7-3-方案三：使用-Accessor-注解" class="headerlink" title="7.3 方案三：使用 @Accessor 注解"></a>7.3 方案三：使用 @Accessor 注解</h3><p>Lombok 提供 <code>@Accessors</code> 注解可以自定义访问器行为：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Accessors(prefix = &quot;&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestEntity</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> NMetaType nMetaType;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：<code>@Accessors</code> 的行为在不同 Lombok 版本之间可能有差异，使用前请确认版本兼容性。</p>
+</blockquote>
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-只有-MyBatis-会受到这个问题的影响吗？"><a href="#Q1-只有-MyBatis-会受到这个问题的影响吗？" class="headerlink" title="Q1: 只有 MyBatis 会受到这个问题的影响吗？"></a>Q1: 只有 MyBatis 会受到这个问题的影响吗？</h3><p><strong>A:</strong> 不是。所有遵循 JavaBean 规范的框架都可能受影响，包括：</p>
+<ul>
+<li><strong>MyBatis</strong>：结果集字段映射失败</li>
+<li><strong>Jackson&#x2F;Gson</strong>：JSON 序列化时字段名不一致</li>
+<li><strong>Spring BeanUtils</strong>：属性拷贝时漏拷贝特殊命名字段</li>
+<li><strong>Apache Commons BeanUtils</strong>：同样依赖 JavaBean 规范</li>
+</ul>
+<h3 id="Q2-Boolean-类型的-isDelete-字段为什么也有问题？"><a href="#Q2-Boolean-类型的-isDelete-字段为什么也有问题？" class="headerlink" title="Q2: Boolean 类型的 isDelete 字段为什么也有问题？"></a>Q2: Boolean 类型的 isDelete 字段为什么也有问题？</h3><p><strong>A:</strong> Lombok 对 <code>Boolean isDelete</code> 生成 <code>getIsDelete()</code>，而 JavaBean 规范认为 <code>is</code> 前缀的布尔属性应该去掉 <code>is</code>，生成 <code>getDelete()</code>。MyBatis 按照 JavaBean 规范将 <code>getIsDelete()</code> 反推为属性 <code>isDelete</code>（保留了 <code>is</code>），但如果 SQL 结果集的列名是 <code>delete</code>，映射就会失败。</p>
+<p><strong>建议</strong>：避免使用 <code>is</code> 前缀命名 Boolean 类型字段，直接使用 <code>deleted</code> 替代 <code>isDelete</code>。</p>
+<h3 id="Q3-如何快速检查项目中是否存在这类命名问题？"><a href="#Q3-如何快速检查项目中是否存在这类命名问题？" class="headerlink" title="Q3: 如何快速检查项目中是否存在这类命名问题？"></a>Q3: 如何快速检查项目中是否存在这类命名问题？</h3><p><strong>A:</strong> 可以通过正则表达式搜索可能有问题的字段命名：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查找第一个字母小写、第二个字母大写的字段</span></span><br><span class="line">grep -rn <span class="string">&quot;private .* [a-z][A-Z]&quot;</span> src/main/java/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找 Boolean is 前缀的字段</span></span><br><span class="line">grep -rn <span class="string">&quot;private Boolean is[A-Z]&quot;</span> src/main/java/</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4-升级-Lombok-版本能解决这个问题吗？"><a href="#Q4-升级-Lombok-版本能解决这个问题吗？" class="headerlink" title="Q4: 升级 Lombok 版本能解决这个问题吗？"></a>Q4: 升级 Lombok 版本能解决这个问题吗？</h3><p><strong>A:</strong> 截至 Lombok 1.18.x 版本，这个行为仍然没有改变。Lombok 官方认为统一首字母大写的规则更加简洁一致，而 JavaBean 规范的特殊处理（如保留前两个字母大小写）是历史遗留设计。因此，不能指望通过升级 Lombok 来解决这个问题，应从命名规范入手。</p>
+<h3 id="Q5-使用-MyBatis-Plus-会有同样的问题吗？"><a href="#Q5-使用-MyBatis-Plus-会有同样的问题吗？" class="headerlink" title="Q5: 使用 MyBatis-Plus 会有同样的问题吗？"></a>Q5: 使用 MyBatis-Plus 会有同样的问题吗？</h3><p><strong>A:</strong> 是的。MyBatis-Plus 底层依赖 MyBatis 的反射机制，同样使用 <code>PropertyNamer</code> 来解析属性名。因此，无论使用 MyBatis 还是 MyBatis-Plus，都会遇到相同的命名冲突问题。解决方案一致：规范属性命名或手动编写 getter&#x2F;setter。</p>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>根因</strong>：Lombok <code>@Data</code> 统一将属性首字母大写拼接前缀，而 JavaBean 规范在特定情况下保留原始大小写</li>
+<li><strong>触发条件</strong>：属性名第一个字母小写、第二个字母大写（如 <code>nMetaType</code>、<code>xOffset</code>、<code>eTag</code>）</li>
+<li><strong>影响范围</strong>：所有依赖 JavaBean 规范的框架（MyBatis、Jackson、Spring BeanUtils 等）</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><ul>
+<li><strong>新项目</strong>：制定命名规范，要求所有属性的前两个字母统一小写</li>
+<li><strong>存量项目</strong>：排查特殊命名字段，使用手动 getter&#x2F;setter 覆盖 Lombok 生成的方法</li>
+<li><strong>Code Review</strong>：在 Code Review 阶段关注字段命名，防止问题引入</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2023-06-19</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-11</td>
+<td>优化文档结构，添加速查版、对比分析和 FAQ</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Java/" rel="tag">Java</a>, <a class="tag-none-link" href="/tags/Lombok/" rel="tag">Lombok</a>, <a class="tag-none-link" href="/tags/MyBatis/" rel="tag">MyBatis</a>, <a class="tag-none-link" href="/tags/%E5%91%BD%E5%90%8D%E8%A7%84%E8%8C%83/" rel="tag">命名规范</a>, <a class="tag-none-link" href="/tags/%E7%94%9F%E4%BA%A7%E4%BA%8B%E6%95%85/" rel="tag">生产事故</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 微服务中权限参数如何传递：JWT 与 OAuth2 方案详解" href="/2023/06/11/tech/backend/2023-06-12-microservice-auth-passing/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 开始使用：游戏研究" href="/2024/05/31/gaming/2024-06-01-game-research/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E5%91%BD%E5%90%8D%E5%86%B2%E7%AA%81%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 命名冲突流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E5%91%BD%E5%90%8D%E5%AF%B9%E6%AF%94%E8%A1%A8"><span class="toc-number">1.2.</span> <span class="toc-text">💎 命名对比表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%BD%B1%E5%93%8D%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 影响总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">1. 问题背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%AE%9E%E4%BD%93%E7%B1%BB%E7%A4%BA%E4%BE%8B"><span class="toc-number">4.</span> <span class="toc-text">2. 实体类示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Lombok-%E7%94%9F%E6%88%90%E7%9A%84-Getter-%E5%92%8C-Setter"><span class="toc-number">5.</span> <span class="toc-text">3. Lombok 生成的 Getter 和 Setter</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-IDEA%E3%80%81MyBatis-%E5%92%8C-Java-%E9%BB%98%E8%AE%A4%E7%9A%84-Getter-%E5%92%8C-Setter"><span class="toc-number">6.</span> <span class="toc-text">4. IDEA、MyBatis 和 Java 默认的 Getter 和 Setter</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B8%E5%BF%83%E5%B7%AE%E5%BC%82%E5%AF%B9%E6%AF%94"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 核心差异对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-MyBatis-PropertyNamer-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">5. MyBatis PropertyNamer 源码解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-PropertyNamer-%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99%E6%80%BB%E7%BB%93"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 PropertyNamer 命名规则总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-PropertyNamer-%E6%B5%8B%E8%AF%95%E9%AA%8C%E8%AF%81"><span class="toc-number">8.</span> <span class="toc-text">6. PropertyNamer 测试验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">9.</span> <span class="toc-text">7. 解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E8%A7%84%E8%8C%83%E5%B1%9E%E6%80%A7%E5%91%BD%E5%90%8D%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">9.1.</span> <span class="toc-text">7.1 方案一：规范属性命名（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9A%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99-Getter-Setter"><span class="toc-number">9.2.</span> <span class="toc-text">7.2 方案二：手动编写 Getter&#x2F;Setter</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9A%E4%BD%BF%E7%94%A8-Accessor-%E6%B3%A8%E8%A7%A3"><span class="toc-number">9.3.</span> <span class="toc-text">7.3 方案三：使用 @Accessor 注解</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E5%8F%AA%E6%9C%89-MyBatis-%E4%BC%9A%E5%8F%97%E5%88%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E7%9A%84%E5%BD%B1%E5%93%8D%E5%90%97%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1: 只有 MyBatis 会受到这个问题的影响吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-Boolean-%E7%B1%BB%E5%9E%8B%E7%9A%84-isDelete-%E5%AD%97%E6%AE%B5%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B9%9F%E6%9C%89%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2: Boolean 类型的 isDelete 字段为什么也有问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A6%82%E4%BD%95%E5%BF%AB%E9%80%9F%E6%A3%80%E6%9F%A5%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%98%AF%E5%90%A6%E5%AD%98%E5%9C%A8%E8%BF%99%E7%B1%BB%E5%91%BD%E5%90%8D%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3: 如何快速检查项目中是否存在这类命名问题？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%8D%87%E7%BA%A7-Lombok-%E7%89%88%E6%9C%AC%E8%83%BD%E8%A7%A3%E5%86%B3%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4: 升级 Lombok 版本能解决这个问题吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E4%BD%BF%E7%94%A8-MyBatis-Plus-%E4%BC%9A%E6%9C%89%E5%90%8C%E6%A0%B7%E7%9A%84%E9%97%AE%E9%A2%98%E5%90%97%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5: 使用 MyBatis-Plus 会有同样的问题吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">11.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">12.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Python 环境认知的破与立：一个 Java 工程师的心智重构笔记 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-python-env-setup-from-java-perspective/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="conda, java, poetry, pyenv, python, uv, venv" />
+  
+  <meta name="description" content="从 Java 工程师的视角，梳理 pyenv&#x2F;venv&#x2F;Poetry&#x2F;Conda&#x2F;uv 的生态位差异，打破&quot;Conda 套 venv&quot;的套娃误区，理解 uv 作为项目级工具的补充角色，最终落地 pyenv（全局版本）+ uv&#x2F;Poetry（项目工具）的协作方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python 环境认知的破与立：一个 Java 工程师的心智重构笔记">
+<meta property="og:url" content="https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-python-env-setup-from-java-perspective/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="从 Java 工程师的视角，梳理 pyenv&#x2F;venv&#x2F;Poetry&#x2F;Conda&#x2F;uv 的生态位差异，打破&quot;Conda 套 venv&quot;的套娃误区，理解 uv 作为项目级工具的补充角色，最终落地 pyenv（全局版本）+ uv&#x2F;Poetry（项目工具）的协作方案。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_083800_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_093313_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_083956_02.webp">
+<meta property="article:published_time" content="2026-03-30T22:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.765Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="conda">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="poetry">
+<meta property="article:tag" content="pyenv">
+<meta property="article:tag" content="python">
+<meta property="article:tag" content="uv">
+<meta property="article:tag" content="venv">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_083800_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Python 环境认知的破与立：一个 Java 工程师的心智重构笔记","description":"从 Java 工程师的视角，梳理 pyenv/venv/Poetry/Conda/uv 的生态位差异，打破\"Conda 套 venv\"的套娃误区，理解 uv 作为项目级工具的补充角色，最终落地 pyenv（全局版本）+ uv/Poetry（项目工具）的协作方案。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-30T22:00:00.000Z","dateModified":"2026-05-18T05:47:58.765Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-python-env-setup-from-java-perspective/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/30/tech/tools/2026-03-31-python-env-setup-from-java-perspective/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Python 环境认知的破与立：一个 Java 工程师的心智重构笔记</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-30T22:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-31</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~12.09K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-%E5%B7%A5%E5%85%B7%E9%93%BE%E5%85%A8%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">Python 工具链全景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-vs-Java-%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%A0%87"><span class="toc-number">1.2.</span> <span class="toc-text">Python vs Java 工具对标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E6%97%B6%E9%80%89%E5%93%AA%E4%B8%AA%E5%B7%A5%E5%85%B7"><span class="toc-number">1.3.</span> <span class="toc-text">何时选哪个工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%88%9D%E5%A7%8B%E8%AF%AF%E8%A7%A3%EF%BC%9A%E6%80%9D%E7%BB%B4%E5%AE%9A%E5%8A%BF%E7%9A%84%E7%A2%B0%E6%92%9E"><span class="toc-number">2.</span> <span class="toc-text">1. 初始误解：思维定势的碰撞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%AF%AF%E5%8C%BA-A%EF%BC%9A%E6%8A%8A-venv-%E5%92%8C-pyenv-%E5%BD%93%E4%BD%9C%E5%90%8C%E4%B8%80%E5%B1%82"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 误区 A：把 venv 和 pyenv 当作同一层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%AF%AF%E5%8C%BA-B%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-PyCharm-%E6%8A%8A-Poetry-%E5%92%8C-venv-%E5%B9%B6%E5%88%97%EF%BC%9F"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 误区 B：为什么 PyCharm 把 Poetry 和 venv 并列？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E8%AF%AF%E5%8C%BA-C%EF%BC%9AConda-%E5%A5%97-venv-%E7%9A%84%E5%A5%97%E5%A8%83%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 误区 C：Conda 套 venv 的套娃模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%80%BB%E8%BE%91%E7%AA%81%E7%A0%B4%EF%BC%9A%E5%BD%B1%E5%AD%90%E4%B8%8E%E5%85%8B%E9%9A%86"><span class="toc-number">3.</span> <span class="toc-text">2. 逻辑突破：影子与克隆</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-pyvenv-cfg-%E7%9A%84%E7%9C%9F%E7%9B%B8"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 pyvenv.cfg 的真相</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-venv-%E7%9A%84%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB%E9%93%BE"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 venv 的依赖关系链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B7%A5%E5%85%B7%E7%94%9F%E6%80%81%E4%BD%8D%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 工具生态位重新定义</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%A0%87%EF%BC%9Apyenv-venv-Poetry-uv-vs-SDKMAN-Classpath-Maven"><span class="toc-number">4.</span> <span class="toc-text">3. 技术对标：pyenv&#x2F;venv&#x2F;Poetry&#x2F;uv vs SDKMAN!&#x2F;Classpath&#x2F;Maven</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9DConda-%E5%A5%97-venv%E2%80%9D%E6%98%AF%E8%B7%AF%E5%BE%84%E7%A0%B4%E7%A2%8E%E7%9A%84%E9%A3%8E%E9%99%A9%E7%82%B9"><span class="toc-number">5.</span> <span class="toc-text">4. 避坑指南：为什么”Conda 套 venv”是路径破碎的风险点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%93%BE%E5%BC%8F%E4%BE%9D%E8%B5%96%E7%9A%84%E6%9C%AC%E8%B4%A8%E9%A3%8E%E9%99%A9"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 链式依赖的本质风险</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%85%B7%E4%BD%93%E7%9A%84%E7%A0%B4%E7%A2%8E%E8%A1%A8%E7%8E%B0"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 具体的破碎表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%B7%A5%E5%85%B7%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 工具选型决策树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 方案对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9C%80%E7%BB%88%E5%B7%A5%E7%A8%8B%E6%96%B9%E6%A1%88"><span class="toc-number">6.</span> <span class="toc-text">5. 最终工程方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%80%89%E5%9E%8B%E7%BB%93%E8%AE%BA"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 选型结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%85%B3%E9%94%AE%E9%85%8D%E7%BD%AE"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 关键配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87%EF%BC%9A%E7%8E%AF%E5%A2%83%E7%9A%84%E7%9E%AC%E6%97%B6%E9%87%8D%E5%BB%BA%E8%83%BD%E5%8A%9B"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 评价指标：环境的瞬时重建能力</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97%EF%BC%9AmacOS-%E8%A1%8C%E5%8A%A8%E6%B8%85%E5%8D%95"><span class="toc-number">7.</span> <span class="toc-text">6. 实战指南：macOS 行动清单</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%AE%89%E8%A3%85-pyenv"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 安装 pyenv</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%85%8D%E7%BD%AE-zshrc"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 配置 ~&#x2F;.zshrc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%AE%89%E8%A3%85%E5%B9%B6%E8%AE%BE%E7%BD%AE-Python-%E7%89%88%E6%9C%AC"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 安装并设置 Python 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%AE%89%E8%A3%85-Poetry"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 安装 Poetry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E9%85%8D%E7%BD%AE-in-project-%E6%A8%A1%E5%BC%8F"><span class="toc-number">7.5.</span> <span class="toc-text">6.5 配置 in-project 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A1%B9%E7%9B%AE"><span class="toc-number">7.6.</span> <span class="toc-text">6.6 创建第一个项目</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B7%A5%E5%85%B7%E6%BC%94%E8%BF%9B%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-uv-%E6%94%B9%E5%8F%98%E4%BA%86%E6%B8%B8%E6%88%8F%E8%A7%84%E5%88%99"><span class="toc-number">8.</span> <span class="toc-text">7. 工具演进：为什么 uv 改变了游戏规则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-uv-%E5%87%BA%E7%8E%B0%E7%9A%84%E8%83%8C%E6%99%AF"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 uv 出现的背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-uv-vs-Poetry-%E7%9A%84%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 uv vs Poetry 的关键差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%B8%BA%E4%BB%80%E4%B9%88-pyenv-%E4%BB%8D%E7%84%B6%E4%B8%8D%E8%83%BD%E8%A2%AB-uv-%E5%AE%8C%E5%85%A8%E6%9B%BF%E4%BB%A3"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 为什么 pyenv 仍然不能被 uv 完全替代</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-1%EF%BC%9A%E5%85%A8%E6%9C%BA%E9%BB%98%E8%AE%A4-Python%EF%BC%88Shell-%E5%B1%82%EF%BC%89"><span class="toc-number">8.3.1.</span> <span class="toc-text">场景 1：全机默认 Python（Shell 层）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-2%EF%BC%9AIDE-%E5%AF%BB%E6%89%BE%E7%89%A9%E7%90%86%E8%A7%A3%E9%87%8A%E5%99%A8%E8%B7%AF%E5%BE%84"><span class="toc-number">8.3.2.</span> <span class="toc-text">场景 2：IDE 寻找物理解释器路径</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-3%EF%BC%9A%E6%9E%81%E5%AE%A2%E7%89%88%E6%9C%AC%E7%BC%96%E8%AF%91"><span class="toc-number">8.3.3.</span> <span class="toc-text">场景 3：极客版本编译</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-4%EF%BC%9A%E5%85%A8%E5%B1%80%E7%B3%BB%E7%BB%9F%E5%B7%A5%E5%85%B7"><span class="toc-number">8.3.4.</span> <span class="toc-text">场景 4：全局系统工具</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%96%B0%E6%97%B6%E4%BB%A3%E7%9A%84%E5%B7%A5%E5%85%B7%E5%88%86%E5%B7%A5"><span class="toc-number">8.4.</span> <span class="toc-text">7.4 新时代的工具分工</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-Poetry-%E8%BF%98%E6%98%AF-uv%EF%BC%9F"><span class="toc-number">8.5.</span> <span class="toc-text">7.5 Poetry 还是 uv？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">9.</span> <span class="toc-text">8. 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%EF%BC%9Apyenv-command-not-found"><span class="toc-number">9.1.</span> <span class="toc-text">问题 1：pyenv: command not found</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%EF%BC%9Apython-%E2%80%93version-%E6%98%BE%E7%A4%BA%E7%9A%84%E4%B8%8D%E6%98%AF-pyenv-%E7%AE%A1%E7%90%86%E7%9A%84%E7%89%88%E6%9C%AC"><span class="toc-number">9.2.</span> <span class="toc-text">问题 2：python –version 显示的不是 pyenv 管理的版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%EF%BC%9Apoetry-install-%E5%90%8E%E6%89%BE%E4%B8%8D%E5%88%B0-venv-%E7%9B%AE%E5%BD%95"><span class="toc-number">9.3.</span> <span class="toc-text">问题 3：poetry install 后找不到 .venv 目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%EF%BC%9A%E8%BF%81%E7%A7%BB%E5%88%B0%E6%96%B0%E6%9C%BA%E5%99%A8%E5%90%8E-venv-%E5%A4%B1%E6%95%88"><span class="toc-number">9.4.</span> <span class="toc-text">问题 4：迁移到新机器后 venv 失效</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9Apyenv-%E5%92%8C-asdf-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%8C%E8%AF%A5%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1：pyenv 和 asdf 有什么区别，该用哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9APoetry-%E5%92%8C-pip-requirements-txt-%E6%9C%89%E4%BB%80%E4%B9%88%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2：Poetry 和 pip + requirements.txt 有什么本质区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9A%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BB%8D%E7%84%B6%E5%BA%94%E8%AF%A5%E7%94%A8-Conda%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3：什么场景下仍然应该用 Conda？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A-venv-%E7%9B%AE%E5%BD%95%E5%BA%94%E8%AF%A5%E6%8F%90%E4%BA%A4%E5%88%B0-Git-%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4：.venv 目录应该提交到 Git 吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9APoetry-%E5%88%9B%E5%BB%BA%E7%9A%84-venv-%E5%92%8C%E6%89%8B%E5%8A%A8-python-m-venv-venv-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5：Poetry 创建的 venv 和手动 python -m venv .venv 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6%EF%BC%9A%E5%A4%9A%E4%B8%AA-Python-%E9%A1%B9%E7%9B%AE%E5%A6%82%E4%BD%95%E5%BF%AB%E9%80%9F%E5%88%87%E6%8D%A2%E7%89%88%E6%9C%AC%EF%BC%9F"><span class="toc-number">10.6.</span> <span class="toc-text">Q6：多个 Python 项目如何快速切换版本？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q7%EF%BC%9Auv-%E5%92%8C-Poetry-%E6%88%91%E5%BA%94%E8%AF%A5%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">10.7.</span> <span class="toc-text">Q7：uv 和 Poetry 我应该用哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q8%EF%BC%9Auv-%E4%BC%9A%E4%B8%8D%E4%BC%9A%E5%AE%8C%E5%85%A8%E6%9B%BF%E4%BB%A3-pyenv%EF%BC%9F"><span class="toc-number">10.8.</span> <span class="toc-text">Q8：uv 会不会完全替代 pyenv？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q9%EF%BC%9A%E8%83%BD%E4%B8%8D%E8%83%BD%E5%9C%A8-Conda-%E7%8E%AF%E5%A2%83%E9%87%8C%E7%94%A8-uv%EF%BC%9F"><span class="toc-number">10.9.</span> <span class="toc-text">Q9：能不能在 Conda 环境里用 uv？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">11.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.2.</span> <span class="toc-text">行动建议</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%8A%E5%A4%A9%E5%B0%B1%E5%8F%AF%E4%BB%A5%E5%81%9A%E7%9A%84"><span class="toc-number">11.2.1.</span> <span class="toc-text">今天就可以做的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%AC%E5%91%A8%E5%8F%AF%E4%BB%A5%E4%BC%98%E5%8C%96%E7%9A%84"><span class="toc-number">11.2.2.</span> <span class="toc-text">本周可以优化的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%95%BF%E6%9C%9F%E5%8F%AF%E4%BB%A5%E6%94%B9%E8%BF%9B%E7%9A%84"><span class="toc-number">11.2.3.</span> <span class="toc-text">长期可以改进的</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.3.</span> <span class="toc-text">最后的建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">12.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>一句话定位：这是一篇帮助 Java 工程师跨越语言鸿沟的笔记，从”我曾以为”出发，经过心智重构，最终确定工程方案。</p>
+</blockquote>
+<blockquote>
+<p>核心理念：pyenv 是仓库，venv 是花盆，Poetry 是园丁，uv 是高速园丁，Conda 是装甲实验室——理解生态位，比记住 API 更重要。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary><strong>点击展开核心概念图与对标表</strong></summary>
+
+<h3 id="Python-工具链全景"><a href="#Python-工具链全景" class="headerlink" title="Python 工具链全景"></a>Python 工具链全景</h3><pre class="mermaid">graph LR
+    A["pyenv<br/>版本仓库"] --> B["Python 3.x<br/>解释器二进制"]
+    B --> C["venv<br/>隔离花盆"]
+    C --> D[".venv/<br/>项目 Lib 空间"]
+    E["Poetry<br/>依赖 + 构建"] --> C
+
+    style A fill:#bbdefb,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#ffccbc,stroke:#333,color:#000
+    style E fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_083800_00.webp" alt="Python 工具链全景图解：&quot;pyenv、版本仓库&quot;、&quot;Python 3.x、解释器二进制&quot;"></p>
+</details>
+
+<h3 id="Python-vs-Java-工具对标"><a href="#Python-vs-Java-工具对标" class="headerlink" title="Python vs Java 工具对标"></a>Python vs Java 工具对标</h3><table>
+<thead>
+<tr>
+<th>职责</th>
+<th>Python 工具</th>
+<th>Java 工具</th>
+<th>核心差异</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>版本管理</td>
+<td>pyenv</td>
+<td>SDKMAN!</td>
+<td>职责对等，均管理语言版本二进制文件</td>
+</tr>
+<tr>
+<td>依赖隔离</td>
+<td>venv</td>
+<td>Classpath &#x2F; Module Path</td>
+<td>venv 是 Thin Wrapper（影子），非独立 Fat Binary</td>
+</tr>
+<tr>
+<td>构建&#x2F;依赖</td>
+<td>Poetry</td>
+<td>Maven &#x2F; Gradle</td>
+<td>Poetry 兼管环境创建，Maven 不负责 JDK 切换</td>
+</tr>
+<tr>
+<td>项目工具（新）</td>
+<td>uv</td>
+<td>Maven（部分功能）</td>
+<td>uv 集版本管理、依赖、环境于一身，项目中心，秒级同步</td>
+</tr>
+<tr>
+<td>重型隔离</td>
+<td>Conda</td>
+<td>无直接对应</td>
+<td>Conda 处理非 Python 二进制（CUDA&#x2F;R），Java 无此需求</td>
+</tr>
+</tbody></table>
+<h3 id="何时选哪个工具"><a href="#何时选哪个工具" class="headerlink" title="何时选哪个工具"></a>何时选哪个工具</h3><ul>
+<li>纯 Python 项目（Web、CLI、爬虫），追求快速迭代 → <strong>pyenv + uv</strong>（现代方案）</li>
+<li>纯 Python 项目，追求完整声明和 lock 精度 → pyenv + Poetry</li>
+<li>科学计算 &#x2F; ML &#x2F; CUDA &#x2F; R 混合场景 → Conda</li>
+<li>全局 Shell 层默认版本 → 必须用 pyenv</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="1-初始误解：思维定势的碰撞"><a href="#1-初始误解：思维定势的碰撞" class="headerlink" title="1. 初始误解：思维定势的碰撞"></a>1. 初始误解：思维定势的碰撞</h2><h3 id="1-1-误区-A：把-venv-和-pyenv-当作同一层"><a href="#1-1-误区-A：把-venv-和-pyenv-当作同一层" class="headerlink" title="1.1 误区 A：把 venv 和 pyenv 当作同一层"></a>1.1 误区 A：把 venv 和 pyenv 当作同一层</h3><p>我曾以为 venv 和 pyenv 是同一层级的工具：一个轻量（venv），一个重量（Conda）。实际上这两者根本不在同一个”层”：</p>
+<ul>
+<li>pyenv 管理的是 Python 解释器本身的二进制文件，属于版本管理层</li>
+<li>venv 管理的是某个项目的依赖隔离空间，属于项目环境层</li>
+</ul>
+<p>两者是依赖关系，不是并列关系。先有 pyenv 提供解释器，venv 才能基于它创建环境。</p>
+<h3 id="1-2-误区-B：为什么-PyCharm-把-Poetry-和-venv-并列？"><a href="#1-2-误区-B：为什么-PyCharm-把-Poetry-和-venv-并列？" class="headerlink" title="1.2 误区 B：为什么 PyCharm 把 Poetry 和 venv 并列？"></a>1.2 误区 B：为什么 PyCharm 把 Poetry 和 venv 并列？</h3><p>基于 Java 经验，我认为 Poetry &#x3D; Maven（构建工具），不应与”JDK 级别”的 venv&#x2F;Conda 并列出现在 PyCharm 的解释器选择面板里。</p>
+<p>这个困惑的根源在于：Maven 不能创建 JDK，但 Poetry 可以自动创建 venv 并将其与项目绑定。PyCharm 把 Poetry 列在那里，是因为 Poetry 会在背后帮你 <code>python -m venv .venv</code>，再把项目解释器指向这个 venv。Poetry 兼管了”园丁 + 花盆”两层职责，这是 Java 世界里 Maven 从未有过的设计。</p>
+<h3 id="1-3-误区-C：Conda-套-venv-的套娃模式"><a href="#1-3-误区-C：Conda-套-venv-的套娃模式" class="headerlink" title="1.3 误区 C：Conda 套 venv 的套娃模式"></a>1.3 误区 C：Conda 套 venv 的套娃模式</h3><p>为了满足”Lib 在项目内”的洁癖，我尝试了 Conda 母体 -&gt; venv 子体 的嵌套方式：先用 Conda 创建基础环境，再在该环境上 <code>python -m venv .venv</code>，试图把依赖锁在项目目录里。</p>
+<p>这条路看上去合理，实则埋下了路径破碎的定时炸弹，下文将详细说明。</p>
+<h2 id="2-逻辑突破：影子与克隆"><a href="#2-逻辑突破：影子与克隆" class="headerlink" title="2. 逻辑突破：影子与克隆"></a>2. 逻辑突破：影子与克隆</h2><h3 id="2-1-pyvenv-cfg-的真相"><a href="#2-1-pyvenv-cfg-的真相" class="headerlink" title="2.1 pyvenv.cfg 的真相"></a>2.1 pyvenv.cfg 的真相</h3><p>创建 venv 后，进入 <code>.venv/</code> 目录，会看到一个 <code>pyvenv.cfg</code> 文件：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">home</span> = /path/to/.pyenv/versions/<span class="number">3.11</span>.<span class="number">8</span>/bin</span><br><span class="line"><span class="attr">include-system-site-packages</span> = <span class="literal">false</span></span><br><span class="line"><span class="attr">version</span> = <span class="number">3.11</span>.<span class="number">8</span></span><br></pre></td></tr></table></figure>
+
+<p><code>home</code> 字段揭示了 venv 的本质：它只是一个指针，指向真实的 Python 二进制文件。</p>
+<p>Java 世界里，JDK 是完整的 Fat Binary，包含 JVM、标准库、工具链，删掉 JDK 8 不影响 JDK 17。但 venv 不是这样。</p>
+<h3 id="2-2-venv-的依赖关系链"><a href="#2-2-venv-的依赖关系链" class="headerlink" title="2.2 venv 的依赖关系链"></a>2.2 venv 的依赖关系链</h3><pre class="mermaid">graph TB
+    A["pyenv 提供的 Python 3.11 二进制"] --> B[".venv 目录"]
+    B --> C["pyvenv.cfg<br/>home 指针"]
+    B --> D["site-packages<br/>本地 Lib 隔离"]
+    A -. 删除母体则影子失效 .-> B
+
+    style A fill:#bbdefb,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#fff9c4,stroke:#333,color:#000
+    style D fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_093313_00.webp" alt="venv 的依赖关系链：&quot;pyenv 提供的 Python 3.11 二进制&quot;"></p>
+</details>
+
+<p>核心结论：venv 是影子，不是克隆。如果删除或升级了 pyenv 中的母体解释器，<code>.venv</code> 中的 python 命令就会指向不存在的路径，环境立刻失效。</p>
+<h3 id="2-3-工具生态位重新定义"><a href="#2-3-工具生态位重新定义" class="headerlink" title="2.3 工具生态位重新定义"></a>2.3 工具生态位重新定义</h3><p>用园艺比喻理解这五个工具：</p>
+<ul>
+<li><strong>pyenv &#x3D; 种子仓库（Warehouse）</strong>：储备 Python 3.9 &#x2F; 3.10 &#x2F; 3.11 等不同品种的种子（解释器二进制），提供全局 Shim 接口</li>
+<li><strong>venv &#x3D; 花盆（Flowerpot）</strong>：为每个项目提供独立生长空间，把根系（Lib）锁在项目内部</li>
+<li><strong>Poetry &#x3D; 自动化园丁（Gardener）</strong>：从仓库领种子、种在花盆里，还负责记录土壤配方（pyproject.toml 和 lock 文件）</li>
+<li><strong>uv &#x3D; 高速园丁（Express Gardener）</strong>：新一代项目工具，秒级同步，自动取种、种植、记录，集版本管理+依赖管理+环境隔离于一身，但本质上仍是项目中心</li>
+<li><strong>Conda &#x3D; 重型装甲实验室（Lab）</strong>：当你需要 CUDA、MKL、R 语言等非 Python 二进制依赖时才请它出场</li>
+</ul>
+<h2 id="3-技术对标：pyenv-venv-Poetry-uv-vs-SDKMAN-Classpath-Maven"><a href="#3-技术对标：pyenv-venv-Poetry-uv-vs-SDKMAN-Classpath-Maven" class="headerlink" title="3. 技术对标：pyenv&#x2F;venv&#x2F;Poetry&#x2F;uv vs SDKMAN!&#x2F;Classpath&#x2F;Maven"></a>3. 技术对标：pyenv&#x2F;venv&#x2F;Poetry&#x2F;uv vs SDKMAN!&#x2F;Classpath&#x2F;Maven</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Python 方案</th>
+<th>Java 方案</th>
+<th>关键差异</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>版本切换方式</td>
+<td><code>pyenv global 3.11</code></td>
+<td><code>sdk use java 17-tem</code></td>
+<td>机制相同，均修改 PATH 前缀</td>
+</tr>
+<tr>
+<td>隔离实现机制</td>
+<td><code>.venv/</code> 目录下的 Thin Wrapper</td>
+<td>JVM Classpath &#x2F; Module Path</td>
+<td>Python 是文件系统隔离，Java 是 ClassLoader 隔离</td>
+</tr>
+<tr>
+<td>环境与源码关系</td>
+<td>venv 是影子，依赖母体存活</td>
+<td>JDK 是独立 Fat Binary</td>
+<td>Python 环境不可跨机迁移，Java JDK 可复制</td>
+</tr>
+<tr>
+<td>依赖声明格式</td>
+<td><code>pyproject.toml</code> + <code>poetry.lock</code></td>
+<td><code>pom.xml</code> + 仓库快照</td>
+<td>lock 文件功能对等，均支持精确版本锁定</td>
+</tr>
+<tr>
+<td>构建工具是否管环境</td>
+<td>Poetry 自动创建 venv</td>
+<td>Maven 不安装 JDK</td>
+<td>这是 PyCharm 将 Poetry 列在解释器面板的根本原因</td>
+</tr>
+<tr>
+<td>uv 的项目中心特质</td>
+<td>uv 自动下载、管理版本，但缺乏全局 Shim</td>
+<td>Maven 不管项目外的依赖</td>
+<td>uv 强于项目内速度，弱于全局 Shell 层管理</td>
+</tr>
+<tr>
+<td>非语言二进制依赖</td>
+<td>Conda 专门处理</td>
+<td>Maven 不处理 native lib</td>
+<td>Java 依赖通常是纯 JAR，Python 科学计算需要 C&#x2F;CUDA 扩展</td>
+</tr>
+</tbody></table>
+<h2 id="4-避坑指南：为什么”Conda-套-venv”是路径破碎的风险点"><a href="#4-避坑指南：为什么”Conda-套-venv”是路径破碎的风险点" class="headerlink" title="4. 避坑指南：为什么”Conda 套 venv”是路径破碎的风险点"></a>4. 避坑指南：为什么”Conda 套 venv”是路径破碎的风险点</h2><h3 id="4-1-链式依赖的本质风险"><a href="#4-1-链式依赖的本质风险" class="headerlink" title="4.1 链式依赖的本质风险"></a>4.1 链式依赖的本质风险</h3><p>Conda 套 venv 的结构是：系统 Python -&gt; Conda Base -&gt; Conda Env -&gt; venv。每增加一层，路径就多一次间接引用。当你做以下任何一件事时，整条链都可能断裂：</p>
+<ul>
+<li>更新 Conda（<code>conda update conda</code>）</li>
+<li>重建 Conda 环境（<code>conda env remove</code> + recreate）</li>
+<li>将项目迁移到新机器</li>
+<li>在 CI&#x2F;CD 中按照文档复现环境</li>
+</ul>
+<h3 id="4-2-具体的破碎表现"><a href="#4-2-具体的破碎表现" class="headerlink" title="4.2 具体的破碎表现"></a>4.2 具体的破碎表现</h3><p>运行 Python 时报错 <code>No such file or directory: /opt/conda/envs/myenv/bin/python3.11</code>，尽管你的 <code>.venv</code> 目录还在，但它指向的母体已不复存在。在 CI 环境中更难调试，因为日志显示 venv 已激活，但 <code>python --version</code> 报错或 import 路径异常。</p>
+<h3 id="4-3-工具选型决策树"><a href="#4-3-工具选型决策树" class="headerlink" title="4.3 工具选型决策树"></a>4.3 工具选型决策树</h3><pre class="mermaid">graph TD
+    A[开始选型] --> B{有非 Python 二进制依赖?}
+    B -->|是 CUDA/MKL/R 等| C[选 Conda]
+    B -->|否| D{纯 Python 项目?}
+    D -->|是| E{需要全局 Shell 默认?}
+    E -->|是| H["pyenv global<br/>+ uv/Poetry"]
+    E -->|否| I{追求秒级同步?}
+    I -->|是| J["uv init<br/>单项目中心"]
+    I -->|否| K["pyenv + Poetry<br/>完整声明"]
+    D -->|需要管理多语言运行时| G[考虑 Conda 或 asdf]
+
+    style C fill:#ffccbc,stroke:#333,color:#000
+    style H fill:#c8e6c9,stroke:#333,color:#000
+    style J fill:#bbdefb,stroke:#333,color:#000
+    style K fill:#c8e6c9,stroke:#333,color:#000
+    style G fill:#fff9c4,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-31-python-env-setup-from-java-perspective/diagram_20260417_083956_02.webp" alt="工具选型决策树图解：开始选型、选 Conda、&quot;pyenv global、+ uv&#x2F;Poetry&quot;"></p>
+</details>
+
+<h3 id="4-4-方案对比"><a href="#4-4-方案对比" class="headerlink" title="4.4 方案对比"></a>4.4 方案对比</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>链路层数</th>
+<th>迁移风险</th>
+<th>项目覆盖</th>
+<th>推荐场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Conda 套 venv</td>
+<td>4 层</td>
+<td>高，任意层更新都可能破碎</td>
+<td>全局+项目</td>
+<td>不推荐作为常规工程方案</td>
+</tr>
+<tr>
+<td>纯 Conda</td>
+<td>2 层</td>
+<td>中，Conda 更新有风险</td>
+<td>全局+项目</td>
+<td>科学计算、ML 重型依赖</td>
+</tr>
+<tr>
+<td>pyenv + venv</td>
+<td>2 层</td>
+<td>低，pyenv 母体稳定</td>
+<td>全局+项目</td>
+<td>通用 Python 项目</td>
+</tr>
+<tr>
+<td>pyenv + Poetry</td>
+<td>2 层</td>
+<td>低，Poetry 全自动管理 venv</td>
+<td>全局+项目</td>
+<td>完整声明、lock 精度要求高</td>
+</tr>
+<tr>
+<td>pyenv（全局）+ uv（项目）</td>
+<td>2 + 1 层</td>
+<td>低，uv 项目独立性强</td>
+<td>全局+项目</td>
+<td><strong>现代方案</strong>：Shell 稳定性 + 项目秒级同步</td>
+</tr>
+</tbody></table>
+<h2 id="5-最终工程方案"><a href="#5-最终工程方案" class="headerlink" title="5. 最终工程方案"></a>5. 最终工程方案</h2><h3 id="5-1-选型结论"><a href="#5-1-选型结论" class="headerlink" title="5.1 选型结论"></a>5.1 选型结论</h3><p>选型方案为 <strong>pyenv（版本管理） + Poetry（依赖管理） + in-project venv（隔离）</strong>，三者各司其职，无重叠也无冲突：</p>
+<ul>
+<li>pyenv 确保解释器版本可控、可切换</li>
+<li>Poetry 确保依赖声明完整、版本可锁定</li>
+<li>in-project venv 确保依赖物理隔离在项目目录内，类似 <code>node_modules</code></li>
+</ul>
+<h3 id="5-2-关键配置"><a href="#5-2-关键配置" class="headerlink" title="5.2 关键配置"></a>5.2 关键配置</h3><p>启用 in-project 模式，让 <code>.venv</code> 出现在项目根目录而非全局缓存：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poetry config virtualenvs.in-project <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>启用后，项目目录结构变为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">my-project/</span><br><span class="line">├── .venv/           # 依赖隔离在这里，加入 .gitignore</span><br><span class="line">├── pyproject.toml   # 依赖声明（对标 pom.xml）</span><br><span class="line">├── poetry.lock      # 版本锁定（对标 mvn dependency:tree 快照）</span><br><span class="line">└── src/</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-评价指标：环境的瞬时重建能力"><a href="#5-3-评价指标：环境的瞬时重建能力" class="headerlink" title="5.3 评价指标：环境的瞬时重建能力"></a>5.3 评价指标：环境的瞬时重建能力</h3><p>不追求”这个环境用了两年从未重建”，而追求”任何人在任何机器上执行一条命令就能完全复现”：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">poetry install  <span class="comment"># 根据 pyproject.toml + poetry.lock 秒级重建</span></span><br></pre></td></tr></table></figure>
+
+<p>这与 Java 的 <code>mvn install</code> 理念完全一致。<code>pyproject.toml</code> 就是你的 <code>pom.xml</code>，<code>poetry.lock</code> 就是精确锁定的 snapshot。</p>
+<h2 id="6-实战指南：macOS-行动清单"><a href="#6-实战指南：macOS-行动清单" class="headerlink" title="6. 实战指南：macOS 行动清单"></a>6. 实战指南：macOS 行动清单</h2><h3 id="6-1-安装-pyenv"><a href="#6-1-安装-pyenv" class="headerlink" title="6.1 安装 pyenv"></a>6.1 安装 pyenv</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 Homebrew 安装 pyenv</span></span><br><span class="line">brew install pyenv</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装 Python 编译所需的构建依赖（避免后续安装版本时报错）</span></span><br><span class="line">brew install openssl readline sqlite3 xz zlib tcl-tk</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-配置-zshrc"><a href="#6-2-配置-zshrc" class="headerlink" title="6.2 配置 ~&#x2F;.zshrc"></a>6.2 配置 ~&#x2F;.zshrc</h3><p>将以下内容追加到 <code>~/.zshrc</code>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># pyenv 初始化</span></span><br><span class="line"><span class="built_in">export</span> PYENV_ROOT=<span class="string">&quot;<span class="variable">$HOME</span>/.pyenv&quot;</span></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="string">&quot;<span class="variable">$PYENV_ROOT</span>/bin:<span class="variable">$PATH</span>&quot;</span></span><br><span class="line"><span class="built_in">eval</span> <span class="string">&quot;<span class="subst">$(pyenv init -)</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>配置生效：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line">pyenv --version   <span class="comment"># 应输出 pyenv 2.x.x</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-安装并设置-Python-版本"><a href="#6-3-安装并设置-Python-版本" class="headerlink" title="6.3 安装并设置 Python 版本"></a>6.3 安装并设置 Python 版本</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看可用的 Python 版本</span></span><br><span class="line">pyenv install --list | grep <span class="string">&quot;3.11&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装指定版本</span></span><br><span class="line">pyenv install 3.11.8</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置全局默认版本</span></span><br><span class="line">pyenv global 3.11.8</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证</span></span><br><span class="line">python --version   <span class="comment"># Python 3.11.8</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-安装-Poetry"><a href="#6-4-安装-Poetry" class="headerlink" title="6.4 安装 Poetry"></a>6.4 安装 Poetry</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 官方推荐安装方式（不依赖当前 Python 环境，避免污染）</span></span><br><span class="line">curl -sSL https://install.python-poetry.org | python3 -</span><br><span class="line"></span><br><span class="line"><span class="comment"># 将 Poetry 加入 PATH（追加到 ~/.zshrc）</span></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="string">&quot;<span class="variable">$HOME</span>/.local/bin:<span class="variable">$PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 重新加载并验证</span></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line">poetry --version</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-5-配置-in-project-模式"><a href="#6-5-配置-in-project-模式" class="headerlink" title="6.5 配置 in-project 模式"></a>6.5 配置 in-project 模式</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 全局设置：所有新项目的 venv 都放在项目根目录</span></span><br><span class="line">poetry config virtualenvs.in-project <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证配置</span></span><br><span class="line">poetry config --list | grep in-project</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-6-创建第一个项目"><a href="#6-6-创建第一个项目" class="headerlink" title="6.6 创建第一个项目"></a>6.6 创建第一个项目</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 新建项目（Poetry 自动生成 pyproject.toml）</span></span><br><span class="line">poetry new my-project</span><br><span class="line"><span class="built_in">cd</span> my-project</span><br><span class="line"></span><br><span class="line"><span class="comment"># 指定 Python 版本（使用 pyenv 已安装的版本）</span></span><br><span class="line">poetry <span class="built_in">env</span> use 3.11.8</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加依赖</span></span><br><span class="line">poetry add requests</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装所有依赖（首次或 git pull 后执行）</span></span><br><span class="line">poetry install</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前环境信息</span></span><br><span class="line">poetry <span class="built_in">env</span> info</span><br></pre></td></tr></table></figure>
+
+<p>执行 <code>poetry install</code> 后，项目根目录会出现 <code>.venv/</code>，即你的隔离花盆。</p>
+<h2 id="7-工具演进：为什么-uv-改变了游戏规则"><a href="#7-工具演进：为什么-uv-改变了游戏规则" class="headerlink" title="7. 工具演进：为什么 uv 改变了游戏规则"></a>7. 工具演进：为什么 uv 改变了游戏规则</h2><h3 id="7-1-uv-出现的背景"><a href="#7-1-uv-出现的背景" class="headerlink" title="7.1 uv 出现的背景"></a>7.1 uv 出现的背景</h3><p>2024 年，Python 生态出现了新兵 <strong>uv</strong>——用 Rust 编写的超高速包管理器。它使得”全局 pyenv + 项目 uv”比”全局 pyenv + 项目 Poetry”更优，成为现代方案。</p>
+<h3 id="7-2-uv-vs-Poetry-的关键差异"><a href="#7-2-uv-vs-Poetry-的关键差异" class="headerlink" title="7.2 uv vs Poetry 的关键差异"></a>7.2 uv vs Poetry 的关键差异</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Poetry</th>
+<th>uv</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>依赖同步速度</td>
+<td>秒到数十秒</td>
+<td>通常秒级</td>
+<td><strong>uv 胜</strong></td>
+</tr>
+<tr>
+<td>版本自动管理</td>
+<td>需独立 pyenv</td>
+<td>内置下载（项目中心）</td>
+<td><strong>需混合方案</strong></td>
+</tr>
+<tr>
+<td>lock 文件精度</td>
+<td>poetry.lock 精确</td>
+<td>uv.lock 同样精确</td>
+<td>平手</td>
+</tr>
+<tr>
+<td>从 pip 迁移成本</td>
+<td>需重组织</td>
+<td>直接识别 requirements.txt</td>
+<td><strong>uv 胜</strong></td>
+</tr>
+</tbody></table>
+<h3 id="7-3-为什么-pyenv-仍然不能被-uv-完全替代"><a href="#7-3-为什么-pyenv-仍然不能被-uv-完全替代" class="headerlink" title="7.3 为什么 pyenv 仍然不能被 uv 完全替代"></a>7.3 为什么 pyenv 仍然不能被 uv 完全替代</h3><h4 id="场景-1：全机默认-Python（Shell-层）"><a href="#场景-1：全机默认-Python（Shell-层）" class="headerlink" title="场景 1：全机默认 Python（Shell 层）"></a>场景 1：全机默认 Python（Shell 层）</h4><p>当你在任何地方输入 <code>python</code>，应该直接启动哪个版本？pyenv Shim 在 Shell 层接管，无需 <code>uv run</code>。uv 的项目中心设计不适合这个全局场景。</p>
+<h4 id="场景-2：IDE-寻找物理解释器路径"><a href="#场景-2：IDE-寻找物理解释器路径" class="headerlink" title="场景 2：IDE 寻找物理解释器路径"></a>场景 2：IDE 寻找物理解释器路径</h4><p>IDE 插件和自动化工具通常需要一个物理路径（如 <code>/usr/bin/xxx</code>）。pyenv 的 ~&#x2F;.pyenv&#x2F;versions&#x2F;{version}&#x2F;bin&#x2F;python 路径绝对固定，即使删除项目也失效；uv 缓存可能被清理。</p>
+<h4 id="场景-3：极客版本编译"><a href="#场景-3：极客版本编译" class="headerlink" title="场景 3：极客版本编译"></a>场景 3：极客版本编译</h4><p>pyenv install –patch 允许源码定制编译；uv 只能下载官方构建版本。</p>
+<h4 id="场景-4：全局系统工具"><a href="#场景-4：全局系统工具" class="headerlink" title="场景 4：全局系统工具"></a>场景 4：全局系统工具</h4><p>ansible、glances 这样的工具需要一个稳定的全局 Python，不能依赖项目 uv 环境（项目删除就失效）。</p>
+<h3 id="7-4-新时代的工具分工"><a href="#7-4-新时代的工具分工" class="headerlink" title="7.4 新时代的工具分工"></a>7.4 新时代的工具分工</h3><p><strong>关键洞察</strong>：项目内的重活、累活、快活全给 uv；Shell 层的脸面、全局的规矩、工具的根基留给 pyenv。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 全局层（一次性设置）</span></span><br><span class="line">pyenv global 3.12.8           <span class="comment"># Shell Shim 接管</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 项目层（秒级操作）</span></span><br><span class="line"><span class="built_in">cd</span> my-project</span><br><span class="line">uv init --python 3.12       <span class="comment"># 自动创建 .venv + pyproject.toml</span></span><br><span class="line">uv add requests             <span class="comment"># 秒级添加依赖</span></span><br><span class="line">uv <span class="built_in">sync</span>                     <span class="comment"># 秒级同步</span></span><br><span class="line">uv run python main.py       <span class="comment"># 自动激活运行</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="7-5-Poetry-还是-uv？"><a href="#7-5-Poetry-还是-uv？" class="headerlink" title="7.5 Poetry 还是 uv？"></a>7.5 Poetry 还是 uv？</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>新项目、个人、快速迭代</td>
+<td><strong>uv</strong></td>
+<td>秒级体验</td>
+</tr>
+<tr>
+<td>已上线稳定项目、大团队</td>
+<td><strong>Poetry</strong></td>
+<td>lock 精度、社区成熟</td>
+</tr>
+<tr>
+<td>库作者、版本控制复杂</td>
+<td><strong>Poetry</strong></td>
+<td>pyproject.toml 标准化程度高</td>
+</tr>
+<tr>
+<td>ML&#x2F;数据科学（需 CUDA）</td>
+<td><strong>Conda + uv</strong></td>
+<td>Conda 管非二进制依赖 + uv 管 Python 包</td>
+</tr>
+</tbody></table>
+<h2 id="8-故障排查"><a href="#8-故障排查" class="headerlink" title="8. 故障排查"></a>8. 故障排查</h2><h3 id="问题-1：pyenv-command-not-found"><a href="#问题-1：pyenv-command-not-found" class="headerlink" title="问题 1：pyenv: command not found"></a>问题 1：pyenv: command not found</h3><p><strong>症状</strong>：安装后终端提示 <code>pyenv: command not found</code>。</p>
+<p><strong>原因</strong>：<code>~/.zshrc</code> 中 pyenv 初始化脚本未生效，或未重新加载 shell。</p>
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 .zshrc 是否包含 pyenv 配置</span></span><br><span class="line">grep -n <span class="string">&quot;pyenv&quot;</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 强制重新加载</span></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br></pre></td></tr></table></figure>
+
+<h3 id="问题-2：python-–version-显示的不是-pyenv-管理的版本"><a href="#问题-2：python-–version-显示的不是-pyenv-管理的版本" class="headerlink" title="问题 2：python –version 显示的不是 pyenv 管理的版本"></a>问题 2：python –version 显示的不是 pyenv 管理的版本</h3><p><strong>症状</strong>：<code>pyenv global 3.11.8</code> 后，<code>python --version</code> 仍显示系统 Python 或 Conda Python。</p>
+<p><strong>原因</strong>：PATH 中其他 Python 路径优先于 pyenv shims。</p>
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 python 实际指向</span></span><br><span class="line"><span class="built_in">which</span> python</span><br><span class="line"></span><br><span class="line"><span class="comment"># 确认 pyenv 的 PATH 设置处于 ~/.zshrc 最靠前位置</span></span><br><span class="line"><span class="comment"># export PATH=&quot;$PYENV_ROOT/bin:$PATH&quot; 必须在 Conda 初始化之前</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$PATH</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="问题-3：poetry-install-后找不到-venv-目录"><a href="#问题-3：poetry-install-后找不到-venv-目录" class="headerlink" title="问题 3：poetry install 后找不到 .venv 目录"></a>问题 3：poetry install 后找不到 .venv 目录</h3><p><strong>症状</strong>：<code>poetry install</code> 成功，但项目根目录没有 <code>.venv/</code>。</p>
+<p><strong>原因</strong>：<code>virtualenvs.in-project</code> 未设置为 <code>true</code>，Poetry 将 venv 存放在全局缓存目录。</p>
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">poetry config virtualenvs.in-project <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除旧的 venv 并重建</span></span><br><span class="line">poetry <span class="built_in">env</span> remove python</span><br><span class="line">poetry install</span><br></pre></td></tr></table></figure>
+
+<h3 id="问题-4：迁移到新机器后-venv-失效"><a href="#问题-4：迁移到新机器后-venv-失效" class="headerlink" title="问题 4：迁移到新机器后 venv 失效"></a>问题 4：迁移到新机器后 venv 失效</h3><p><strong>症状</strong>：复制项目到新机器后，<code>.venv/python</code> 指向原机器的绝对路径，无法执行。</p>
+<p><strong>原因</strong>：venv 中的路径是硬编码的绝对路径，不可跨机器移植（这正是”venv 是影子”的具体体现）。</p>
+<p><strong>解决方案</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 不要复制 .venv 目录，将 .venv 加入 .gitignore</span></span><br><span class="line"><span class="comment"># 在新机器上安装 pyenv + Poetry 后，进入项目目录执行：</span></span><br><span class="line">poetry install   <span class="comment"># 根据 pyproject.toml 和 poetry.lock 自动重建</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="常见问题（FAQ）"><a href="#常见问题（FAQ）" class="headerlink" title="常见问题（FAQ）"></a>常见问题（FAQ）</h2><h3 id="Q1：pyenv-和-asdf-有什么区别，该用哪个？"><a href="#Q1：pyenv-和-asdf-有什么区别，该用哪个？" class="headerlink" title="Q1：pyenv 和 asdf 有什么区别，该用哪个？"></a>Q1：pyenv 和 asdf 有什么区别，该用哪个？</h3><p><strong>A：</strong> <code>asdf</code> 是通用版本管理器，可以管理 Node.js、Ruby、Go 等多种语言，Python 只是其一个插件。<code>pyenv</code> 专注 Python，更轻量，配置更简单。如果你只需要管理 Python，<code>pyenv</code> 足够；如果你同时需要管理多种语言运行时，<code>asdf</code> 更统一。</p>
+<h3 id="Q2：Poetry-和-pip-requirements-txt-有什么本质区别？"><a href="#Q2：Poetry-和-pip-requirements-txt-有什么本质区别？" class="headerlink" title="Q2：Poetry 和 pip + requirements.txt 有什么本质区别？"></a>Q2：Poetry 和 pip + requirements.txt 有什么本质区别？</h3><p><strong>A：</strong> <code>pip + requirements.txt</code> 是”记录”工具：你先手动安装，再 <code>pip freeze &gt; requirements.txt</code> 输出快照。<code>Poetry</code> 是”声明”工具：你在 <code>pyproject.toml</code> 里声明依赖范围，Poetry 自动解析、锁定、安装。最大区别是 Poetry 生成 <code>poetry.lock</code> 精确锁定版本，确保任意机器任意时间 <code>poetry install</code> 的结果完全一致，与 Maven 锁定 <code>pom.xml</code> 的方式高度一致。</p>
+<h3 id="Q3：什么场景下仍然应该用-Conda？"><a href="#Q3：什么场景下仍然应该用-Conda？" class="headerlink" title="Q3：什么场景下仍然应该用 Conda？"></a>Q3：什么场景下仍然应该用 Conda？</h3><p><strong>A：</strong> 三种场景适合 Conda：ML 项目需要 CUDA 工具链（cuDNN、TensorRT）；科学计算需要 MKL&#x2F;BLAS 等 C 语言数学库；需要同时管理 Python 和 R 的混合项目。纯 Python 的 Web 服务、爬虫、CLI 工具，pyenv + Poetry 完全够用。</p>
+<h3 id="Q4：-venv-目录应该提交到-Git-吗？"><a href="#Q4：-venv-目录应该提交到-Git-吗？" class="headerlink" title="Q4：.venv 目录应该提交到 Git 吗？"></a>Q4：.venv 目录应该提交到 Git 吗？</h3><p><strong>A：</strong> 不应该。<code>.venv</code> 是可重建的产物，应当加入 <code>.gitignore</code>。只需提交 <code>pyproject.toml</code>（依赖声明）和 <code>poetry.lock</code>（版本锁定），任何人执行 <code>poetry install</code> 都能得到完全相同的环境。这与 Java 项目中不提交 <code>target/</code> 目录是同样的道理。</p>
+<h3 id="Q5：Poetry-创建的-venv-和手动-python-m-venv-venv-有什么区别？"><a href="#Q5：Poetry-创建的-venv-和手动-python-m-venv-venv-有什么区别？" class="headerlink" title="Q5：Poetry 创建的 venv 和手动 python -m venv .venv 有什么区别？"></a>Q5：Poetry 创建的 venv 和手动 python -m venv .venv 有什么区别？</h3><p><strong>A：</strong> 功能上没有本质区别，两者最终都调用 <code>python -m venv</code> 创建隔离环境。区别在于管理方式：手动创建的 venv 需要自己 activate&#x2F;deactivate 并维护 <code>requirements.txt</code>；Poetry 创建的 venv 由 Poetry 全程托管，依赖增删通过 <code>poetry add/remove</code> 操作，<code>poetry run python</code> 无需手动激活。</p>
+<h3 id="Q6：多个-Python-项目如何快速切换版本？"><a href="#Q6：多个-Python-项目如何快速切换版本？" class="headerlink" title="Q6：多个 Python 项目如何快速切换版本？"></a>Q6：多个 Python 项目如何快速切换版本？</h3><p><strong>A：</strong> 在项目根目录创建 <code>.python-version</code> 文件，pyenv 会在 <code>cd</code> 进入该目录时自动切换到指定版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在项目目录内设置局部版本</span></span><br><span class="line">pyenv <span class="built_in">local</span> 3.10.12</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看效果（会在项目根目录生成 .python-version 文件）</span></span><br><span class="line"><span class="built_in">cat</span> .python-version</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q7：uv-和-Poetry-我应该用哪个？"><a href="#Q7：uv-和-Poetry-我应该用哪个？" class="headerlink" title="Q7：uv 和 Poetry 我应该用哪个？"></a>Q7：uv 和 Poetry 我应该用哪个？</h3><p><strong>A：</strong> </p>
+<p>用 <strong>uv</strong> 如果：</p>
+<ul>
+<li>新项目或快速迭代项目</li>
+<li>追求秒级依赖同步</li>
+<li>正从 pip&#x2F;requirements.txt 迁移</li>
+<li>个人项目或小团队</li>
+</ul>
+<p>用 <strong>Poetry</strong> 如果：</p>
+<ul>
+<li>已上线的稳定生产项目</li>
+<li>大团队需要 lock 文件精确控制</li>
+<li>库作者，需要发布到 PyPI</li>
+<li>依赖版本控制复杂（如语义化版本约束）</li>
+</ul>
+<p><strong>简答</strong>：新项目用 uv（快），生产项目用 Poetry（稳）。</p>
+<h3 id="Q8：uv-会不会完全替代-pyenv？"><a href="#Q8：uv-会不会完全替代-pyenv？" class="headerlink" title="Q8：uv 会不会完全替代 pyenv？"></a>Q8：uv 会不会完全替代 pyenv？</h3><p><strong>A：</strong> 不会。虽然 uv 内置版本下载能力，但无法替代 pyenv 的 4 个场景：</p>
+<ul>
+<li><strong>全机 Shell 默认</strong>：<code>python</code> 命令需要 pyenv Shim</li>
+<li><strong>IDE 物理路径</strong>：IDE 插件需要固定的解释器路径</li>
+<li><strong>源码定制编译</strong>：pyenv install –patch 的灵活性 uv 没有</li>
+<li><strong>全局系统工具</strong>：ansible、glances 这类需要稳定全局版本</li>
+</ul>
+<p><strong>最优方案</strong>：pyenv（全局 + Shim）+ uv（项目）&#x3D; 既快又稳。</p>
+<h3 id="Q9：能不能在-Conda-环境里用-uv？"><a href="#Q9：能不能在-Conda-环境里用-uv？" class="headerlink" title="Q9：能不能在 Conda 环境里用 uv？"></a>Q9：能不能在 Conda 环境里用 uv？</h3><p><strong>A：</strong> 完全可以，这是 ML&#x2F;数据科学项目的黄金搭配：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. Conda 管理非 Python 二进制（CUDA、MKL、R）</span></span><br><span class="line">conda create -n ml-env python=3.11 cuda cudnn</span><br><span class="line">conda activate ml-env</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 在 Conda 环境里用 uv 管 Python 包</span></span><br><span class="line">uv init --python 3.11</span><br><span class="line">uv add torch transformers</span><br><span class="line">uv <span class="built_in">sync</span></span><br></pre></td></tr></table></figure>
+
+<p>这样既得到了 CUDA 支持，又享受 uv 的秒级同步。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>venv 是影子，不是克隆</strong>：它依赖母体解释器存活，理解这一点是摆脱 Java 惯性思维的第一步。</li>
+<li><strong>四个工具层次分明、各司其职</strong>：pyenv 管全局版本，uv&#x2F;Poetry 管项目依赖和环境，venv 管隔离，Conda 管非 Python 二进制。</li>
+<li><strong>Conda 套 venv 是反模式</strong>：链路越长迁移风险越高，在非必要场景中应避免嵌套。</li>
+<li><strong>现代方案：pyenv（全局 Shim）+ uv（项目快速迭代）</strong>：既稳又快，是当下 Python 生态的最优实践。</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><h4 id="今天就可以做的"><a href="#今天就可以做的" class="headerlink" title="今天就可以做的"></a>今天就可以做的</h4><ul>
+<li>运行 <code>brew install pyenv</code> 并按本文配置 <code>~/.zshrc</code></li>
+<li>安装 <code>uv</code>：<code>curl -LsSf https://astral.sh/uv/install.sh | sh</code></li>
+<li>设置全局 Python：<code>pyenv global 3.12.8</code></li>
+</ul>
+<h4 id="本周可以优化的"><a href="#本周可以优化的" class="headerlink" title="本周可以优化的"></a>本周可以优化的</h4><ul>
+<li><strong>新项目</strong>：用 <code>uv init</code> 快速启动，体验秒级同步</li>
+<li><strong>现有项目</strong>：如果用 Poetry，可逐步迁移到 uv（<code>uv sync --all-extras</code>）</li>
+<li>如果有旧 Conda 环境占用空间，清理只保留 2-3 个稳定版本给全局工具</li>
+</ul>
+<h4 id="长期可以改进的"><a href="#长期可以改进的" class="headerlink" title="长期可以改进的"></a>长期可以改进的</h4><ul>
+<li>在 CI&#x2F;CD 中用 <code>pyenv + uv sync</code> 替换 Conda（非科学计算项目）</li>
+<li>建立个人的 <code>pyproject.toml</code> 模板，统一依赖声明风格</li>
+<li>定期检查 pyenv 版本列表，按照新项目建议只保留核心版本</li>
+</ul>
+<h3 id="最后的建议"><a href="#最后的建议" class="headerlink" title="最后的建议"></a>最后的建议</h3><blockquote>
+<p>项目内的重活、累活、快活：全给 uv。Shell 层的脚面、全局的规矩、工具的根基：留给 pyenv。不以“学会了多少 API”为本事，而以“对代码运行路径的绝对控制”为本事。</p>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-31</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-08</td>
+<td>补充 uv 为现代方案，介绍 uv 与 pyenv 的分工配合，添加 Q7-Q9 FAQ 问题</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/conda/" rel="tag">conda</a>, <a class="tag-none-link" href="/tags/java/" rel="tag">java</a>, <a class="tag-none-link" href="/tags/poetry/" rel="tag">poetry</a>, <a class="tag-none-link" href="/tags/pyenv/" rel="tag">pyenv</a>, <a class="tag-none-link" href="/tags/python/" rel="tag">python</a>, <a class="tag-none-link" href="/tags/uv/" rel="tag">uv</a>, <a class="tag-none-link" href="/tags/venv/" rel="tag">venv</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.765Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Kaggle x Google Agent 5 Days 白皮书精读：Day 1 Agent 基础架构" href="/2026/03/30/tech/ai/2026-03-31-kaggle-google-agent-5days-day1-whitepaper-reading/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" gcloud CLI 入门与多配置管理：像切换 Spring Profile 一样管理 GCP 环境" href="/2026/03/31/tech/tools/2026-04-01-gcloud-cli-basics-and-multi-config/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-%E5%B7%A5%E5%85%B7%E9%93%BE%E5%85%A8%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">Python 工具链全景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Python-vs-Java-%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%A0%87"><span class="toc-number">1.2.</span> <span class="toc-text">Python vs Java 工具对标</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E6%97%B6%E9%80%89%E5%93%AA%E4%B8%AA%E5%B7%A5%E5%85%B7"><span class="toc-number">1.3.</span> <span class="toc-text">何时选哪个工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%88%9D%E5%A7%8B%E8%AF%AF%E8%A7%A3%EF%BC%9A%E6%80%9D%E7%BB%B4%E5%AE%9A%E5%8A%BF%E7%9A%84%E7%A2%B0%E6%92%9E"><span class="toc-number">2.</span> <span class="toc-text">1. 初始误解：思维定势的碰撞</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%AF%AF%E5%8C%BA-A%EF%BC%9A%E6%8A%8A-venv-%E5%92%8C-pyenv-%E5%BD%93%E4%BD%9C%E5%90%8C%E4%B8%80%E5%B1%82"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 误区 A：把 venv 和 pyenv 当作同一层</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%AF%AF%E5%8C%BA-B%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-PyCharm-%E6%8A%8A-Poetry-%E5%92%8C-venv-%E5%B9%B6%E5%88%97%EF%BC%9F"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 误区 B：为什么 PyCharm 把 Poetry 和 venv 并列？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E8%AF%AF%E5%8C%BA-C%EF%BC%9AConda-%E5%A5%97-venv-%E7%9A%84%E5%A5%97%E5%A8%83%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 误区 C：Conda 套 venv 的套娃模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%80%BB%E8%BE%91%E7%AA%81%E7%A0%B4%EF%BC%9A%E5%BD%B1%E5%AD%90%E4%B8%8E%E5%85%8B%E9%9A%86"><span class="toc-number">3.</span> <span class="toc-text">2. 逻辑突破：影子与克隆</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-pyvenv-cfg-%E7%9A%84%E7%9C%9F%E7%9B%B8"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 pyvenv.cfg 的真相</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-venv-%E7%9A%84%E4%BE%9D%E8%B5%96%E5%85%B3%E7%B3%BB%E9%93%BE"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 venv 的依赖关系链</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%B7%A5%E5%85%B7%E7%94%9F%E6%80%81%E4%BD%8D%E9%87%8D%E6%96%B0%E5%AE%9A%E4%B9%89"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 工具生态位重新定义</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%8A%80%E6%9C%AF%E5%AF%B9%E6%A0%87%EF%BC%9Apyenv-venv-Poetry-uv-vs-SDKMAN-Classpath-Maven"><span class="toc-number">4.</span> <span class="toc-text">3. 技术对标：pyenv&#x2F;venv&#x2F;Poetry&#x2F;uv vs SDKMAN!&#x2F;Classpath&#x2F;Maven</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9DConda-%E5%A5%97-venv%E2%80%9D%E6%98%AF%E8%B7%AF%E5%BE%84%E7%A0%B4%E7%A2%8E%E7%9A%84%E9%A3%8E%E9%99%A9%E7%82%B9"><span class="toc-number">5.</span> <span class="toc-text">4. 避坑指南：为什么”Conda 套 venv”是路径破碎的风险点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E9%93%BE%E5%BC%8F%E4%BE%9D%E8%B5%96%E7%9A%84%E6%9C%AC%E8%B4%A8%E9%A3%8E%E9%99%A9"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 链式依赖的本质风险</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%85%B7%E4%BD%93%E7%9A%84%E7%A0%B4%E7%A2%8E%E8%A1%A8%E7%8E%B0"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 具体的破碎表现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%B7%A5%E5%85%B7%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 工具选型决策树</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 方案对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9C%80%E7%BB%88%E5%B7%A5%E7%A8%8B%E6%96%B9%E6%A1%88"><span class="toc-number">6.</span> <span class="toc-text">5. 最终工程方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E9%80%89%E5%9E%8B%E7%BB%93%E8%AE%BA"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 选型结论</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%85%B3%E9%94%AE%E9%85%8D%E7%BD%AE"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 关键配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%AF%84%E4%BB%B7%E6%8C%87%E6%A0%87%EF%BC%9A%E7%8E%AF%E5%A2%83%E7%9A%84%E7%9E%AC%E6%97%B6%E9%87%8D%E5%BB%BA%E8%83%BD%E5%8A%9B"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 评价指标：环境的瞬时重建能力</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97%EF%BC%9AmacOS-%E8%A1%8C%E5%8A%A8%E6%B8%85%E5%8D%95"><span class="toc-number">7.</span> <span class="toc-text">6. 实战指南：macOS 行动清单</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%AE%89%E8%A3%85-pyenv"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 安装 pyenv</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E9%85%8D%E7%BD%AE-zshrc"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 配置 ~&#x2F;.zshrc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E5%AE%89%E8%A3%85%E5%B9%B6%E8%AE%BE%E7%BD%AE-Python-%E7%89%88%E6%9C%AC"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 安装并设置 Python 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%AE%89%E8%A3%85-Poetry"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 安装 Poetry</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E9%85%8D%E7%BD%AE-in-project-%E6%A8%A1%E5%BC%8F"><span class="toc-number">7.5.</span> <span class="toc-text">6.5 配置 in-project 模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-6-%E5%88%9B%E5%BB%BA%E7%AC%AC%E4%B8%80%E4%B8%AA%E9%A1%B9%E7%9B%AE"><span class="toc-number">7.6.</span> <span class="toc-text">6.6 创建第一个项目</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B7%A5%E5%85%B7%E6%BC%94%E8%BF%9B%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-uv-%E6%94%B9%E5%8F%98%E4%BA%86%E6%B8%B8%E6%88%8F%E8%A7%84%E5%88%99"><span class="toc-number">8.</span> <span class="toc-text">7. 工具演进：为什么 uv 改变了游戏规则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-uv-%E5%87%BA%E7%8E%B0%E7%9A%84%E8%83%8C%E6%99%AF"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 uv 出现的背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-uv-vs-Poetry-%E7%9A%84%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 uv vs Poetry 的关键差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-3-%E4%B8%BA%E4%BB%80%E4%B9%88-pyenv-%E4%BB%8D%E7%84%B6%E4%B8%8D%E8%83%BD%E8%A2%AB-uv-%E5%AE%8C%E5%85%A8%E6%9B%BF%E4%BB%A3"><span class="toc-number">8.3.</span> <span class="toc-text">7.3 为什么 pyenv 仍然不能被 uv 完全替代</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-1%EF%BC%9A%E5%85%A8%E6%9C%BA%E9%BB%98%E8%AE%A4-Python%EF%BC%88Shell-%E5%B1%82%EF%BC%89"><span class="toc-number">8.3.1.</span> <span class="toc-text">场景 1：全机默认 Python（Shell 层）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-2%EF%BC%9AIDE-%E5%AF%BB%E6%89%BE%E7%89%A9%E7%90%86%E8%A7%A3%E9%87%8A%E5%99%A8%E8%B7%AF%E5%BE%84"><span class="toc-number">8.3.2.</span> <span class="toc-text">场景 2：IDE 寻找物理解释器路径</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-3%EF%BC%9A%E6%9E%81%E5%AE%A2%E7%89%88%E6%9C%AC%E7%BC%96%E8%AF%91"><span class="toc-number">8.3.3.</span> <span class="toc-text">场景 3：极客版本编译</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF-4%EF%BC%9A%E5%85%A8%E5%B1%80%E7%B3%BB%E7%BB%9F%E5%B7%A5%E5%85%B7"><span class="toc-number">8.3.4.</span> <span class="toc-text">场景 4：全局系统工具</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-4-%E6%96%B0%E6%97%B6%E4%BB%A3%E7%9A%84%E5%B7%A5%E5%85%B7%E5%88%86%E5%B7%A5"><span class="toc-number">8.4.</span> <span class="toc-text">7.4 新时代的工具分工</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-5-Poetry-%E8%BF%98%E6%98%AF-uv%EF%BC%9F"><span class="toc-number">8.5.</span> <span class="toc-text">7.5 Poetry 还是 uv？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">9.</span> <span class="toc-text">8. 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%EF%BC%9Apyenv-command-not-found"><span class="toc-number">9.1.</span> <span class="toc-text">问题 1：pyenv: command not found</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%EF%BC%9Apython-%E2%80%93version-%E6%98%BE%E7%A4%BA%E7%9A%84%E4%B8%8D%E6%98%AF-pyenv-%E7%AE%A1%E7%90%86%E7%9A%84%E7%89%88%E6%9C%AC"><span class="toc-number">9.2.</span> <span class="toc-text">问题 2：python –version 显示的不是 pyenv 管理的版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%EF%BC%9Apoetry-install-%E5%90%8E%E6%89%BE%E4%B8%8D%E5%88%B0-venv-%E7%9B%AE%E5%BD%95"><span class="toc-number">9.3.</span> <span class="toc-text">问题 3：poetry install 后找不到 .venv 目录</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%EF%BC%9A%E8%BF%81%E7%A7%BB%E5%88%B0%E6%96%B0%E6%9C%BA%E5%99%A8%E5%90%8E-venv-%E5%A4%B1%E6%95%88"><span class="toc-number">9.4.</span> <span class="toc-text">问题 4：迁移到新机器后 venv 失效</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9Apyenv-%E5%92%8C-asdf-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%8C%E8%AF%A5%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1：pyenv 和 asdf 有什么区别，该用哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9APoetry-%E5%92%8C-pip-requirements-txt-%E6%9C%89%E4%BB%80%E4%B9%88%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2：Poetry 和 pip + requirements.txt 有什么本质区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9A%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E4%BB%8D%E7%84%B6%E5%BA%94%E8%AF%A5%E7%94%A8-Conda%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3：什么场景下仍然应该用 Conda？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A-venv-%E7%9B%AE%E5%BD%95%E5%BA%94%E8%AF%A5%E6%8F%90%E4%BA%A4%E5%88%B0-Git-%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4：.venv 目录应该提交到 Git 吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9APoetry-%E5%88%9B%E5%BB%BA%E7%9A%84-venv-%E5%92%8C%E6%89%8B%E5%8A%A8-python-m-venv-venv-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5：Poetry 创建的 venv 和手动 python -m venv .venv 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6%EF%BC%9A%E5%A4%9A%E4%B8%AA-Python-%E9%A1%B9%E7%9B%AE%E5%A6%82%E4%BD%95%E5%BF%AB%E9%80%9F%E5%88%87%E6%8D%A2%E7%89%88%E6%9C%AC%EF%BC%9F"><span class="toc-number">10.6.</span> <span class="toc-text">Q6：多个 Python 项目如何快速切换版本？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q7%EF%BC%9Auv-%E5%92%8C-Poetry-%E6%88%91%E5%BA%94%E8%AF%A5%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">10.7.</span> <span class="toc-text">Q7：uv 和 Poetry 我应该用哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q8%EF%BC%9Auv-%E4%BC%9A%E4%B8%8D%E4%BC%9A%E5%AE%8C%E5%85%A8%E6%9B%BF%E4%BB%A3-pyenv%EF%BC%9F"><span class="toc-number">10.8.</span> <span class="toc-text">Q8：uv 会不会完全替代 pyenv？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q9%EF%BC%9A%E8%83%BD%E4%B8%8D%E8%83%BD%E5%9C%A8-Conda-%E7%8E%AF%E5%A2%83%E9%87%8C%E7%94%A8-uv%EF%BC%9F"><span class="toc-number">10.9.</span> <span class="toc-text">Q9：能不能在 Conda 环境里用 uv？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">11.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.2.</span> <span class="toc-text">行动建议</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%8A%E5%A4%A9%E5%B0%B1%E5%8F%AF%E4%BB%A5%E5%81%9A%E7%9A%84"><span class="toc-number">11.2.1.</span> <span class="toc-text">今天就可以做的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%AC%E5%91%A8%E5%8F%AF%E4%BB%A5%E4%BC%98%E5%8C%96%E7%9A%84"><span class="toc-number">11.2.2.</span> <span class="toc-text">本周可以优化的</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%95%BF%E6%9C%9F%E5%8F%AF%E4%BB%A5%E6%94%B9%E8%BF%9B%E7%9A%84"><span class="toc-number">11.2.3.</span> <span class="toc-text">长期可以改进的</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.3.</span> <span class="toc-text">最后的建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">12.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

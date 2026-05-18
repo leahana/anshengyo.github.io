@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Codex 更新追踪 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-codex-update-tracking/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CLI, codex, openai, 更新追踪" />
+  
+  <meta name="description" content="持续追踪 OpenAI Codex 的版本更新，按季度组织，记录新特性用法与关键修复。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Codex 更新追踪">
+<meta property="og:url" content="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-codex-update-tracking/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="持续追踪 OpenAI Codex 的版本更新，按季度组织，记录新特性用法与关键修复。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-04-12T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.768Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CLI">
+<meta property="article:tag" content="codex">
+<meta property="article:tag" content="openai">
+<meta property="article:tag" content="更新追踪">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Codex 更新追踪","description":"持续追踪 OpenAI Codex 的版本更新，按季度组织，记录新特性用法与关键修复。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-12T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.768Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-codex-update-tracking/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-codex-update-tracking/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Codex 更新追踪</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-12T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-13</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~19.45K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-Model-Availability-Update"><span class="toc-number">1.1.1.</span> <span class="toc-text">2026-04 | Model Availability Update</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-App-Update%EF%BC%88App-Update%EF%BC%89"><span class="toc-number">1.1.2.</span> <span class="toc-text">2026-05 | App Update（App Update）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-0-129-0-0-130-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">2026-05 | 0.129.0 ~ 0.130.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-119-0-0-121-0"><span class="toc-number">1.1.4.</span> <span class="toc-text">2026-04 | 0.119.0 ~ 0.121.0</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-App-26-415"><span class="toc-number">1.1.5.</span> <span class="toc-text">2026-04 | App 26.415</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-4"><span class="toc-number">1.1.5.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-4"><span class="toc-number">1.1.5.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-122-0-alpha-5%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%E8%A7%82%E5%AF%9F%EF%BC%89"><span class="toc-number">1.1.6.</span> <span class="toc-text">2026-04 | 0.122.0-alpha.5（预发布观察）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-5"><span class="toc-number">1.1.6.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-5"><span class="toc-number">1.1.6.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-122-0-alpha-6-0-122-0-alpha-10%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.1.7.</span> <span class="toc-text">2026-04 | 0.122.0-alpha.6 ~ 0.122.0-alpha.10（预发布）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-6"><span class="toc-number">1.1.7.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-6"><span class="toc-number">1.1.7.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-122-0-alpha-11-0-122-0-alpha-13%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.1.8.</span> <span class="toc-text">2026-04 | 0.122.0-alpha.11 ~ 0.122.0-alpha.13（预发布）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-7"><span class="toc-number">1.1.8.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-7"><span class="toc-number">1.1.8.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-123-0-0-124-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.9.</span> <span class="toc-text">2026-04 | 0.123.0 ~ 0.124.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-8"><span class="toc-number">1.1.9.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-8"><span class="toc-number">1.1.9.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-GPT-5-5-Browser-Use-Approval-Review%EF%BC%88App-Product%EF%BC%89"><span class="toc-number">1.1.10.</span> <span class="toc-text">2026-04 | GPT-5.5 &#x2F; Browser Use &#x2F; Approval Review（App Product）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-9"><span class="toc-number">1.1.10.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-9"><span class="toc-number">1.1.10.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-125-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.11.</span> <span class="toc-text">2026-04 | 0.125.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-10"><span class="toc-number">1.1.11.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-10"><span class="toc-number">1.1.11.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-126-0-alpha-1-0-126-0-alpha-11%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.1.12.</span> <span class="toc-text">2026-04 | 0.126.0-alpha.1 ~ 0.126.0-alpha.11（预发布）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-11"><span class="toc-number">1.1.12.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-11"><span class="toc-number">1.1.12.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%882026-01-03%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">Q1（2026-01 ~ 03）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-03-CLI-0-118-0-App-Workflow-Update"><span class="toc-number">1.2.1.</span> <span class="toc-text">2026-03 | CLI 0.118.0 &#x2F; App Workflow Update</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-12"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-12"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-01-02-Harness-Engineering-GPT-5-3"><span class="toc-number">1.2.2.</span> <span class="toc-text">2026-01 ~ 02 | Harness Engineering &#x2F; GPT-5.3</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-13"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-13"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2025-%E5%B9%B4"><span class="toc-number">2.</span> <span class="toc-text">2025 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%882025-10-12%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">Q4（2025-10 ~ 12）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2025-11-12-v0-1-x-Preview-MCP-Integration"><span class="toc-number">2.1.1.</span> <span class="toc-text">2025-11 ~ 12 | v0.1.x Preview &#x2F; MCP Integration</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-14"><span class="toc-number">2.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-14"><span class="toc-number">2.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%882025-07-09%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">Q3（2025-07 ~ 09）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2025-08-09-v0-0-x-Internal-Beta"><span class="toc-number">2.2.1.</span> <span class="toc-text">2025-08 ~ 09 | v0.0.x Internal Beta</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-15"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-15"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>持续追加型文档，每次工具更新后由 AI 代理追加新批次。</p>
+</blockquote>
+<hr>
+<h2 id="2026-年"><a href="#2026-年" class="headerlink" title="2026 年"></a>2026 年</h2><h3 id="Q2（2026-04-06）"><a href="#Q2（2026-04-06）" class="headerlink" title="Q2（2026-04 ~ 06）"></a>Q2（2026-04 ~ 06）</h3><h4 id="2026-04-Model-Availability-Update"><a href="#2026-04-Model-Availability-Update" class="headerlink" title="2026-04 | Model Availability Update"></a>2026-04 | Model Availability Update</h4><p><strong>信息截止</strong>：2026-04-09 | <strong>最新 Release</strong>：2026-04-07</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Model pool convergence</td>
+<td>2026-04-07</td>
+<td>GPT-5.4 系列成为主力，支持通过 <code>codex --model gpt-5.4</code> 使用；旧版 GPT-5.1&#x2F;5.2 从 ChatGPT 登录路径移除</td>
+</tr>
+<tr>
+<td>GPT-5.4 mini 引入</td>
+<td>2026-04-07</td>
+<td>轻量任务、子 Agent、代码库探索更省额度，使用 <code>codex --model gpt-5.4-mini</code></td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法"><a href="#新特性用法" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>模型收敛感知</strong>：在 Codex App 或 CLI 中，<code>/model</code> 默认列表已简化为 GPT-5.4 系列。若需使用特定旧模型或第三方模型，可通过 API key 或 provider 在 <code>~/.codex/config.toml</code> 中配置 <code>[model_providers.&lt;id&gt;]</code> 接入。</li>
+<li><strong>自定义 Provider 显示名</strong>：如果输入框里出现 <code>my_codex</code> 这类名称，优先把它理解成“当前 provider 的显示名”（来自 <code>model_providers.&lt;id&gt;.name</code>），而不是一个独立新模型。</li>
+</ul>
+<h5 id="关键-fix"><a href="#关键-fix" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>明确了自定义 Provider 的显示名称逻辑，解决用户对模型标签的认知困惑。</li>
+</ul>
+<h4 id="2026-05-App-Update（App-Update）"><a href="#2026-05-App-Update（App-Update）" class="headerlink" title="2026-05 | App Update（App Update）"></a>2026-05 | App Update（App Update）</h4><p><strong>信息截止</strong>：2026-05-14 | <strong>最新 Release</strong>：2026-05-14</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Work with Codex from anywhere</td>
+<td>2026-05-14</td>
+<td>ChatGPT mobile app 可远程连到一台运行 Codex app 的 Mac，直接复用该主机上的项目、凭证、插件和技能</td>
+</tr>
+<tr>
+<td>Expanded Auto-review documentation</td>
+<td>2026-05-11</td>
+<td>Auto-review 拆成独立文档页，补清 reviewer 生命周期、触发条件、失败行为与沙箱边界</td>
+</tr>
+<tr>
+<td>Codex for Chrome</td>
+<td>2026-05-07</td>
+<td>Chrome 扩展上线，可在后台并行处理多个标签页，同时继续沿用站点授权边界</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-1"><a href="#新特性用法-1" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>手机接力桌面 Codex</strong>：先在主力 Mac 上保持 Codex app 在线，再按<br>Remote Connections 文档把手机端接上。连接后，手机里看到的是主机上的<br>项目、文件、凭证和本地插件，而不是云端复制品。</li>
+<li><strong>Auto-review 配置落地</strong>：5 月的文档补全把 Auto-review 的触发条件、<br>sandbox 边界和本地&#x2F;托管配置拆清了，适合把 review 规则固定进<br><code>config.toml</code> 或团队托管策略里。</li>
+<li><strong>Chrome 扩展</strong>：浏览器里的 Codex 现在更适合做登录态页面核对、<br>多标签页并行检查和前端回归确认，不需要把主浏览器完全交给 agent。</li>
+</ul>
+<h5 id="关键-fix-1"><a href="#关键-fix-1" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>本批次以能力开放和文档完善为主，无单独标注关键 fix。</li>
+</ul>
+<h4 id="2026-05-0-129-0-0-130-0（CLI-Stable）"><a href="#2026-05-0-129-0-0-130-0（CLI-Stable）" class="headerlink" title="2026-05 | 0.129.0 ~ 0.130.0（CLI Stable）"></a>2026-05 | 0.129.0 ~ 0.130.0（CLI Stable）</h4><p><strong>信息截止</strong>：2026-05-08 | <strong>最新 Release</strong>：0.130.0</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.130.0</code></td>
+<td>2026-05-08</td>
+<td>插件详情可见 hooks；新增 <code>codex remote-control</code>；app-server 支持 thread 分页；Bedrock 可复用 <code>aws login</code> 凭证</td>
+</tr>
+<tr>
+<td><code>0.129.0</code></td>
+<td>2026-05-07</td>
+<td>composer 支持 Vim 模态编辑；resume&#x2F;fork 选择器改版；<code>/diff</code> 感知 workspace；插件共享与市场管理增强</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-2"><a href="#新特性用法-2" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>远程可控 app-server</strong>：如果你要把 Codex 嵌进自有自动化链路，<br>现在可以直接启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codex remote-control</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>插件分享与审计</strong>：<code>0.130.0</code> 开始，插件详情页会把 bundled hooks 和<br>share metadata 一起展示出来，团队在安装前就能先看清插件会挂哪些<br>hook、是否可被别人发现。</p>
+</li>
+<li><p><strong>Bedrock 登录态复用</strong>：如果本机已经执行过 <code>aws login</code>，<br><code>0.130.0</code> 可以直接拿这些 profile 凭证做 Bedrock 鉴权，少一层手工<br>token 搬运。</p>
+</li>
+</ul>
+<h5 id="关键-fix-2"><a href="#关键-fix-2" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>live app-server 线程现在能热读配置变更，不必每次重启服务。</li>
+<li><code>apply_patch</code> 之后的 turn diff 统计更准确，部分失败也不会把 diff 弄乱。</li>
+<li>remote compaction 的 <code>response.processed</code> 与 <code>service_tier</code> 处理更稳，<br>降低远端压缩链路误报。</li>
+<li>Windows sandbox 会补齐桌面 runtime cache 访问权限，减少初始化失败。</li>
+</ul>
+<hr>
+<h4 id="2026-04-0-119-0-0-121-0"><a href="#2026-04-0-119-0-0-121-0" class="headerlink" title="2026-04 | 0.119.0 ~ 0.121.0"></a>2026-04 | 0.119.0 ~ 0.121.0</h4><p><strong>信息截止</strong>：2026-04-17 | <strong>最新 Release</strong>：0.121.0（稳定版）</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.119.0</code></td>
+<td>2026-04-10</td>
+<td>语音会话默认切到 v2 WebRTC；MCP Apps、远程工作流和 <code>/resume</code> 可用性增强</td>
+</tr>
+<tr>
+<td><code>0.120.0</code></td>
+<td>2026-04-11</td>
+<td>Realtime V2 开始支持后台 Agent 进度流；TUI Hook 展示更清晰</td>
+</tr>
+<tr>
+<td><code>0.121.0</code></td>
+<td>2026-04-15</td>
+<td><code>codex marketplace add</code> 上线；记忆控制、MCP 元数据和安全 devcontainer 一起补齐</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-3"><a href="#新特性用法-3" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>安装 Marketplace</strong>：<code>codex marketplace add</code> 现在可以直接接<br>GitHub、git URL、本地目录和 <code>marketplace.json</code> 链接，适合把团队<br>插件集成做成一条安装命令。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">codex marketplace add https://github.com/your-org/codex-marketplace</span><br><span class="line">codex marketplace add ./local-marketplace</span><br><span class="line">codex marketplace add https://example.com/marketplace.json</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>TUI 历史检索</strong>：在输入框按 <code>Ctrl+R</code> 可以反向搜索历史 prompt，<br>已接受的 slash command 也会被本地 recall，适合反复调试长 prompt<br>或命令链。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Ctrl+R</span><br><span class="line"># 输入关键字，回溯历史 prompt / slash command</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>后台 Agent 进度流</strong>：从 <code>0.120.0</code> 开始，Realtime V2 会在任务尚未<br>结束时持续回传后台 Agent 进度，跟进同一任务时不用再等整轮完成。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">开始长任务</span><br><span class="line">查看终端里的增量进度</span><br><span class="line">完成后继续 follow-up</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>Memory 控制</strong>：<code>0.121.0</code> 增加了记忆模式、重置&#x2F;删除与扩展清理入口，<br>适合在切换项目或排查“旧偏好串味”时主动清空上下文沉淀。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">在 TUI / App Server 中关闭 memory</span><br><span class="line">重置或删除已有 memory</span><br><span class="line">清理 memory extension 残留</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-3"><a href="#关键-fix-3" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>MCP 与 App Server 稳定性</strong>：<code>0.119.0 ~ 0.121.0</code> 连续修了 MCP<br>清理、工具调用元数据、elicitation timeout、<code>fs/readDirectory</code><br>遇到坏 symlink 等边角问题，受影响最大的是重度 MCP &#x2F; plugin 用户和<br>app-server 集成方。</li>
+<li><strong>Sandbox &#x2F; 权限边角</strong>：修了 Windows elevated sandbox carveout、<br>symlinked writable roots、macOS private DNS&#x2F;proxy、WSL1<br>bubblewrap 等问题；之前需要手动降权限或绕开目录结构的场景，<br>现在更少了。</li>
+<li><strong>会话恢复与路径匹配</strong>：修了 <code>resume --last</code>、<code>thread/list</code>、<br>resume picker、当前线程恢复崩溃等问题，尤其对 Windows 路径前缀和<br>长时间多线程工作流更重要。</li>
+</ul>
+<p><strong>预发布观察</strong>（截至 2026-04-17）：</p>
+<ul>
+<li>2026-04-16 发布 <code>0.122.0-alpha.3</code>，GitHub 公开 release 页未展示<br>详细 notes；目前只能确认它是 <code>0.121.0</code> 之后的新预发布标签，<br>建议等稳定版或 compare 页面补全后再纳入正式批次。</li>
+</ul>
+<hr>
+<h4 id="2026-04-App-26-415"><a href="#2026-04-App-26-415" class="headerlink" title="2026-04 | App 26.415"></a>2026-04 | App 26.415</h4><p><strong>信息截止</strong>：2026-04-17 | <strong>最新 Release</strong>：26.415</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>App 26.415</td>
+<td>2026-04-16</td>
+<td>Codex App 扩成更完整工作台：in-app browser、computer use、无项目 chats、thread automations、PR review 与 artifact viewer 同步上线</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-4"><a href="#新特性用法-4" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>In-app browser 验证页面</strong>：现在可以直接在 Codex App 里打开本地<br>或公网页面，在渲染结果上评论，再让 Codex 按页面级反馈继续修改，<br>比“截图再转述”更顺手。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">打开本地预览页</span><br><span class="line">直接在页面上评论问题</span><br><span class="line">让 Codex 根据评论继续修正</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>无项目目录 Chats + Thread Automations</strong>：现在可以先开线程做调研、<br>写作、方案拆解，再决定要不要落到仓库；需要定时回来看结果时，<br>可以给同一线程挂 automation，而不是新开会话重讲上下文。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">先开 chat 做资料整理</span><br><span class="line">需要晚点跟进时，为当前线程添加 automation</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>PR Review + Artifact Viewer</strong>：App 侧边栏已经能看 GitHub PR、<br>review comment、改动文件和生成物预览，适合一边看 diff 一边让 Codex<br>解释评论、补修改、核对 PDF &#x2F; 表格 &#x2F; 文档类输出。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">在侧边栏打开 PR 或 artifact</span><br><span class="line">查看 diff / 评论 / 预览</span><br><span class="line">让 Codex 继续修改或解释</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>Computer Use</strong>：Codex 现在可以在 macOS 上看、点、输，适合 GUI<br>Only 的原生应用测试或模拟器流程；官方说明该功能首发不在 EEA、<br>英国和瑞士开放。</li>
+</ul>
+<h5 id="关键-fix-4"><a href="#关键-fix-4" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>线程与工具渲染改进</strong>：官方在这条更新里明确提到 improved thread<br>and tool rendering，长任务过程中侧边栏和工具结果的可读性更好了。</li>
+<li><strong>工作流衔接更顺</strong>：Chats 不再要求先选项目目录，很多“先研究、后落地”<br>的场景少了一次 setup 跳转，属于明显的流程摩擦修复。</li>
+</ul>
+<hr>
+<h4 id="2026-04-0-122-0-alpha-5（预发布观察）"><a href="#2026-04-0-122-0-alpha-5（预发布观察）" class="headerlink" title="2026-04 | 0.122.0-alpha.5（预发布观察）"></a>2026-04 | 0.122.0-alpha.5（预发布观察）</h4><p><strong>信息截止</strong>：2026-04-17 | <strong>最新 Release</strong>：0.122.0-alpha.5（预发布）</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.122.0-alpha.3</code></td>
+<td>2026-04-16 18:09</td>
+<td>当天首个 <code>0.122.0</code> 预发布标签出现，但公开 release 页未附说明</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.5</code></td>
+<td>2026-04-16 23:47</td>
+<td>同日继续滚到 <code>alpha.5</code>，说明这一轮预发布仍在快速烘焙</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-5"><a href="#新特性用法-5" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>暂无公开新特性说明</strong>：GitHub 公开 release 页当前只确认了更新到<br><code>0.122.0-alpha.5</code>，没有同步放出 release notes；现阶段更稳妥的做法<br>是继续按 <code>0.121.0</code> 的命令集和配置使用。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">生产环境继续使用 0.121.0</span><br><span class="line">关注下一个稳定版或 compare / notes 补全</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>预发布解读方式</strong>：如果你只是追踪趋势，可以把这次变化理解成<br>“<code>0.121.0</code> 之后又做了同日连续预发布”；在没有 notes 之前，<br>不建议把具体功能或 fix 写成已确认结论。</li>
+</ul>
+<h5 id="关键-fix-5"><a href="#关键-fix-5" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>暂无可确认 fix 明细</strong>：公开 release 页面没有列出 <code>alpha.3</code> 到<br><code>alpha.5</code> 的功能项或修复项，因此现阶段不能把任何 PR 直接写成已落地<br>结论。</li>
+<li><strong>升级建议偏保守</strong>：同一天从 <code>alpha.3</code> 快速推进到 <code>alpha.5</code>，<br>更像预发布烘焙过程；追求稳定的用户建议等待下一个正式 release。</li>
+</ul>
+<hr>
+<h4 id="2026-04-0-122-0-alpha-6-0-122-0-alpha-10（预发布）"><a href="#2026-04-0-122-0-alpha-6-0-122-0-alpha-10（预发布）" class="headerlink" title="2026-04 | 0.122.0-alpha.6 ~ 0.122.0-alpha.10（预发布）"></a>2026-04 | 0.122.0-alpha.6 ~ 0.122.0-alpha.10（预发布）</h4><p><strong>信息截止</strong>：2026-04-19 | <strong>最新 Release</strong>：0.122.0-alpha.10（预发布）</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.122.0-alpha.6</code></td>
+<td>2026-04-17 12:36</td>
+<td>预发布继续滚到 <code>alpha.6</code>，GitHub 公开 release 页仍未附 notes</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.7</code></td>
+<td>2026-04-17 16:19</td>
+<td>同日继续迭代到 <code>alpha.7</code>，说明这一轮 <code>0.122.0</code> 仍在高频烘焙</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.8</code></td>
+<td>2026-04-17 20:19</td>
+<td>晚间继续推进到 <code>alpha.8</code>，主分支开始出现 thread history 与 plugin UX 相关提交</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.9</code></td>
+<td>2026-04-17 23:17</td>
+<td>同日晚间滚到 <code>alpha.9</code>，但公开 release notes 依旧缺席</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.10</code></td>
+<td>2026-04-18 06:26</td>
+<td>当前最新公开 prerelease；已能看到 marketplace remove、thread 历史分页与 <code>/status</code> 细化等信号</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-6"><a href="#新特性用法-6" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>移除 Marketplace 条目</strong>：从 <code>#17752</code> 的 merged commit 可以确认，<br>预发布里已经补上 remove 流程，而且 CLI 解析测试显示命令挂到<br><code>codex plugin marketplace remove</code> 命名空间下；由于稳定版 changelog<br>仍写 <code>codex marketplace add</code>，这一点更适合先按“预发布观察”理解。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codex plugin marketplace remove debug</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>分页拉取线程与 turn 历史</strong>：<code>codex-rs/app-server/README.md</code><br>已写明 <code>thread/list</code> 新增 <code>sortKey</code>、<code>sortDirection</code>、<br><code>backwardsCursor</code>，并补了 <code>thread/turns/list</code> 示例，做自定义历史面板<br>或二次集成会更顺手。</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span> <span class="attr">&quot;method&quot;</span><span class="punctuation">:</span> <span class="string">&quot;thread/list&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">20</span><span class="punctuation">,</span> <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;limit&quot;</span><span class="punctuation">:</span> <span class="number">25</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sortKey&quot;</span><span class="punctuation">:</span> <span class="string">&quot;updated_at&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sortDirection&quot;</span><span class="punctuation">:</span> <span class="string">&quot;desc&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="punctuation">&#123;</span> <span class="attr">&quot;method&quot;</span><span class="punctuation">:</span> <span class="string">&quot;thread/turns/list&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">24</span><span class="punctuation">,</span> <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;threadId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;thr_123&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;limit&quot;</span><span class="punctuation">:</span> <span class="number">50</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sortDirection&quot;</span><span class="punctuation">:</span> <span class="string">&quot;desc&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>命令面板与插件目录更可见</strong>：从 merged commit 标题可见，<br><code>/plugins</code> 正在补 inline enablement toggles 与 tabbed marketplace<br>menu，<code>/status</code> 也会展示默认 reasoning；这些都属于“少切菜单、<br>少猜状态”的交互收敛。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/plugins</span><br><span class="line"># 直接启用 / 禁用已安装插件</span><br><span class="line"># 在 marketplace 标签查看可装条目</span><br><span class="line"></span><br><span class="line">/status</span><br><span class="line"># 确认当前默认 reasoning / effort</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-6"><a href="#关键-fix-6" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong><code>apply_patch</code> &#x2F; 文件系统 helper</strong>：<code>#18296</code> 修了 fs sandbox<br>helper 对 <code>apply_patch</code> 的处理，<code>#18380</code> 又补了 exec-server 保留<br>fs helper runtime env；受影响最大的是依赖 workspace-write 或<br>external sandbox 的编辑流。</li>
+<li><strong>插件与跨仓来源边角</strong>：<code>#18449</code> 补了未安装 cross-repo plugin<br>read 的提示，<code>#17277</code> 和 <code>#18017</code> 则把 remote plugin fields &#x2F;<br>cross-repo sources 往 API 与 marketplace manifest 里推，说明<br>插件来源与跨仓场景正在继续收敛。</li>
+<li><strong>信任门与执行策略</strong>：<code>#14718</code> 修了 project hooks 与 exec policies<br>的 trust-gate 判定，少一类“项目已可信却还被错误拦住”的审批摩擦。</li>
+<li><strong>启动性能</strong>：<code>#18370</code> 把 startup skills refresh 延后，skill &#x2F;<br>plugin 较多的环境启动压力更小。</li>
+</ul>
+<p><strong>主分支未发版</strong> (截至 2026-04-19)：</p>
+<ul>
+<li>PR #18325: 回滚“只在 request 边界清空 mailbox”的尝试，说明消息边界<br>处理还在继续收敛</li>
+<li>PR #18386: 图片输出默认改为 <code>high detail</code>，视觉结果更细，但也可能更<br>耗时</li>
+<li>PR #18499: 当前工作目录不可用时修复 plugin cache panic，适合频繁切<br>目录或清理工作区的人关注</li>
+<li>PR #18212: executor-backed MCP stdio 进入第 5&#x2F;6 步，MCP stdio<br>底层仍在继续重构</li>
+</ul>
+<p>这些内容已进入主分支但尚未发版，需等待下个 Release 或自行评估源码安<br>装。</p>
+<hr>
+<h4 id="2026-04-0-122-0-alpha-11-0-122-0-alpha-13（预发布）"><a href="#2026-04-0-122-0-alpha-11-0-122-0-alpha-13（预发布）" class="headerlink" title="2026-04 | 0.122.0-alpha.11 ~ 0.122.0-alpha.13（预发布）"></a>2026-04 | 0.122.0-alpha.11 ~ 0.122.0-alpha.13（预发布）</h4><p><strong>信息截止</strong>：2026-04-21 | <strong>最新 Release</strong>：0.122.0-alpha.13（预发布）</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.122.0-alpha.11</code></td>
+<td>2026-04-19 16:41</td>
+<td><code>0.122.0</code> 预发布继续滚到 <code>alpha.11</code>，公开 release notes 依旧缺席</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.12</code></td>
+<td>2026-04-19 18:48</td>
+<td>同日晚间继续推进到 <code>alpha.12</code>，说明这一轮烘焙仍在高频持续</td>
+</tr>
+<tr>
+<td><code>0.122.0-alpha.13</code></td>
+<td>2026-04-20 12:30</td>
+<td>当前最新公开 prerelease；稳定版 <code>0.122.0</code> 仍未发布，官方 changelog 也还没补 CLI 新条目</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-7"><a href="#新特性用法-7" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>本批仍无公开 release notes</strong>：GitHub 公开 release 页只确认<br><code>alpha.11 ~ alpha.13</code> 的 tag 和时间，OpenAI Developers 的 changelog<br>截至 <code>2026-04-21</code> 仍停留在 <code>2026-04-16 / App 26.415</code>；现阶段更稳妥的<br>用法仍是把这些更新视为预发布烘焙，而不是稳定命令面变更。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">生产环境继续使用 0.121.0</span><br><span class="line">实验环境关注 alpha.13 与后续 stable release</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>计划实现过程更可见</strong>：从 <code>#18573</code> 的 merged commit 可见，<br>TUI 会把 plan implementation prompt 实际用了哪些 context 显示得更<br>清楚；对需要核对“为什么 agent 会这样改”的人更有帮助。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">先让 Codex 产出 plan</span><br><span class="line">进入 implementation 阶段</span><br><span class="line">查看 prompt 中实际带入的 context used</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>多线程 &#x2F; 目录切换链路继续收敛</strong>：从对应时间窗的主分支提交可见，<br>thread picker、parent thread status、cwd 不可用时的 plugin cache<br>边角都在继续修；如果你经常切线程、切目录、做 side conversation，<br>这批预发布更值得观察。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/resume</span><br><span class="line"># 查看 thread picker 的命名与提示</span><br><span class="line"># 观察 side conversation 里的 parent thread status</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-7"><a href="#关键-fix-7" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>切目录导致的 plugin cache panic</strong>：<code>#18499</code> 修了 cwd 不可用时的<br>plugin cache panic，频繁切目录、清理工作区或从临时目录恢复的人受益<br>最直接。</li>
+<li><strong>MCP stdio 改造继续前推</strong>：<code>#18212</code> 的 executor-backed MCP stdio<br>已推进到第 5&#x2F;6 步，说明 MCP stdio 的执行链路还在继续收敛。</li>
+<li><strong>预发布仍偏稳定化</strong>：到 <code>alpha.13</code> 为止，公开信息更多体现为<br>TUI &#x2F; thread &#x2F; plugin &#x2F; MCP 的可见性和边角稳定性收敛，而不是新的<br>稳定大功能落地。</li>
+</ul>
+<p><strong>主分支未发版</strong> (截至 2026-04-21)：</p>
+<ul>
+<li>PR #18625: 新增 <code>codex debug models</code>，方便直接检查当前模型目录 &#x2F;<br>provider</li>
+<li>PR #18610: <code>/mcp</code> 增加 verbose diagnostics，定位 MCP 配置问题更<br>直观</li>
+<li>PR #18289: app_server 开始透传 <code>PatchUpdated</code> 事件，集成侧能更早感知<br>补丁更新</li>
+<li>PR #18646: 新增 <code>--ignore-user-config</code> 与 <code>--ignore-rules</code>，便于隔离<br>“是不是本地配置导致的行为差异”</li>
+<li>PR #18654 &#x2F; #18492 &#x2F; #18274: 继续修 sub-agent exec policy、<br>FS watcher 与文件系统权限 canonicalization 这类边角问题</li>
+</ul>
+<p>这些内容来自 <code>2026-04-20</code> 的主分支提交，但公开 release notes 尚未说明<br>它们是否已经进入更晚的 prerelease；保守起见，先按“主分支未发版观察”<br>记录，等待下个 tag、稳定版或 compare 页面补全。</p>
+<hr>
+<h4 id="2026-04-0-123-0-0-124-0（CLI-Stable）"><a href="#2026-04-0-123-0-0-124-0（CLI-Stable）" class="headerlink" title="2026-04 | 0.123.0 ~ 0.124.0（CLI Stable）"></a>2026-04 | 0.123.0 ~ 0.124.0（CLI Stable）</h4><p><strong>信息截止</strong>：2026-04-24 | <strong>最新 Release</strong>：0.124.0（稳定版）</p>
+<p>本批次属于 <code>cli-oss / stable</code>；<code>0.123.0-alpha.6 ~ alpha.10</code> 与<br><code>0.124.0-alpha.1 ~ alpha.3</code> 已由稳定版 release notes 回收确认。</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.123.0</code></td>
+<td>2026-04-23 01:26</td>
+<td>Bedrock provider、<code>/mcp verbose</code>、plugin MCP file shapes、realtime handoff 和远程 sandbox 配置一起落到稳定版</td>
+</tr>
+<tr>
+<td><code>0.124.0</code></td>
+<td>2026-04-23 18:29</td>
+<td>快速 reasoning 调整、多环境 app-server turn、stable hooks、远程 marketplace list&#x2F;read 与 Fast service tier 一起发布</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-8"><a href="#新特性用法-8" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>升级到稳定版 0.124.0</strong>：官方 changelog 已给出 npm 安装方式，之前<br>追 <code>alpha</code> 的环境可以先回到稳定版基线，再观察下一条 prerelease 线。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @openai/codex@0.124.0</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>快速调整 reasoning</strong>：TUI 新增 <code>Alt+,</code> 与 <code>Alt+.</code>，可以在当前会话<br>里临时降低或提高 reasoning；接受模型升级后，reasoning 会重置到新<br>模型默认值，避免沿用旧模型的 stale setting。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Alt+,  # 降低 reasoning</span><br><span class="line">Alt+.  # 提高 reasoning</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>MCP 诊断分层</strong>：<code>0.123.0</code> 增加 <code>/mcp verbose</code>，日常只看 <code>/mcp</code><br>保持快速；排查 server diagnostics、resources、resource templates<br>时再打开 verbose。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/mcp</span><br><span class="line">/mcp verbose</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>Hooks 进入稳定态</strong>：<code>0.124.0</code> 把 hooks 标为 stable，并支持在<br><code>config.toml</code> 与 managed <code>requirements.toml</code> 中配置；可观察 MCP<br>tools、<code>apply_patch</code> 以及长时间 Bash session。</li>
+</ul>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># config.toml</span></span><br><span class="line"><span class="comment"># 具体 hook 结构以当前 Codex hooks 文档 / release note 为准</span></span><br><span class="line"><span class="comment"># 重点变化：hooks 已从实验观察点进入 stable capability</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>App-server 多环境 turn</strong>：app-server session 可以管理多个环境，<br>并在每个 turn 选择 environment 与 working directory，适合远程开发、<br>多仓库或 monorepo 子目录定位。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">在 app-server client 中为 turn 指定 environment + cwd</span><br><span class="line">让 Codex 在目标 workspace 内执行本轮任务</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-8"><a href="#关键-fix-8" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>权限与审批状态同步</strong>：<code>0.124.0</code> 修了 side conversation 后<br><code>/permissions</code> 变更漂移，以及 Full Access 状态在 MCP approval 中的<br>反映问题；多线程工作时少一类“明明改了权限但状态不一致”的摩擦。</li>
+<li><strong>远程 app-server 稳定性</strong>：修了 websocket events 在负载下持续 draining<br>和 remote worker 退出时 shutdown cleanup 失败的问题，远程工作流更稳。</li>
+<li><strong><code>wait_agent</code> 卡顿</strong>：修了 mailbox 已有 queued work 时仍等待新通知或<br>timeout 的问题，后台 agent &#x2F; sub-agent 流程更不容易假性阻塞。</li>
+<li><strong>CLI 与终端边角</strong>：<code>0.123.0</code> 修了 rollback 后 <code>/copy</code> 复制旧响应、<br>手动 shell 命令期间 follow-up 卡在 <code>Working</code>、VS Code WSL Unicode &#x2F;<br>dead-key 输入、proxy env 旧值恢复、<code>codex exec</code> 不继承 root flags 等<br>问题。</li>
+</ul>
+<hr>
+<h4 id="2026-04-GPT-5-5-Browser-Use-Approval-Review（App-Product）"><a href="#2026-04-GPT-5-5-Browser-Use-Approval-Review（App-Product）" class="headerlink" title="2026-04 | GPT-5.5 &#x2F; Browser Use &#x2F; Approval Review（App Product）"></a>2026-04 | GPT-5.5 &#x2F; Browser Use &#x2F; Approval Review（App Product）</h4><p><strong>信息截止</strong>：2026-04-24 | <strong>最新 Release</strong>：2026-04-23 Product Update</p>
+<p>本批次属于 <code>app-product</code>；来源为 OpenAI Developers changelog，<br>与 GitHub CLI release 独立记录。</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GPT-5.5 in Codex</td>
+<td>2026-04-23</td>
+<td>GPT-5.5 成为 Codex 推荐模型，适合实现、重构、调试、测试、验证和知识工作产物</td>
+</tr>
+<tr>
+<td>Browser use</td>
+<td>2026-04-23</td>
+<td>Codex app 可操作 in-app browser，用于本地开发服务器和 file-backed page 的 UI 验证</td>
+</tr>
+<tr>
+<td>Automatic approval reviews</td>
+<td>2026-04-23</td>
+<td>审批请求可先交给自动 reviewer agent，App 中展示 review 状态和风险等级</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-9"><a href="#新特性用法-9" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>切到 GPT-5.5</strong>：如果模型选择器已经出现 GPT-5.5，CLI 可以直接开新<br>thread 指定模型；会话中也可以用 <code>/model</code> 切换。IDE extension 和<br>Codex app 则在 composer 的模型选择器中切换。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codex --model gpt-5.5</span><br></pre></td></tr></table></figure>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/model</span><br><span class="line"># 选择 GPT-5.5</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>让 Codex 操作内置浏览器</strong>：适合本地页面验证、视觉 bug 复现、UI<br>修复后的点击流检查；官方说明该能力通过 bundled Browser plugin<br>运行，允许 &#x2F; 阻止的网站可在 settings 中管理。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">启动本地开发服务器</span><br><span class="line">让 Codex 在 app 内 browser 打开页面</span><br><span class="line">要求它点击、复现、验证修复</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>自动审批 review</strong>：配置后，符合条件的 approval prompt 会先进入<br>automatic reviewer agent；执行前可在 Codex app 里查看 approved、<br>denied、stopped、timed out 等状态与风险等级。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">触发需要审批的操作</span><br><span class="line">查看 automatic review item 的 status / risk</span><br><span class="line">再决定是否继续执行</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-9"><a href="#关键-fix-9" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>模型可见性兜底</strong>：如果 GPT-5.5 还没出现，官方建议先升级 CLI、IDE<br>extension 或 Codex app；rollout 期间继续使用 GPT-5.4。</li>
+<li><strong>浏览器权限边界更清晰</strong>：Browser use 通过 bundled Browser plugin<br>管理，并可在 settings 中审查 allow &#x2F; block 网站，减少“能浏览但边界<br>不透明”的不确定性。</li>
+<li><strong>审批流程更可审计</strong>：automatic approval reviews 把 approval 前的<br>reviewer 结果、状态和风险等级显式化，适合需要更严格审批留痕的团队。</li>
+</ul>
+<hr>
+<h4 id="2026-04-0-125-0（CLI-Stable）"><a href="#2026-04-0-125-0（CLI-Stable）" class="headerlink" title="2026-04 | 0.125.0（CLI Stable）"></a>2026-04 | 0.125.0（CLI Stable）</h4><p><strong>信息截止</strong>：2026-04-29 | <strong>最新 Release</strong>：0.125.0（稳定版）</p>
+<p>本批次属于 <code>cli-oss / stable</code>；来源为 OpenAI Developers changelog 与<br>GitHub Release。</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.125.0</code></td>
+<td>2026-04-24</td>
+<td>app-server Unix socket、远程插件安装&#x2F;升级、权限 profile 透传、provider 模型发现、exec JSON token usage 与 rollout trace 一起落到稳定版</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-10"><a href="#新特性用法-10" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>升级到 0.125.0</strong>：官方 changelog 已给出 npm 安装方式，适合需要<br>app-server、远程插件或权限 profile 新接口的环境先升级到稳定版基线。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @openai/codex@0.125.0</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>app-server 走 Unix socket</strong>：app-server 集成现在支持 Unix socket<br>transport，适合把本机 IDE &#x2F; 桌面客户端和 Codex 后端连在同一台机器<br>上，减少 TCP 端口暴露。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"># app-server client 侧选择 unix socket transport</span><br><span class="line"># 具体 socket path / 启动参数以当前 app-server schema 为准</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>分页友好的 resume &#x2F; fork</strong>：<code>thread/resume</code> 和 <code>thread/fork</code><br>新增面向分页历史的参数，客户端可以先恢复线程，再按需用<br><code>thread/turns/list</code> 拉历史，避免一次性塞回完整 turns。</li>
+</ul>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;method&quot;</span><span class="punctuation">:</span> <span class="string">&quot;thread/fork&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="number">24</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;params&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;threadId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;thr_123&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;excludeTurns&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>远程插件安装与 marketplace 升级</strong>：app-server plugin management<br>已能安装远程插件、升级已配置 marketplaces；适合团队把插件分发、<br>更新和缓存收拢到 app-server 客户端流程里。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">在 app-server 客户端里安装 remote plugin</span><br><span class="line">升级 configured marketplace</span><br><span class="line">刷新插件列表并重新加载可用 MCP tools</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>codex exec --json</code> 暴露 reasoning tokens</strong>：程序化调用方现在能<br>从 JSON usage 中拿到 reasoning-token 用量，适合 CI、批处理和成本<br>观测。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codex <span class="built_in">exec</span> --json <span class="string">&quot;summarize the current diff&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-10"><a href="#关键-fix-10" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong><code>/review</code> 与 TUI 退出卡死</strong>：修了中断 <code>/review</code> 或退出 TUI 时，<br>界面可能卡在 delegate startup &#x2F; unsubscribe 的问题；经常跑 review<br>或后台 agent 的用户体感最明显。</li>
+<li><strong>exec-server 输出丢失</strong>：修了进程退出后 buffered output 被丢掉、<br>stream closure 等待不正确的问题；依赖长命令输出和日志回放的工作流<br>更稳。</li>
+<li><strong>显式 untrusted 配置</strong>：app-server 不再把明确不可信的 project<br>config 自动持久化成 trusted，降低远程&#x2F;多项目场景里的信任边界漂移。</li>
+<li><strong>Windows 与配置 schema 边角</strong>：修了多 CLI 版本、installed app<br>directory、后台 PowerShell 窗口，以及 MultiAgentV2 thread limits、<br>relative agent-role config path、MCP bearer token 字段和 <code>js_repl</code><br>image MIME 校验等问题。</li>
+</ul>
+<hr>
+<h4 id="2026-04-0-126-0-alpha-1-0-126-0-alpha-11（预发布）"><a href="#2026-04-0-126-0-alpha-1-0-126-0-alpha-11（预发布）" class="headerlink" title="2026-04 | 0.126.0-alpha.1 ~ 0.126.0-alpha.11（预发布）"></a>2026-04 | 0.126.0-alpha.1 ~ 0.126.0-alpha.11（预发布）</h4><p><strong>信息截止</strong>：2026-04-29 | <strong>最新 Release</strong>：0.126.0-alpha.11（预发布）</p>
+<p>本批次属于 <code>cli-oss / prerelease</code>；GitHub release&#x2F;tag 页面仅确认 tag<br>与时间，公开 release notes 尚未补全。</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>0.126.0-alpha.1</code></td>
+<td>2026-04-24</td>
+<td><code>0.125.0</code> 后首个 <code>0.126.0</code> 预发布标签，公开 notes 缺席</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.2</code></td>
+<td>2026-04-25</td>
+<td>预发布继续滚动，仍只能确认 tag 与构建资产</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.3</code></td>
+<td>2026-04-26</td>
+<td>alpha 线进入连续烘焙，release notes 仍未公开</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.4</code></td>
+<td>2026-04-27</td>
+<td>同一轮预发布继续推进，后续主分支出现权限、memory 与 keymap 信号</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.5</code></td>
+<td>2026-04-27</td>
+<td>该标签以 tag 页面形式出现，资产较少，仍不宜当稳定发布使用</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.6</code></td>
+<td>2026-04-27</td>
+<td>alpha 继续滚动，公开页面无功能明细</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.7</code></td>
+<td>2026-04-27</td>
+<td>高频预发布继续，建议等待 stable notes 回收确认</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.8</code></td>
+<td>2026-04-27</td>
+<td>当日第四个 alpha，说明该轮仍在快速验证</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.9</code></td>
+<td>2026-04-28</td>
+<td>预发布推进到 4 月 28 日，公开 notes 仍缺席</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.10</code></td>
+<td>2026-04-28</td>
+<td>alpha.10 之后主分支仅剩少量 commits，接近一轮收敛尾声</td>
+</tr>
+<tr>
+<td><code>0.126.0-alpha.11</code></td>
+<td>2026-04-28</td>
+<td>当前最新公开 prerelease；尚无稳定版 <code>0.126.0</code></td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-11"><a href="#新特性用法-11" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>暂无可确认稳定用法</strong>：<code>0.126.0-alpha.*</code> 页面只确认预发布标签、<br>时间与资产，没有正式 notes；生产环境仍建议停在 <code>0.125.0</code> 或等待<br><code>0.126.0</code> 稳定版。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">生产环境：使用 0.125.0</span><br><span class="line">实验环境：只在可回滚机器上试 0.126.0-alpha.11</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>可配置 keymap 信号</strong>：主分支 merged commit <code>#18593</code> 显示 TUI<br>configurable keymap support 已进入代码线；由于 release notes 和配置<br>schema 还未公开，不建议把具体 keymap TOML 写进团队默认配置。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">预发布观察：关注 0.126.0 stable notes / config reference</span><br><span class="line">目标用途：把 TUI 快捷键改成团队或个人习惯</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>内置 permission profiles 信号</strong>：主分支 commit <code>#19900</code> 显示权限<br>profile 继续收敛为 built-in defaults；这和 <code>0.125.0</code> 的 permission<br>profile round-trip 是同一条能力线，适合继续观察 <code>/permissions</code><br>交互和 app-server permission API 是否简化。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/permissions</span><br><span class="line"># 观察是否出现内置 profile / 默认 profile 选择</span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong>Memory housekeeping 信号</strong>：<code>#19998</code>、<code>#20000</code>、<code>#20005</code> 与<br><code>#19990</code> 显示 memory 启动、清理和限流场景继续打磨；如果你经常切<br>项目或使用 memories，alpha 线值得关注但不建议直接写生产流程。</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">切换项目后检查 memory 行为</span><br><span class="line">额度紧张时观察是否跳过 memory startup</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-11"><a href="#关键-fix-11" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>网络代理收紧</strong>：主分支 commit <code>#20001</code> 与 <code>#20002</code> 显示 Linux<br>proxy bridge helper 和 network proxy bypass 默认值在加固，受影响<br>的是依赖代理、私有网络或严格网络审批的环境。</li>
+<li><strong>MCP stdio 进程泄漏</strong>：<code>#19753</code> 修了 shutdown 时 stdio MCP server<br>终止问题，避免 MCP server 残留后台进程。</li>
+<li><strong>workspace metadata 保护</strong>：<code>#19846</code> 与 <code>#19847</code> 继续加固受保护的<br>workspace metadata 路径，降低 sandbox &#x2F; Seatbelt 场景中的误写风险。</li>
+<li><strong>TUI 交互边角</strong>：<code>#19986</code> 修了空 shell mode 下 <code>Esc</code> 退出问题，<br><code>#19625</code> 修了退出时 keyboard reporting reset，终端状态更不容易被<br>留坏。</li>
+</ul>
+<p><strong>主分支未发版</strong> (截至 2026-04-29)：</p>
+<ul>
+<li>PR #19959: 修复 log db batch flush flake；GitHub release 页面显示<br><code>0.126.0-alpha.11</code> 之后仍有 1 个 commit 进入 main。</li>
+</ul>
+<p>这些内容已进入主分支但尚未发版，需等待下个 Release 或自行评估源码安<br>装。</p>
+<hr>
+<h3 id="Q1（2026-01-03）"><a href="#Q1（2026-01-03）" class="headerlink" title="Q1（2026-01 ~ 03）"></a>Q1（2026-01 ~ 03）</h3><h4 id="2026-03-CLI-0-118-0-App-Workflow-Update"><a href="#2026-03-CLI-0-118-0-App-Workflow-Update" class="headerlink" title="2026-03 | CLI 0.118.0 &#x2F; App Workflow Update"></a>2026-03 | CLI 0.118.0 &#x2F; App Workflow Update</h4><p><strong>信息截止</strong>：2026-03-31 | <strong>最新 Release</strong>：0.118.0</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CLI 0.118.0</td>
+<td>2026-03-31</td>
+<td>支持动态 Bearer Token 刷新；<code>codex exec</code> 支持 prompt + stdin 组合输入</td>
+</tr>
+<tr>
+<td>App Workflow</td>
+<td>2026-03-25</td>
+<td>Plugins 可安装化；线程检索增强；App ↔ VS Code 设置同步</td>
+</tr>
+<tr>
+<td>Slash Commands</td>
+<td>2026-03-19</td>
+<td>Skills 进入 <code>@</code> 菜单；新增 <code>/model</code> 快速切换命令</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-12"><a href="#新特性用法-12" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>动态 Token</strong>：在 <code>config.toml</code> 中配置 <code>requires_openai_auth = true</code>，CLI 会自动 handle 短期凭证的刷新，适合企业代理环境。</li>
+</ul>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 自定义 Provider 示例</span></span><br><span class="line"><span class="attr">model_provider</span> = <span class="string">&quot;my_codex&quot;</span></span><br><span class="line"><span class="attr">model</span> = <span class="string">&quot;gpt-5.4&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="section">[model_providers.my_codex]</span></span><br><span class="line"><span class="attr">name</span> = <span class="string">&quot;my_codex&quot;</span></span><br><span class="line"><span class="attr">base_url</span> = <span class="string">&quot;https://your-gateway.example/v1&quot;</span></span><br><span class="line"><span class="attr">wire_api</span> = <span class="string">&quot;responses&quot;</span></span><br><span class="line"><span class="attr">requires_openai_auth</span> = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+<ul>
+<li><strong><code>@</code> 菜单</strong>：在 Composer 中直接输入 <code>@</code> 即可选择已安装的 Skill，无需记忆长指令。</li>
+<li><strong>Plugins 封装</strong>：创建 <code>.codex-plugin/plugin.json</code>，可将 skill、MCP server 配置和 app 设置打包成可复用工作流，通过 marketplace 安装。</li>
+<li><strong>历史归档</strong>：使用 sidebar 或 thread search 查找旧线程，支持一键归档本地线程，不必重复描述上下文。</li>
+</ul>
+<h5 id="关键-fix-12"><a href="#关键-fix-12" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>(无重大 fix，聚焦功能增强)</li>
+</ul>
+<h4 id="2026-01-02-Harness-Engineering-GPT-5-3"><a href="#2026-01-02-Harness-Engineering-GPT-5-3" class="headerlink" title="2026-01 ~ 02 | Harness Engineering &#x2F; GPT-5.3"></a>2026-01 ~ 02 | Harness Engineering &#x2F; GPT-5.3</h4><p><strong>信息截止</strong>：2026-02-28 | <strong>最新 Release</strong>：v0.1.x (Stable Beta)</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Harness Engineering</td>
+<td>2026-02-11</td>
+<td>OpenAI 发布核心宣言，定义“Humans steer. Agents execute.”协作范式</td>
+</tr>
+<tr>
+<td>GPT-5.3-codex</td>
+<td>2026-01-15</td>
+<td>深度编码模型发布，大幅提升大规模代码重构的逻辑一致性</td>
+</tr>
+<tr>
+<td>App Server Beta</td>
+<td>2026-01-05</td>
+<td>开启 App Server 跨端同步测试，支持多设备共享 Session 历史</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-13"><a href="#新特性用法-13" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>Harness 理念实践</strong>：强化了“反馈回路”机制，Codex 开始支持在执行工具后根据输出结果自动进行第二轮推理。</li>
+</ul>
+<h5 id="关键-fix-13"><a href="#关键-fix-13" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>本批次无关键 fix</li>
+</ul>
+<hr>
+<h2 id="2025-年"><a href="#2025-年" class="headerlink" title="2025 年"></a>2025 年</h2><h3 id="Q4（2025-10-12）"><a href="#Q4（2025-10-12）" class="headerlink" title="Q4（2025-10 ~ 12）"></a>Q4（2025-10 ~ 12）</h3><h4 id="2025-11-12-v0-1-x-Preview-MCP-Integration"><a href="#2025-11-12-v0-1-x-Preview-MCP-Integration" class="headerlink" title="2025-11 ~ 12 | v0.1.x Preview &#x2F; MCP Integration"></a>2025-11 ~ 12 | v0.1.x Preview &#x2F; MCP Integration</h4><p><strong>信息截止</strong>：2025-12-30 | <strong>最新 Release</strong>：v0.1.20</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GPT-5.2-codex</td>
+<td>2025-12-08</td>
+<td>增强多文件读写与 Context 管理能力</td>
+</tr>
+<tr>
+<td>Native MCP Support</td>
+<td>2025-11-15</td>
+<td>Codex 原生支持模型上下文协议，打通第三方工具集成</td>
+</tr>
+<tr>
+<td>Preview Launch</td>
+<td>2025-10-24</td>
+<td>Codex CLI 进入公共预览阶段 (Public Preview)</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-14"><a href="#新特性用法-14" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>MCP 集成</strong>：通过配置文件指定 MCP Server 路径，Codex 可以直接调用外部数据库或 API 文档工具。</li>
+</ul>
+<h5 id="关键-fix-14"><a href="#关键-fix-14" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>本批次无关键 fix</li>
+</ul>
+<hr>
+<h3 id="Q3（2025-07-09）"><a href="#Q3（2025-07-09）" class="headerlink" title="Q3（2025-07 ~ 09）"></a>Q3（2025-07 ~ 09）</h3><h4 id="2025-08-09-v0-0-x-Internal-Beta"><a href="#2025-08-09-v0-0-x-Internal-Beta" class="headerlink" title="2025-08 ~ 09 | v0.0.x Internal Beta"></a>2025-08 ~ 09 | v0.0.x Internal Beta</h4><p><strong>信息截止</strong>：2025-09-30 | <strong>最新 Release</strong>：v0.0.88</p>
+<table>
+<thead>
+<tr>
+<th>更新</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Initial CLI Release</td>
+<td>2025-09-12</td>
+<td>首个命令行版本下发至内测用户，支持基础文件操作</td>
+</tr>
+<tr>
+<td>GPT-5.1-codex</td>
+<td>2025-08-15</td>
+<td>早期代码专精模型进入测试池</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-15"><a href="#新特性用法-15" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li>本批次以内部 beta 为主，无可公开使用法。</li>
+</ul>
+<h5 id="关键-fix-15"><a href="#关键-fix-15" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>本批次未公开 fix 列表。</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-13</td>
+<td>初始版本，建立追踪框架；记录 2026-03~04 批次内容</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-13</td>
+<td>补全 2025 Q3 至 2026 Q1 历史更新，覆盖从内测到 GPT-5.4 演进全过程</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-13</td>
+<td>修正格式规范，使用 H5 标题组织批次段落；合并深度分析内容</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-17</td>
+<td>追加 0.119.0 ~ 0.121.0 稳定版增量，并补记 0.122.0-alpha.3 预发布观察</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-04-17</td>
+<td>追加 App 26.415 批次，并补记同日滚到 0.122.0-alpha.5 的最新预发布观察</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-04-19</td>
+<td>追加 0.122.0-alpha.6 ~ alpha.10 预发布批次，并补记 alpha.10 之后的主分支未发版观察</td>
+</tr>
+<tr>
+<td>v1.6</td>
+<td>2026-04-21</td>
+<td>追加 0.122.0-alpha.11 ~ alpha.13 预发布批次，并补记 2026-04-20 主分支的主分支未发版观察</td>
+</tr>
+<tr>
+<td>v1.7</td>
+<td>2026-04-24</td>
+<td>按多发布流规则追加 0.123.0 ~ 0.124.0 CLI Stable 批次，并补记 GPT-5.5、Browser use 与 automatic approval reviews 的 App&#x2F;Product 更新</td>
+</tr>
+<tr>
+<td>v1.8</td>
+<td>2026-04-29</td>
+<td>追加 0.125.0 稳定版与 0.126.0-alpha.1 ~ alpha.11 预发布观察</td>
+</tr>
+<tr>
+<td>v1.9</td>
+<td>2026-05-06</td>
+<td>tags 收敛（删除 GPT-5.4）、2025-Q3 批次补齐三段式占位、<code>(无)</code> 文案统一为「本批次无关键 fix」</td>
+</tr>
+<tr>
+<td>v1.10</td>
+<td>2026-05-18</td>
+<td>追踪 2026-05 App 与 CLI 稳定版更新；修正 frontmatter tags</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CLI/" rel="tag">CLI</a>, <a class="tag-none-link" href="/tags/codex/" rel="tag">codex</a>, <a class="tag-none-link" href="/tags/openai/" rel="tag">openai</a>, <a class="tag-none-link" href="/tags/%E6%9B%B4%E6%96%B0%E8%BF%BD%E8%B8%AA/" rel="tag">更新追踪</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.768Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链" href="/2026/04/07/tech/ai/2026-04-07-openspec-toolchain-integration-practice/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" OpenCode &amp; oh-my-openagent 更新追踪" href="/2026/04/12/tech/tools/tracking/2026-04-13-opencode-update-tracking/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-Model-Availability-Update"><span class="toc-number">1.1.1.</span> <span class="toc-text">2026-04 | Model Availability Update</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-App-Update%EF%BC%88App-Update%EF%BC%89"><span class="toc-number">1.1.2.</span> <span class="toc-text">2026-05 | App Update（App Update）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-0-129-0-0-130-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">2026-05 | 0.129.0 ~ 0.130.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-119-0-0-121-0"><span class="toc-number">1.1.4.</span> <span class="toc-text">2026-04 | 0.119.0 ~ 0.121.0</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-App-26-415"><span class="toc-number">1.1.5.</span> <span class="toc-text">2026-04 | App 26.415</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-4"><span class="toc-number">1.1.5.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-4"><span class="toc-number">1.1.5.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-122-0-alpha-5%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%E8%A7%82%E5%AF%9F%EF%BC%89"><span class="toc-number">1.1.6.</span> <span class="toc-text">2026-04 | 0.122.0-alpha.5（预发布观察）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-5"><span class="toc-number">1.1.6.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-5"><span class="toc-number">1.1.6.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-122-0-alpha-6-0-122-0-alpha-10%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.1.7.</span> <span class="toc-text">2026-04 | 0.122.0-alpha.6 ~ 0.122.0-alpha.10（预发布）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-6"><span class="toc-number">1.1.7.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-6"><span class="toc-number">1.1.7.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-122-0-alpha-11-0-122-0-alpha-13%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.1.8.</span> <span class="toc-text">2026-04 | 0.122.0-alpha.11 ~ 0.122.0-alpha.13（预发布）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-7"><span class="toc-number">1.1.8.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-7"><span class="toc-number">1.1.8.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-123-0-0-124-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.9.</span> <span class="toc-text">2026-04 | 0.123.0 ~ 0.124.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-8"><span class="toc-number">1.1.9.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-8"><span class="toc-number">1.1.9.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-GPT-5-5-Browser-Use-Approval-Review%EF%BC%88App-Product%EF%BC%89"><span class="toc-number">1.1.10.</span> <span class="toc-text">2026-04 | GPT-5.5 &#x2F; Browser Use &#x2F; Approval Review（App Product）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-9"><span class="toc-number">1.1.10.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-9"><span class="toc-number">1.1.10.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-125-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.11.</span> <span class="toc-text">2026-04 | 0.125.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-10"><span class="toc-number">1.1.11.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-10"><span class="toc-number">1.1.11.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-0-126-0-alpha-1-0-126-0-alpha-11%EF%BC%88%E9%A2%84%E5%8F%91%E5%B8%83%EF%BC%89"><span class="toc-number">1.1.12.</span> <span class="toc-text">2026-04 | 0.126.0-alpha.1 ~ 0.126.0-alpha.11（预发布）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-11"><span class="toc-number">1.1.12.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-11"><span class="toc-number">1.1.12.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%882026-01-03%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">Q1（2026-01 ~ 03）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-03-CLI-0-118-0-App-Workflow-Update"><span class="toc-number">1.2.1.</span> <span class="toc-text">2026-03 | CLI 0.118.0 &#x2F; App Workflow Update</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-12"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-12"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-01-02-Harness-Engineering-GPT-5-3"><span class="toc-number">1.2.2.</span> <span class="toc-text">2026-01 ~ 02 | Harness Engineering &#x2F; GPT-5.3</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-13"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-13"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2025-%E5%B9%B4"><span class="toc-number">2.</span> <span class="toc-text">2025 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%882025-10-12%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">Q4（2025-10 ~ 12）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2025-11-12-v0-1-x-Preview-MCP-Integration"><span class="toc-number">2.1.1.</span> <span class="toc-text">2025-11 ~ 12 | v0.1.x Preview &#x2F; MCP Integration</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-14"><span class="toc-number">2.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-14"><span class="toc-number">2.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%882025-07-09%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">Q3（2025-07 ~ 09）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2025-08-09-v0-0-x-Internal-Beta"><span class="toc-number">2.2.1.</span> <span class="toc-text">2025-08 ~ 09 | v0.0.x Internal Beta</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-15"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-15"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

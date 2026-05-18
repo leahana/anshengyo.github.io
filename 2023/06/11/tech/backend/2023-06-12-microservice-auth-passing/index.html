@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>微服务中权限参数如何传递：JWT 与 OAuth2 方案详解 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2023/06/11/tech/backend/2023-06-12-microservice-auth-passing/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="JWT, OAuth2, Spring Security, 微服务, 权限认证" />
+  
+  <meta name="description" content="解析微服务架构中权限参数传递的常见方案，详解 JWT 令牌的工作流程、优缺点及安全管理，对比 OAuth2 授权框架的适用场景。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="微服务中权限参数如何传递：JWT 与 OAuth2 方案详解">
+<meta property="og:url" content="https://leahana.github.io/2023/06/11/tech/backend/2023-06-12-microservice-auth-passing/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="解析微服务架构中权限参数传递的常见方案，详解 JWT 令牌的工作流程、优缺点及安全管理，对比 OAuth2 授权框架的适用场景。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_081809_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_082011_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_082234_02.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_082353_03.webp">
+<meta property="article:published_time" content="2023-06-11T22:18:04.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="JWT">
+<meta property="article:tag" content="OAuth2">
+<meta property="article:tag" content="Spring Security">
+<meta property="article:tag" content="微服务">
+<meta property="article:tag" content="权限认证">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_081809_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"微服务中权限参数如何传递：JWT 与 OAuth2 方案详解","description":"解析微服务架构中权限参数传递的常见方案，详解 JWT 令牌的工作流程、优缺点及安全管理，对比 OAuth2 授权框架的适用场景。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2023-06-11T22:18:04.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2023/06/11/tech/backend/2023-06-12-microservice-auth-passing/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2023/06/11/tech/backend/2023-06-12-microservice-auth-passing/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">微服务中权限参数如何传递：JWT 与 OAuth2 方案详解</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2023-06-11T22:18:04.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-06-12</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~19.02K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-JWT-%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 JWT 认证流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">💎 方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 如何选择？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%AE%A4%E8%AF%81%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8C%91%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">1. 微服务认证的核心挑战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%A0%E7%BB%9F-Session-%E4%B8%8D%E9%80%82%E5%90%88%E5%BE%AE%E6%9C%8D%E5%8A%A1%EF%BC%9F"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 为什么传统 Session 不适合微服务？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 微服务认证架构总览</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-JWT-%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">2. JWT 深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-JWT-%E7%9A%84%E7%BB%93%E6%9E%84"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 JWT 的结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-JWT-%E8%AE%A4%E8%AF%81%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 JWT 认证完整流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Spring-Boot-%E4%B8%AD%E5%AE%9E%E7%8E%B0-JWT-%E8%AE%A4%E8%AF%81"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 Spring Boot 中实现 JWT 认证</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#JWT-%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="toc-number">4.3.1.</span> <span class="toc-text">JWT 工具类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#JWT-%E8%AE%A4%E8%AF%81%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="toc-number">4.3.2.</span> <span class="toc-text">JWT 认证拦截器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8%E4%B8%9A%E5%8A%A1-Controller-%E4%B8%AD%E4%BD%BF%E7%94%A8"><span class="toc-number">4.3.3.</span> <span class="toc-text">在业务 Controller 中使用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%97%B4-JWT-%E4%BC%A0%E9%80%92"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 微服务间 JWT 传递</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Token-%E5%88%B7%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">3. Token 刷新机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Refresh-Token%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 为什么需要 Refresh Token？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%88%B7%E6%96%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 刷新流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%88%B7%E6%96%B0%E6%8E%A5%E5%8F%A3%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 刷新接口实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-OAuth2-%E6%8E%88%E6%9D%83%E6%A1%86%E6%9E%B6"><span class="toc-number">6.</span> <span class="toc-text">4. OAuth2 授权框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-OAuth2-%E6%A6%82%E8%BF%B0"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 OAuth2 概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9B%9B%E7%A7%8D%E6%8E%88%E6%9D%83%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 四种授权模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-OAuth2-%E4%B8%8E-JWT-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 OAuth2 与 JWT 的关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Spring-Security-JWT-%E9%9B%86%E6%88%90"><span class="toc-number">7.</span> <span class="toc-text">5. Spring Security + JWT 集成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Security-%E9%85%8D%E7%BD%AE"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 Security 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-JWT-%E8%AE%A4%E8%AF%81%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 JWT 认证过滤器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BD%BF%E7%94%A8%E6%B3%A8%E8%A7%A3%E8%BF%9B%E8%A1%8C%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 使用注解进行权限控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%89%E5%85%A8%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">6. 安全最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Token-%E5%AE%89%E5%85%A8%E7%AE%A1%E7%90%86"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 Token 安全管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%BD%BF%E7%94%A8-RS256-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E7%AD%BE%E5%90%8D"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 使用 RS256 非对称签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Token-%E9%BB%91%E5%90%8D%E5%8D%95%E6%9C%BA%E5%88%B6"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 Token 黑名单机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">8.4.</span> <span class="toc-text">6.4 安全检查清单</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-JWT-%E5%92%8C-Session-%E5%BA%94%E8%AF%A5%E9%80%89%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: JWT 和 Session 应该选哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-JWT-Token-%E8%A2%AB%E7%9B%97%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: JWT Token 被盗了怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-Refresh-Token-%E5%BA%94%E8%AF%A5%E5%AD%98%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: Refresh Token 应该存在哪里？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E4%B9%8B%E9%97%B4%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E8%AE%A4%E8%AF%81%E4%BF%A1%E6%81%AF%EF%BC%9F"><span class="toc-number">9.4.</span> <span class="toc-text">Q4: 微服务之间如何传递认证信息？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-JWT-%E7%9A%84-Payload-%E8%83%BD%E6%94%BE%E5%A4%9A%E5%B0%91%E4%BF%A1%E6%81%AF%EF%BC%9F"><span class="toc-number">9.5.</span> <span class="toc-text">Q5: JWT 的 Payload 能放多少信息？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.2.</span> <span class="toc-text">🎯 行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：从原理到实战，全面掌握微服务架构中权限参数传递的核心方案与最佳实践<br>💡 <strong>核心理念</strong>：无状态认证（JWT） + 标准化授权框架（OAuth2） &#x3D; 可扩展、高安全的微服务权限体系</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开核心概念</strong></summary>
+
+<h3 id="🔌-JWT-认证流程"><a href="#🔌-JWT-认证流程" class="headerlink" title="🔌 JWT 认证流程"></a>🔌 JWT 认证流程</h3><pre class="mermaid">sequenceDiagram
+    participant U as 用户
+    participant G as API 网关
+    participant A as 认证服务
+    participant S as 业务服务
+
+    U->>G: 1. 登录请求（用户名/密码）
+    G->>A: 2. 转发认证请求
+    A-->>G: 3. 返回 JWT + Refresh Token
+    G-->>U: 4. 返回令牌
+    U->>G: 5. 业务请求（携带 JWT）
+    G->>G: 6. 验证 JWT 签名
+    G->>S: 7. 转发请求（附带用户信息）
+    S-->>U: 8. 返回业务数据</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_081809_00.webp" alt="JWT 认证流程"></p>
+</details>
+
+<h3 id="💎-方案对比"><a href="#💎-方案对比" class="headerlink" title="💎 方案对比"></a>💎 方案对比</h3><table>
+<thead>
+<tr>
+<th>特性</th>
+<th>JWT</th>
+<th>OAuth2</th>
+<th>Session</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>状态管理</strong></td>
+<td>无状态</td>
+<td>无状态&#x2F;有状态</td>
+<td>有状态</td>
+</tr>
+<tr>
+<td><strong>扩展性</strong></td>
+<td>⭐⭐⭐ 天然支持分布式</td>
+<td>⭐⭐⭐ 天然支持分布式</td>
+<td>⭐ 需要共享存储</td>
+</tr>
+<tr>
+<td><strong>复杂度</strong></td>
+<td>⭐⭐ 中等</td>
+<td>⭐⭐⭐ 较高</td>
+<td>⭐ 低</td>
+</tr>
+<tr>
+<td><strong>安全性</strong></td>
+<td>⭐⭐ 依赖实现</td>
+<td>⭐⭐⭐ 成熟标准</td>
+<td>⭐⭐ 依赖传输层</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>服务间通信</td>
+<td>第三方授权</td>
+<td>单体应用</td>
+</tr>
+<tr>
+<td><strong>吊销能力</strong></td>
+<td>较弱（需额外机制）</td>
+<td>较强（可吊销授权）</td>
+<td>强（直接销毁）</td>
+</tr>
+<tr>
+<td><strong>跨域支持</strong></td>
+<td>原生支持</td>
+<td>原生支持</td>
+<td>需要额外配置</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-如何选择？"><a href="#🎯-如何选择？" class="headerlink" title="🎯 如何选择？"></a>🎯 如何选择？</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">📋 决策指南：</span><br><span class="line">├─ 纯内部微服务通信 → JWT（轻量、高效）</span><br><span class="line">├─ 需要第三方应用授权 → OAuth2（标准化、安全）</span><br><span class="line">├─ 单体或简单架构 → Session（简单、直接）</span><br><span class="line">└─ 高安全要求场景 → OAuth2 + JWT（组合使用）</span><br></pre></td></tr></table></figure>
+
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-微服务认证的核心挑战"><a href="#1-微服务认证的核心挑战" class="headerlink" title="1. 微服务认证的核心挑战"></a>1. 微服务认证的核心挑战</h2><h3 id="1-1-为什么传统-Session-不适合微服务？"><a href="#1-1-为什么传统-Session-不适合微服务？" class="headerlink" title="1.1 为什么传统 Session 不适合微服务？"></a>1.1 为什么传统 Session 不适合微服务？</h3><p>在单体应用中，用户登录后服务器创建 Session 并将 Session ID 通过 Cookie 返回给浏览器，后续请求自动携带 Cookie 完成身份识别。但在微服务架构下，这种方式面临严峻挑战：</p>
+<ul>
+<li><strong>状态共享问题</strong>：每个服务实例都是独立进程，Session 存储在某一台服务器内存中，其他实例无法访问</li>
+<li><strong>横向扩展困难</strong>：新增服务节点时，已有 Session 不会自动同步</li>
+<li><strong>服务间调用</strong>：服务 A 调用服务 B 时，Session 无法跨服务传递</li>
+<li><strong>跨域问题</strong>：不同域名下 Cookie 无法共享</li>
+</ul>
+<p>虽然可以通过 Redis 等共享存储方案集中管理 Session，但这引入了新的依赖和单点故障风险。因此，<strong>无状态认证方案</strong>（JWT）成为微服务架构的首选。</p>
+<h3 id="1-2-微服务认证架构总览"><a href="#1-2-微服务认证架构总览" class="headerlink" title="1.2 微服务认证架构总览"></a>1.2 微服务认证架构总览</h3><pre class="mermaid">graph TD
+    Client[客户端] --> Gateway[API 网关]
+    Gateway --> AuthService[认证服务]
+    Gateway --> ServiceA[服务 A]
+    Gateway --> ServiceB[服务 B]
+    Gateway --> ServiceC[服务 C]
+    AuthService --> UserDB[(用户数据库)]
+    AuthService --> Redis[(Redis 缓存)]
+
+    style Client fill:#e3f2fd
+    style Gateway fill:#fff3e0
+    style AuthService fill:#c8e6c9
+    style ServiceA fill:#f3e5f5
+    style ServiceB fill:#f3e5f5
+    style ServiceC fill:#f3e5f5</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_082011_01.webp" alt="微服务认证架构总览：客户端、API 网关、认证服务"></p>
+</details>
+
+<p>在这个架构中，<strong>API 网关</strong>负责统一的认证鉴权，业务服务只需关注自身逻辑。认证服务集中管理用户信息和令牌发放。</p>
+<hr>
+<h2 id="2-JWT-深度解析"><a href="#2-JWT-深度解析" class="headerlink" title="2. JWT 深度解析"></a>2. JWT 深度解析</h2><h3 id="2-1-JWT-的结构"><a href="#2-1-JWT-的结构" class="headerlink" title="2.1 JWT 的结构"></a>2.1 JWT 的结构</h3><p>JWT（JSON Web Token）由三部分组成，用 <code>.</code> 分隔：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Header.Payload.Signature</span><br><span class="line"></span><br><span class="line">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.</span><br><span class="line">eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1hbWltaUphIn0.</span><br><span class="line">SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c</span><br></pre></td></tr></table></figure>
+
+<p><strong>Header（头部）</strong> — 声明令牌类型和签名算法：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;alg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;HS256&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;typ&quot;</span><span class="punctuation">:</span> <span class="string">&quot;JWT&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>Payload（载荷）</strong> — 携带用户信息和权限声明（Claims）：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;sub&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1234567890&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;name&quot;</span><span class="punctuation">:</span> <span class="string">&quot;MamimiJa&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;roles&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;ADMIN&quot;</span><span class="punctuation">,</span> <span class="string">&quot;USER&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;permissions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;user:read&quot;</span><span class="punctuation">,</span> <span class="string">&quot;user:write&quot;</span><span class="punctuation">,</span> <span class="string">&quot;order:read&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;iat&quot;</span><span class="punctuation">:</span> <span class="number">1686556684</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;exp&quot;</span><span class="punctuation">:</span> <span class="number">1686560284</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>常见的标准声明（Registered Claims）：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>全称</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sub</code></td>
+<td>Subject</td>
+<td>主题（通常为用户 ID）</td>
+</tr>
+<tr>
+<td><code>iss</code></td>
+<td>Issuer</td>
+<td>签发者</td>
+</tr>
+<tr>
+<td><code>aud</code></td>
+<td>Audience</td>
+<td>接收者</td>
+</tr>
+<tr>
+<td><code>exp</code></td>
+<td>Expiration</td>
+<td>过期时间</td>
+</tr>
+<tr>
+<td><code>iat</code></td>
+<td>Issued At</td>
+<td>签发时间</td>
+</tr>
+<tr>
+<td><code>nbf</code></td>
+<td>Not Before</td>
+<td>生效时间</td>
+</tr>
+<tr>
+<td><code>jti</code></td>
+<td>JWT ID</td>
+<td>唯一标识</td>
+</tr>
+</tbody></table>
+<p><strong>Signature（签名）</strong> — 防止数据被篡改：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">HMACSHA256(</span><br><span class="line">  base64UrlEncode(header) + &quot;.&quot; + base64UrlEncode(payload),</span><br><span class="line">  secret</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：Payload 部分仅做 Base64 编码，<strong>不是加密</strong>。任何人都可以解码看到内容，因此不要在 JWT 中放置敏感信息（如密码）。签名的作用是验证数据完整性，而非保密。</p>
+</blockquote>
+<h3 id="2-2-JWT-认证完整流程"><a href="#2-2-JWT-认证完整流程" class="headerlink" title="2.2 JWT 认证完整流程"></a>2.2 JWT 认证完整流程</h3><p>用户首次登录成功后，认证服务器将用户的权限和其他信息打包进一个 JWT。这个 JWT 会返回给用户，并在随后的每一次请求中附加在请求头中。</p>
+<pre class="mermaid">sequenceDiagram
+    participant C as 客户端
+    participant G as API 网关
+    participant Auth as 认证服务
+    participant Biz as 业务服务
+
+    C->>Auth: 1. POST /auth/login {username, password}
+    Auth->>Auth: 2. 验证凭证，生成 JWT
+    Auth-->>C: 3. 返回 {accessToken, refreshToken}
+    Note over C: 客户端存储令牌
+
+    C->>G: 4. GET /api/orders (Authorization: Bearer <JWT>)
+    G->>G: 5. 解析并验证 JWT 签名
+    G->>G: 6. 检查 JWT 是否过期
+    G->>Biz: 7. 转发请求 + 用户上下文
+    Biz->>Biz: 8. 检查用户权限
+    Biz-->>C: 9. 返回业务数据</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_082234_02.webp" alt="JWT 认证完整流程：Authorization: Bearer &lt;JWT&gt;"></p>
+</details>
+
+<p>当微服务收到请求时，会读取并验证 JWT。由于 JWT 在被创建时使用了密钥签名，所以微服务可以验证 JWT 的完整性和有效性，然后从中读取出用户的权限，决定是否允许用户进行相应的操作。</p>
+<h3 id="2-3-Spring-Boot-中实现-JWT-认证"><a href="#2-3-Spring-Boot-中实现-JWT-认证" class="headerlink" title="2.3 Spring Boot 中实现 JWT 认证"></a>2.3 Spring Boot 中实现 JWT 认证</h3><h4 id="JWT-工具类"><a href="#JWT-工具类" class="headerlink" title="JWT 工具类"></a>JWT 工具类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JwtUtils</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;jwt.secret&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String secret;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;jwt.expiration:3600&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">long</span> expiration; <span class="comment">// 默认 1 小时</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 生成 JWT Token</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">generateToken</span><span class="params">(UserDetails userDetails)</span> &#123;</span><br><span class="line">        Map&lt;String, Object&gt; claims = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        claims.put(<span class="string">&quot;roles&quot;</span>, userDetails.getAuthorities().stream()</span><br><span class="line">                .map(GrantedAuthority::getAuthority)</span><br><span class="line">                .collect(Collectors.toList()));</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> Jwts.builder()</span><br><span class="line">                .setClaims(claims)</span><br><span class="line">                .setSubject(userDetails.getUsername())</span><br><span class="line">                .setIssuedAt(<span class="keyword">new</span> <span class="title class_">Date</span>())</span><br><span class="line">                .setExpiration(<span class="keyword">new</span> <span class="title class_">Date</span>(System.currentTimeMillis() + expiration * <span class="number">1000</span>))</span><br><span class="line">                .signWith(SignatureAlgorithm.HS256, secret)</span><br><span class="line">                .compact();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从 Token 中解析用户名</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getUsernameFromToken</span><span class="params">(String token)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> getClaimsFromToken(token).getSubject();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 从 Token 中解析角色列表</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;String&gt; <span class="title function_">getRolesFromToken</span><span class="params">(String token)</span> &#123;</span><br><span class="line">        <span class="type">Claims</span> <span class="variable">claims</span> <span class="operator">=</span> getClaimsFromToken(token);</span><br><span class="line">        <span class="keyword">return</span> (List&lt;String&gt;) claims.get(<span class="string">&quot;roles&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 验证 Token 是否有效</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">validateToken</span><span class="params">(String token)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">Claims</span> <span class="variable">claims</span> <span class="operator">=</span> getClaimsFromToken(token);</span><br><span class="line">            <span class="keyword">return</span> !claims.getExpiration().before(<span class="keyword">new</span> <span class="title class_">Date</span>());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (JwtException | IllegalArgumentException e) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Claims <span class="title function_">getClaimsFromToken</span><span class="params">(String token)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Jwts.parser()</span><br><span class="line">                .setSigningKey(secret)</span><br><span class="line">                .parseClaimsJws(token)</span><br><span class="line">                .getBody();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="JWT-认证拦截器"><a href="#JWT-认证拦截器" class="headerlink" title="JWT 认证拦截器"></a>JWT 认证拦截器</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JwtAuthInterceptor</span> <span class="keyword">implements</span> <span class="title class_">HandlerInterceptor</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> JwtUtils jwtUtils;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">preHandle</span><span class="params">(HttpServletRequest request,</span></span><br><span class="line"><span class="params">                             HttpServletResponse response,</span></span><br><span class="line"><span class="params">                             Object handler)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        <span class="comment">// 从请求头中获取 Token</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">authHeader</span> <span class="operator">=</span> request.getHeader(<span class="string">&quot;Authorization&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (authHeader == <span class="literal">null</span> || !authHeader.startsWith(<span class="string">&quot;Bearer &quot;</span>)) &#123;</span><br><span class="line">            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);</span><br><span class="line">            response.getWriter().write(<span class="string">&quot;&#123;\&quot;error\&quot;: \&quot;Missing or invalid Authorization header\&quot;&#125;&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> authHeader.substring(<span class="number">7</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 验证 Token</span></span><br><span class="line">        <span class="keyword">if</span> (!jwtUtils.validateToken(token)) &#123;</span><br><span class="line">            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);</span><br><span class="line">            response.getWriter().write(<span class="string">&quot;&#123;\&quot;error\&quot;: \&quot;Token expired or invalid\&quot;&#125;&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 将用户信息放入请求上下文</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> jwtUtils.getUsernameFromToken(token);</span><br><span class="line">        List&lt;String&gt; roles = jwtUtils.getRolesFromToken(token);</span><br><span class="line">        request.setAttribute(<span class="string">&quot;currentUser&quot;</span>, username);</span><br><span class="line">        request.setAttribute(<span class="string">&quot;currentRoles&quot;</span>, roles);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="在业务-Controller-中使用"><a href="#在业务-Controller-中使用" class="headerlink" title="在业务 Controller 中使用"></a>在业务 Controller 中使用</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/api/orders&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OrderController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="keyword">public</span> ResponseEntity&lt;?&gt; getOrders(HttpServletRequest request) &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">currentUser</span> <span class="operator">=</span> (String) request.getAttribute(<span class="string">&quot;currentUser&quot;</span>);</span><br><span class="line">        <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">        List&lt;String&gt; roles = (List&lt;String&gt;) request.getAttribute(<span class="string">&quot;currentRoles&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 权限检查</span></span><br><span class="line">        <span class="keyword">if</span> (!roles.contains(<span class="string">&quot;ROLE_ADMIN&quot;</span>) &amp;&amp; !roles.contains(<span class="string">&quot;ROLE_USER&quot;</span>)) &#123;</span><br><span class="line">            <span class="keyword">return</span> ResponseEntity.status(<span class="number">403</span>).body(<span class="string">&quot;权限不足&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 业务逻辑</span></span><br><span class="line">        List&lt;Order&gt; orders = orderService.getOrdersByUser(currentUser);</span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok(orders);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-微服务间-JWT-传递"><a href="#2-4-微服务间-JWT-传递" class="headerlink" title="2.4 微服务间 JWT 传递"></a>2.4 微服务间 JWT 传递</h3><p>在服务间调用时，需要将 JWT 自动转发到下游服务。通过自定义 <code>RequestInterceptor</code>，可以在 Feign 调用中自动携带 Token：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">FeignAuthInterceptor</span> <span class="keyword">implements</span> <span class="title class_">RequestInterceptor</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">apply</span><span class="params">(RequestTemplate template)</span> &#123;</span><br><span class="line">        <span class="comment">// 从当前请求上下文获取 Token</span></span><br><span class="line">        <span class="type">ServletRequestAttributes</span> <span class="variable">attributes</span> <span class="operator">=</span></span><br><span class="line">                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (attributes != <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="type">HttpServletRequest</span> <span class="variable">request</span> <span class="operator">=</span> attributes.getRequest();</span><br><span class="line">            <span class="type">String</span> <span class="variable">authHeader</span> <span class="operator">=</span> request.getHeader(<span class="string">&quot;Authorization&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (authHeader != <span class="literal">null</span>) &#123;</span><br><span class="line">                template.header(<span class="string">&quot;Authorization&quot;</span>, authHeader);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-Token-刷新机制"><a href="#3-Token-刷新机制" class="headerlink" title="3. Token 刷新机制"></a>3. Token 刷新机制</h2><h3 id="3-1-为什么需要-Refresh-Token？"><a href="#3-1-为什么需要-Refresh-Token？" class="headerlink" title="3.1 为什么需要 Refresh Token？"></a>3.1 为什么需要 Refresh Token？</h3><p>JWT 的一大挑战是如何安全地管理和刷新令牌。如果 JWT 泄露，那么任何人都可以伪造用户的请求。如果 JWT 在较长时间内不过期，那么这个问题会更加严重。</p>
+<p>因此，实际方案中通常采用<strong>双 Token 机制</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>Token 类型</th>
+<th>有效期</th>
+<th>用途</th>
+<th>存储位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Access Token</td>
+<td>15-60 分钟</td>
+<td>访问资源</td>
+<td>内存&#x2F;LocalStorage</td>
+</tr>
+<tr>
+<td>Refresh Token</td>
+<td>7-30 天</td>
+<td>刷新 Access Token</td>
+<td>HttpOnly Cookie</td>
+</tr>
+</tbody></table>
+<h3 id="3-2-刷新流程"><a href="#3-2-刷新流程" class="headerlink" title="3.2 刷新流程"></a>3.2 刷新流程</h3><pre class="mermaid">sequenceDiagram
+    participant C as 客户端
+    participant G as API 网关
+    participant Auth as 认证服务
+
+    C->>G: 1. 请求资源（Access Token 已过期）
+    G-->>C: 2. 返回 401 Unauthorized
+
+    C->>Auth: 3. POST /auth/refresh {refreshToken}
+    Auth->>Auth: 4. 验证 Refresh Token
+    Auth->>Auth: 5. 生成新的 Access Token
+    Auth-->>C: 6. 返回新的 {accessToken}
+
+    C->>G: 7. 使用新 Token 重新请求
+    G-->>C: 8. 返回业务数据</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-06-12-microservice-auth-passing/diagram_20260417_082353_03.webp" alt="刷新流程"></p>
+</details>
+
+<h3 id="3-3-刷新接口实现"><a href="#3-3-刷新接口实现" class="headerlink" title="3.3 刷新接口实现"></a>3.3 刷新接口实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/auth&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AuthController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> JwtUtils jwtUtils;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RefreshTokenService refreshTokenService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping(&quot;/login&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> ResponseEntity&lt;?&gt; login(<span class="meta">@RequestBody</span> LoginRequest request) &#123;</span><br><span class="line">        <span class="comment">// 验证用户凭证</span></span><br><span class="line">        <span class="type">UserDetails</span> <span class="variable">userDetails</span> <span class="operator">=</span> authService.authenticate(</span><br><span class="line">                request.getUsername(), request.getPassword());</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 生成双 Token</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">accessToken</span> <span class="operator">=</span> jwtUtils.generateToken(userDetails);</span><br><span class="line">        <span class="type">String</span> <span class="variable">refreshToken</span> <span class="operator">=</span> refreshTokenService.createRefreshToken(userDetails.getUsername());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok(Map.of(</span><br><span class="line">                <span class="string">&quot;accessToken&quot;</span>, accessToken,</span><br><span class="line">                <span class="string">&quot;refreshToken&quot;</span>, refreshToken,</span><br><span class="line">                <span class="string">&quot;expiresIn&quot;</span>, <span class="number">3600</span></span><br><span class="line">        ));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostMapping(&quot;/refresh&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> ResponseEntity&lt;?&gt; refresh(<span class="meta">@RequestBody</span> RefreshRequest request) &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">refreshToken</span> <span class="operator">=</span> request.getRefreshToken();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 验证 Refresh Token 是否有效</span></span><br><span class="line">        <span class="keyword">if</span> (!refreshTokenService.validateRefreshToken(refreshToken)) &#123;</span><br><span class="line">            <span class="keyword">return</span> ResponseEntity.status(<span class="number">401</span>).body(<span class="string">&quot;Refresh Token 无效或已过期&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 获取用户信息并生成新的 Access Token</span></span><br><span class="line">        <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> refreshTokenService.getUsernameByRefreshToken(refreshToken);</span><br><span class="line">        <span class="type">UserDetails</span> <span class="variable">userDetails</span> <span class="operator">=</span> userDetailsService.loadUserByUsername(username);</span><br><span class="line">        <span class="type">String</span> <span class="variable">newAccessToken</span> <span class="operator">=</span> jwtUtils.generateToken(userDetails);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ResponseEntity.ok(Map.of(</span><br><span class="line">                <span class="string">&quot;accessToken&quot;</span>, newAccessToken,</span><br><span class="line">                <span class="string">&quot;expiresIn&quot;</span>, <span class="number">3600</span></span><br><span class="line">        ));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-OAuth2-授权框架"><a href="#4-OAuth2-授权框架" class="headerlink" title="4. OAuth2 授权框架"></a>4. OAuth2 授权框架</h2><h3 id="4-1-OAuth2-概述"><a href="#4-1-OAuth2-概述" class="headerlink" title="4.1 OAuth2 概述"></a>4.1 OAuth2 概述</h3><p>OAuth 2.0 是一个完整的授权框架，可以用于处理各种复杂的授权场景，包括微服务的授权。与 JWT 不同，OAuth2 定义的是一套标准化的授权流程，而 JWT 可以作为 OAuth2 中的令牌格式使用。</p>
+<p>OAuth2 的核心角色：</p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Resource Owner</td>
+<td>资源所有者（用户）</td>
+<td>终端用户</td>
+</tr>
+<tr>
+<td>Client</td>
+<td>客户端应用</td>
+<td>Web 应用、移动 App</td>
+</tr>
+<tr>
+<td>Authorization Server</td>
+<td>授权服务器</td>
+<td>Keycloak、Auth0</td>
+</tr>
+<tr>
+<td>Resource Server</td>
+<td>资源服务器</td>
+<td>API 后端服务</td>
+</tr>
+</tbody></table>
+<h3 id="4-2-四种授权模式"><a href="#4-2-四种授权模式" class="headerlink" title="4.2 四种授权模式"></a>4.2 四种授权模式</h3><p>OAuth2 定义了四种标准的授权模式，适用于不同场景：</p>
+<p><strong>1. 授权码模式（Authorization Code）</strong></p>
+<p>最安全的模式，适用于有后端的 Web 应用。用户在授权服务器上登录后，返回授权码给客户端，客户端再用授权码换取 Token。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">用户 → 授权服务器（登录授权）→ 客户端后端（获得授权码）→ 授权服务器（授权码换 Token）</span><br></pre></td></tr></table></figure>
+
+<p><strong>2. 隐式模式（Implicit）</strong></p>
+<p>适用于纯前端应用（SPA），Token 直接通过浏览器 URL 返回。安全性较低，OAuth 2.1 中已不推荐使用。</p>
+<p><strong>3. 密码模式（Resource Owner Password）</strong></p>
+<p>用户直接将用户名密码交给客户端，客户端用它换取 Token。仅适用于高度信任的第一方应用。</p>
+<p><strong>4. 客户端凭证模式（Client Credentials）</strong></p>
+<p>适用于服务间通信，没有用户参与。服务用自己的 client_id 和 client_secret 直接获取 Token。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">微服务 A → 授权服务器（client_id + secret）→ 获得 Token → 调用微服务 B</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-OAuth2-与-JWT-的关系"><a href="#4-3-OAuth2-与-JWT-的关系" class="headerlink" title="4.3 OAuth2 与 JWT 的关系"></a>4.3 OAuth2 与 JWT 的关系</h3><p>OAuth2 和 JWT 并不是互斥的：</p>
+<ul>
+<li><strong>OAuth2</strong> 定义了授权流程（如何获取令牌、如何授权）</li>
+<li><strong>JWT</strong> 定义了令牌格式（令牌长什么样、包含什么信息）</li>
+</ul>
+<p>在实际项目中，最常见的方案是 <strong>OAuth2 + JWT</strong>：使用 OAuth2 的授权流程来颁发和管理令牌，令牌本身的格式采用 JWT。</p>
+<hr>
+<h2 id="5-Spring-Security-JWT-集成"><a href="#5-Spring-Security-JWT-集成" class="headerlink" title="5. Spring Security + JWT 集成"></a>5. Spring Security + JWT 集成</h2><h3 id="5-1-Security-配置"><a href="#5-1-Security-配置" class="headerlink" title="5.1 Security 配置"></a>5.1 Security 配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SecurityConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> JwtAuthenticationFilter jwtAuthFilter;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> SecurityFilterChain <span class="title function_">securityFilterChain</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        http</span><br><span class="line">            .csrf(csrf -&gt; csrf.disable())</span><br><span class="line">            .sessionManagement(session -&gt;</span><br><span class="line">                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))</span><br><span class="line">            .authorizeHttpRequests(auth -&gt; auth</span><br><span class="line">                .requestMatchers(<span class="string">&quot;/auth/login&quot;</span>, <span class="string">&quot;/auth/refresh&quot;</span>).permitAll()</span><br><span class="line">                .requestMatchers(<span class="string">&quot;/api/admin/**&quot;</span>).hasRole(<span class="string">&quot;ADMIN&quot;</span>)</span><br><span class="line">                .requestMatchers(<span class="string">&quot;/api/**&quot;</span>).authenticated()</span><br><span class="line">                .anyRequest().permitAll()</span><br><span class="line">            )</span><br><span class="line">            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> http.build();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> PasswordEncoder <span class="title function_">passwordEncoder</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">BCryptPasswordEncoder</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-JWT-认证过滤器"><a href="#5-2-JWT-认证过滤器" class="headerlink" title="5.2 JWT 认证过滤器"></a>5.2 JWT 认证过滤器</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">JwtAuthenticationFilter</span> <span class="keyword">extends</span> <span class="title class_">OncePerRequestFilter</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> JwtUtils jwtUtils;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> UserDetailsService userDetailsService;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> <span class="keyword">void</span> <span class="title function_">doFilterInternal</span><span class="params">(HttpServletRequest request,</span></span><br><span class="line"><span class="params">                                    HttpServletResponse response,</span></span><br><span class="line"><span class="params">                                    FilterChain filterChain)</span></span><br><span class="line">            <span class="keyword">throws</span> ServletException, IOException &#123;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">authHeader</span> <span class="operator">=</span> request.getHeader(<span class="string">&quot;Authorization&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (authHeader == <span class="literal">null</span> || !authHeader.startsWith(<span class="string">&quot;Bearer &quot;</span>)) &#123;</span><br><span class="line">            filterChain.doFilter(request, response);</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="type">String</span> <span class="variable">token</span> <span class="operator">=</span> authHeader.substring(<span class="number">7</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (jwtUtils.validateToken(token)) &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">username</span> <span class="operator">=</span> jwtUtils.getUsernameFromToken(token);</span><br><span class="line">            List&lt;String&gt; roles = jwtUtils.getRolesFromToken(token);</span><br><span class="line"></span><br><span class="line">            List&lt;SimpleGrantedAuthority&gt; authorities = roles.stream()</span><br><span class="line">                    .map(SimpleGrantedAuthority::<span class="keyword">new</span>)</span><br><span class="line">                    .collect(Collectors.toList());</span><br><span class="line"></span><br><span class="line">            <span class="type">UsernamePasswordAuthenticationToken</span> <span class="variable">authentication</span> <span class="operator">=</span></span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">UsernamePasswordAuthenticationToken</span>(username, <span class="literal">null</span>, authorities);</span><br><span class="line">            authentication.setDetails(</span><br><span class="line">                    <span class="keyword">new</span> <span class="title class_">WebAuthenticationDetailsSource</span>().buildDetails(request));</span><br><span class="line"></span><br><span class="line">            SecurityContextHolder.getContext().setAuthentication(authentication);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        filterChain.doFilter(request, response);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-使用注解进行权限控制"><a href="#5-3-使用注解进行权限控制" class="headerlink" title="5.3 使用注解进行权限控制"></a>5.3 使用注解进行权限控制</h3><p>集成 Spring Security 后，可以在 Controller 上使用注解声明式地进行权限控制：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="meta">@RequestMapping(&quot;/api/users&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserController</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping</span></span><br><span class="line">    <span class="meta">@PreAuthorize(&quot;hasRole(&#x27;ADMIN&#x27;)&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> List&lt;User&gt; <span class="title function_">getAllUsers</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> userService.findAll();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@GetMapping(&quot;/&#123;id&#125;&quot;)</span></span><br><span class="line">    <span class="meta">@PreAuthorize(&quot;hasRole(&#x27;USER&#x27;) or hasRole(&#x27;ADMIN&#x27;)&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> User <span class="title function_">getUser</span><span class="params">(<span class="meta">@PathVariable</span> Long id)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> userService.findById(id);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@DeleteMapping(&quot;/&#123;id&#125;&quot;)</span></span><br><span class="line">    <span class="meta">@PreAuthorize(&quot;hasRole(&#x27;ADMIN&#x27;) and #id != authentication.principal&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">deleteUser</span><span class="params">(<span class="meta">@PathVariable</span> Long id)</span> &#123;</span><br><span class="line">        userService.deleteById(id);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-安全最佳实践"><a href="#6-安全最佳实践" class="headerlink" title="6. 安全最佳实践"></a>6. 安全最佳实践</h2><h3 id="6-1-Token-安全管理"><a href="#6-1-Token-安全管理" class="headerlink" title="6.1 Token 安全管理"></a>6.1 Token 安全管理</h3><table>
+<thead>
+<tr>
+<th>实践</th>
+<th>说明</th>
+<th>重要程度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>设置合理过期时间</td>
+<td>Access Token 15-60 分钟，Refresh Token 7-30 天</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>使用 HTTPS</td>
+<td>防止 Token 在传输过程中被截获</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>密钥轮换</td>
+<td>定期更换签名密钥，降低密钥泄露风险</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>不存储敏感信息</td>
+<td>JWT Payload 不要包含密码等敏感数据</td>
+<td>⭐⭐⭐</td>
+</tr>
+<tr>
+<td>Token 黑名单</td>
+<td>维护已注销的 Token 列表（Redis 实现）</td>
+<td>⭐⭐</td>
+</tr>
+<tr>
+<td>使用非对称加密</td>
+<td>生产环境推荐 RS256 替代 HS256</td>
+<td>⭐⭐</td>
+</tr>
+</tbody></table>
+<h3 id="6-2-使用-RS256-非对称签名"><a href="#6-2-使用-RS256-非对称签名" class="headerlink" title="6.2 使用 RS256 非对称签名"></a>6.2 使用 RS256 非对称签名</h3><p>在微服务场景中，推荐使用 RS256（RSA + SHA256）非对称签名：</p>
+<ul>
+<li><strong>认证服务</strong>：持有私钥，负责签发 Token</li>
+<li><strong>业务服务</strong>：只持有公钥，只能验证不能签发</li>
+</ul>
+<p>这样即使业务服务被攻破，攻击者也无法伪造 Token。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.yml</span></span><br><span class="line"><span class="attr">jwt:</span></span><br><span class="line">  <span class="attr">private-key:</span> <span class="string">classpath:keys/private.pem</span>   <span class="comment"># 仅认证服务持有</span></span><br><span class="line">  <span class="attr">public-key:</span> <span class="string">classpath:keys/public.pem</span>     <span class="comment"># 所有服务持有</span></span><br><span class="line">  <span class="attr">expiration:</span> <span class="number">3600</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-Token-黑名单机制"><a href="#6-3-Token-黑名单机制" class="headerlink" title="6.3 Token 黑名单机制"></a>6.3 Token 黑名单机制</h3><p>对于已注销的用户或被盗的 Token，可以通过 Redis 实现黑名单：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TokenBlacklistService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> StringRedisTemplate redisTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将 Token 加入黑名单</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">blacklist</span><span class="params">(String token)</span> &#123;</span><br><span class="line">        <span class="type">Claims</span> <span class="variable">claims</span> <span class="operator">=</span> jwtUtils.getClaimsFromToken(token);</span><br><span class="line">        <span class="type">long</span> <span class="variable">ttl</span> <span class="operator">=</span> claims.getExpiration().getTime() - System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (ttl &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            redisTemplate.opsForValue().set(</span><br><span class="line">                    <span class="string">&quot;token:blacklist:&quot;</span> + token, <span class="string">&quot;1&quot;</span>, ttl, TimeUnit.MILLISECONDS);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 检查 Token 是否在黑名单中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">isBlacklisted</span><span class="params">(String token)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Boolean.TRUE.equals(</span><br><span class="line">                redisTemplate.hasKey(<span class="string">&quot;token:blacklist:&quot;</span> + token));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-4-安全检查清单"><a href="#6-4-安全检查清单" class="headerlink" title="6.4 安全检查清单"></a>6.4 安全检查清单</h3><ul>
+<li><input disabled="" type="checkbox"> Access Token 过期时间不超过 1 小时</li>
+<li><input disabled="" type="checkbox"> 使用 HTTPS 传输所有请求</li>
+<li><input disabled="" type="checkbox"> JWT Payload 中不包含密码等敏感信息</li>
+<li><input disabled="" type="checkbox"> 生产环境使用 RS256 非对称签名</li>
+<li><input disabled="" type="checkbox"> 实现 Token 黑名单或吊销机制</li>
+<li><input disabled="" type="checkbox"> Refresh Token 存储在 HttpOnly Cookie 中</li>
+<li><input disabled="" type="checkbox"> 定期轮换签名密钥</li>
+<li><input disabled="" type="checkbox"> 限制 Token 的 audience（aud）范围</li>
+<li><input disabled="" type="checkbox"> 记录认证失败的日志用于安全审计</li>
+</ul>
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-JWT-和-Session-应该选哪个？"><a href="#Q1-JWT-和-Session-应该选哪个？" class="headerlink" title="Q1: JWT 和 Session 应该选哪个？"></a>Q1: JWT 和 Session 应该选哪个？</h3><p><strong>A:</strong> 取决于你的架构：</p>
+<ul>
+<li><strong>单体应用</strong>：Session 更简单，天然支持服务端吊销，使用成熟的 Servlet 容器即可</li>
+<li><strong>微服务架构</strong>：JWT 是更好的选择，无状态特性天然支持分布式部署，服务间传递方便</li>
+<li><strong>混合架构</strong>：可以在网关层使用 Session，网关到微服务之间使用 JWT</li>
+</ul>
+<p>关键判断标准：如果你需要横向扩展多个服务实例，或者有服务间调用的需求，选 JWT。</p>
+<h3 id="Q2-JWT-Token-被盗了怎么办？"><a href="#Q2-JWT-Token-被盗了怎么办？" class="headerlink" title="Q2: JWT Token 被盗了怎么办？"></a>Q2: JWT Token 被盗了怎么办？</h3><p><strong>A:</strong> JWT 泄露确实是一个严重的安全问题，可以通过以下措施降低风险：</p>
+<ol>
+<li><strong>缩短 Access Token 有效期</strong>：设置为 15-30 分钟，即使被盗影响也有限</li>
+<li><strong>实现 Token 黑名单</strong>：用 Redis 存储已失效的 Token，在验证时增加黑名单检查</li>
+<li><strong>绑定客户端信息</strong>：在 Token 中包含客户端 IP 或设备指纹，校验时做比对</li>
+<li><strong>使用 HTTPS</strong>：确保传输过程中 Token 不被截获</li>
+<li><strong>监控异常行为</strong>：同一 Token 从不同 IP 地址发出请求时触发告警</li>
+</ol>
+<h3 id="Q3-Refresh-Token-应该存在哪里？"><a href="#Q3-Refresh-Token-应该存在哪里？" class="headerlink" title="Q3: Refresh Token 应该存在哪里？"></a>Q3: Refresh Token 应该存在哪里？</h3><p><strong>A:</strong> 不同存储位置各有优劣：</p>
+<ul>
+<li><strong>HttpOnly Cookie</strong>（推荐）：浏览器自动管理，无法被 JavaScript 访问，防 XSS 攻击</li>
+<li><strong>LocalStorage</strong>：方便使用但容易受 XSS 攻击</li>
+<li><strong>内存</strong>：最安全但页面刷新后丢失</li>
+</ul>
+<p>生产环境推荐使用 <strong>HttpOnly + Secure + SameSite</strong> 属性的 Cookie 存储 Refresh Token。</p>
+<h3 id="Q4-微服务之间如何传递认证信息？"><a href="#Q4-微服务之间如何传递认证信息？" class="headerlink" title="Q4: 微服务之间如何传递认证信息？"></a>Q4: 微服务之间如何传递认证信息？</h3><p><strong>A:</strong> 常见方案有三种：</p>
+<ol>
+<li><strong>透传用户 Token</strong>：通过 Feign 拦截器将用户的 JWT 自动转发到下游服务（见 2.4 节示例代码）</li>
+<li><strong>服务间独立认证</strong>：使用 OAuth2 客户端凭证模式，每个服务拥有自己的 client_id&#x2F;secret</li>
+<li><strong>内部信任 + 用户上下文传递</strong>：服务网格内部互信，通过 Header 传递用户上下文信息（如 <code>X-User-Id</code>）</li>
+</ol>
+<p>选择建议：对外接口用方案 1，纯内部通信用方案 3，需要精细权限控制用方案 2。</p>
+<h3 id="Q5-JWT-的-Payload-能放多少信息？"><a href="#Q5-JWT-的-Payload-能放多少信息？" class="headerlink" title="Q5: JWT 的 Payload 能放多少信息？"></a>Q5: JWT 的 Payload 能放多少信息？</h3><p><strong>A:</strong> 虽然 JWT 规范没有限制 Payload 大小，但实际使用中需要注意：</p>
+<ul>
+<li>JWT 会附加在每个 HTTP 请求的 Header 中，过大的 Token 会增加网络开销</li>
+<li>部分 Web 服务器对 Header 大小有限制（如 Nginx 默认 8KB、Tomcat 默认 8KB）</li>
+<li>建议只放必要信息：用户 ID、角色列表、关键权限标识</li>
+<li>详细的权限数据建议通过用户 ID 到数据库或缓存中查询，不要全部塞进 JWT</li>
+</ul>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>JWT 是微服务认证的首选方案</strong>：无状态特性天然支持分布式部署，服务器无需保留会话状态，极大地简化了微服务的设计</li>
+<li><strong>双 Token 机制是安全与体验的平衡点</strong>：短期 Access Token + 长期 Refresh Token，在不牺牲安全性的情况下提高用户体验</li>
+<li><strong>OAuth2 适合复杂授权场景</strong>：当需要第三方授权或标准化的授权流程时，OAuth2 是成熟的选择</li>
+<li><strong>JWT 和 OAuth2 可以组合使用</strong>：用 OAuth2 的流程管理授权，用 JWT 作为令牌格式</li>
+<li><strong>安全永远是第一位</strong>：HTTPS、密钥轮换、Token 黑名单、合理的过期时间缺一不可</li>
+</ol>
+<h3 id="🎯-行动建议"><a href="#🎯-行动建议" class="headerlink" title="🎯 行动建议"></a>🎯 行动建议</h3><ol>
+<li><strong>新项目启动</strong>：直接采用 Spring Security + JWT 方案，配合 Refresh Token 机制</li>
+<li><strong>已有项目迁移</strong>：先在 API 网关层引入 JWT 验证，逐步替换 Session 方案</li>
+<li><strong>安全加固</strong>：检查当前系统是否符合 6.4 节的安全检查清单</li>
+<li><strong>生产部署</strong>：务必使用 RS256 非对称签名，避免使用 HS256 共享密钥</li>
+</ol>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2023-06-12</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td>2026-03-11</td>
+<td>优化文档结构，大幅扩充内容，添加代码示例和 FAQ</td>
+</tr>
+<tr>
+<td>v2.1</td>
+<td>2026-04-17</td>
+<td>为 4 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/JWT/" rel="tag">JWT</a>, <a class="tag-none-link" href="/tags/OAuth2/" rel="tag">OAuth2</a>, <a class="tag-none-link" href="/tags/Spring-Security/" rel="tag">Spring Security</a>, <a class="tag-none-link" href="/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/" rel="tag">微服务</a>, <a class="tag-none-link" href="/tags/%E6%9D%83%E9%99%90%E8%AE%A4%E8%AF%81/" rel="tag">权限认证</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" MySQL 百万数据处理：分页查询、流式查询、游标查询与 EasyExcel 导入导出" href="/2023/03/06/tech/backend/2023-03-06-mysql-big-data-operations/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Lombok @Data 与 MyBatis PropertyNamer 命名冲突踩坑记录" href="/2023/06/18/tech/backend/2023-06-19-lombok-data-naming-pitfall/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-JWT-%E8%AE%A4%E8%AF%81%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 JWT 认证流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">💎 方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 如何选择？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%AE%A4%E8%AF%81%E7%9A%84%E6%A0%B8%E5%BF%83%E6%8C%91%E6%88%98"><span class="toc-number">3.</span> <span class="toc-text">1. 微服务认证的核心挑战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%A0%E7%BB%9F-Session-%E4%B8%8D%E9%80%82%E5%90%88%E5%BE%AE%E6%9C%8D%E5%8A%A1%EF%BC%9F"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 为什么传统 Session 不适合微服务？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E8%AE%A4%E8%AF%81%E6%9E%B6%E6%9E%84%E6%80%BB%E8%A7%88"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 微服务认证架构总览</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-JWT-%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">2. JWT 深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-JWT-%E7%9A%84%E7%BB%93%E6%9E%84"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 JWT 的结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-JWT-%E8%AE%A4%E8%AF%81%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 JWT 认证完整流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-Spring-Boot-%E4%B8%AD%E5%AE%9E%E7%8E%B0-JWT-%E8%AE%A4%E8%AF%81"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 Spring Boot 中实现 JWT 认证</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#JWT-%E5%B7%A5%E5%85%B7%E7%B1%BB"><span class="toc-number">4.3.1.</span> <span class="toc-text">JWT 工具类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#JWT-%E8%AE%A4%E8%AF%81%E6%8B%A6%E6%88%AA%E5%99%A8"><span class="toc-number">4.3.2.</span> <span class="toc-text">JWT 认证拦截器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8%E4%B8%9A%E5%8A%A1-Controller-%E4%B8%AD%E4%BD%BF%E7%94%A8"><span class="toc-number">4.3.3.</span> <span class="toc-text">在业务 Controller 中使用</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E9%97%B4-JWT-%E4%BC%A0%E9%80%92"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 微服务间 JWT 传递</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Token-%E5%88%B7%E6%96%B0%E6%9C%BA%E5%88%B6"><span class="toc-number">5.</span> <span class="toc-text">3. Token 刷新机制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-Refresh-Token%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 为什么需要 Refresh Token？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%88%B7%E6%96%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 刷新流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%88%B7%E6%96%B0%E6%8E%A5%E5%8F%A3%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 刷新接口实现</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-OAuth2-%E6%8E%88%E6%9D%83%E6%A1%86%E6%9E%B6"><span class="toc-number">6.</span> <span class="toc-text">4. OAuth2 授权框架</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-OAuth2-%E6%A6%82%E8%BF%B0"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 OAuth2 概述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9B%9B%E7%A7%8D%E6%8E%88%E6%9D%83%E6%A8%A1%E5%BC%8F"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 四种授权模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-OAuth2-%E4%B8%8E-JWT-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 OAuth2 与 JWT 的关系</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-Spring-Security-JWT-%E9%9B%86%E6%88%90"><span class="toc-number">7.</span> <span class="toc-text">5. Spring Security + JWT 集成</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Security-%E9%85%8D%E7%BD%AE"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 Security 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-JWT-%E8%AE%A4%E8%AF%81%E8%BF%87%E6%BB%A4%E5%99%A8"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 JWT 认证过滤器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BD%BF%E7%94%A8%E6%B3%A8%E8%A7%A3%E8%BF%9B%E8%A1%8C%E6%9D%83%E9%99%90%E6%8E%A7%E5%88%B6"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 使用注解进行权限控制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%89%E5%85%A8%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.</span> <span class="toc-text">6. 安全最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Token-%E5%AE%89%E5%85%A8%E7%AE%A1%E7%90%86"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 Token 安全管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%BD%BF%E7%94%A8-RS256-%E9%9D%9E%E5%AF%B9%E7%A7%B0%E7%AD%BE%E5%90%8D"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 使用 RS256 非对称签名</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Token-%E9%BB%91%E5%90%8D%E5%8D%95%E6%9C%BA%E5%88%B6"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 Token 黑名单机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">8.4.</span> <span class="toc-text">6.4 安全检查清单</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-JWT-%E5%92%8C-Session-%E5%BA%94%E8%AF%A5%E9%80%89%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: JWT 和 Session 应该选哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-JWT-Token-%E8%A2%AB%E7%9B%97%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: JWT Token 被盗了怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-Refresh-Token-%E5%BA%94%E8%AF%A5%E5%AD%98%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: Refresh Token 应该存在哪里？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E4%B9%8B%E9%97%B4%E5%A6%82%E4%BD%95%E4%BC%A0%E9%80%92%E8%AE%A4%E8%AF%81%E4%BF%A1%E6%81%AF%EF%BC%9F"><span class="toc-number">9.4.</span> <span class="toc-text">Q4: 微服务之间如何传递认证信息？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-JWT-%E7%9A%84-Payload-%E8%83%BD%E6%94%BE%E5%A4%9A%E5%B0%91%E4%BF%A1%E6%81%AF%EF%BC%9F"><span class="toc-number">9.5.</span> <span class="toc-text">Q5: JWT 的 Payload 能放多少信息？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.2.</span> <span class="toc-text">🎯 行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

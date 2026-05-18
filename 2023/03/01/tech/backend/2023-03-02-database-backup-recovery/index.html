@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>数据库备份恢复全攻略：Oracle expdp/impdp 与 MySQL mysqldump 实战 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2023/03/01/tech/backend/2023-03-02-database-backup-recovery/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="DBA, MySQL, Oracle, 数据库备份, 数据恢复" />
+  
+  <meta name="description" content="详解数据库备份恢复的分类体系，涵盖 Oracle exp&#x2F;expdp 导入导出、MySQL mysqldump 逻辑备份、Percona XtraBackup 物理备份及增量备份方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库备份恢复全攻略：Oracle expdp&#x2F;impdp 与 MySQL mysqldump 实战">
+<meta property="og:url" content="https://leahana.github.io/2023/03/01/tech/backend/2023-03-02-database-backup-recovery/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="详解数据库备份恢复的分类体系，涵盖 Oracle exp&#x2F;expdp 导入导出、MySQL mysqldump 逻辑备份、Percona XtraBackup 物理备份及增量备份方案。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-03-02-database-backup-recovery/diagram_20260417_075402_00.webp">
+<meta property="article:published_time" content="2023-03-01T18:38:30.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="DBA">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Oracle">
+<meta property="article:tag" content="数据库备份">
+<meta property="article:tag" content="数据恢复">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-03-02-database-backup-recovery/diagram_20260417_075402_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"数据库备份恢复全攻略：Oracle expdp/impdp 与 MySQL mysqldump 实战","description":"详解数据库备份恢复的分类体系，涵盖 Oracle exp/expdp 导入导出、MySQL mysqldump 逻辑备份、Percona XtraBackup 物理备份及增量备份方案。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2023-03-01T18:38:30.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2023/03/01/tech/backend/2023-03-02-database-backup-recovery/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2023/03/01/tech/backend/2023-03-02-database-backup-recovery/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">数据库备份恢复全攻略：Oracle expdp/impdp 与 MySQL mysqldump 实战</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2023-03-01T18:38:30.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-03-02</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~7.90K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%87%E4%BB%BD%E5%88%86%E7%B1%BB%E5%85%A8%E6%99%AF%E5%9B%BE"><span class="toc-number">1.1.</span> <span class="toc-text">备份分类全景图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle-vs-MySQL-%E5%A4%87%E4%BB%BD%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">Oracle vs MySQL 备份方式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.3.</span> <span class="toc-text">命令速查表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%87%E4%BB%BD%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">1. 备份基础概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%87%E4%BB%BD"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 什么是备份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%A4%87%E4%BB%BD%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 备份分类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%89%E7%89%A9%E7%90%86%E4%B8%8E%E9%80%BB%E8%BE%91%E8%A7%92%E5%BA%A6%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.1.</span> <span class="toc-text">按物理与逻辑角度分类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%89%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.2.</span> <span class="toc-text">按备份策略分类</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BB%80%E4%B9%88%E6%98%AF%E6%81%A2%E5%A4%8D"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 什么是恢复</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Oracle-%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="toc-number">4.</span> <span class="toc-text">2. Oracle 备份与恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Oracle-%E6%81%A2%E5%A4%8D%E5%88%86%E7%B1%BB"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 Oracle 恢复分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-exp-imp-%E4%B8%8E-expdp-impdp-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 exp&#x2F;imp 与 expdp&#x2F;impdp 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-exp-%E5%AF%BC%E5%87%BA-imp-%E5%AF%BC%E5%85%A5"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 exp 导出 &#x2F; imp 导入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-expdp-impdp-%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 expdp &#x2F; impdp 操作步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E5%87%86%E5%A4%87"><span class="toc-number">4.4.1.</span> <span class="toc-text">前置准备</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="toc-number">4.4.2.</span> <span class="toc-text">导出数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="toc-number">4.4.3.</span> <span class="toc-text">导入数据</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%B9%B6%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="toc-number">4.5.</span> <span class="toc-text">2.5 并行操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-MySQL-%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="toc-number">5.</span> <span class="toc-text">3. MySQL 备份与恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-mysqldump-%E9%80%BB%E8%BE%91%E5%A4%87%E4%BB%BD"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 mysqldump 逻辑备份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Percona-XtraBackup-%E7%89%A9%E7%90%86%E5%A4%87%E4%BB%BD"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 Percona XtraBackup 物理备份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%9F%BA%E4%BA%8E-binlog-%E7%9A%84%E5%A2%9E%E9%87%8F%E5%A4%87%E4%BB%BD"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 基于 binlog 的增量备份</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-expdp-%E5%92%8C-exp-%E5%BA%94%E8%AF%A5%E9%80%89%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">6.1.</span> <span class="toc-text">Q1: expdp 和 exp 应该选哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-mysqldump-%E5%A4%87%E4%BB%BD%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BE%88%E6%85%A2%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">6.2.</span> <span class="toc-text">Q2: mysqldump 备份大数据库很慢怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-Oracle-%E8%B7%A8%E7%94%A8%E6%88%B7%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E6%97%B6%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">6.3.</span> <span class="toc-text">Q3: Oracle 跨用户导入数据时需要注意什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E5%BA%94%E8%AF%A5%E4%BF%9D%E7%95%99%E5%A4%9A%E4%B9%85%EF%BC%9F"><span class="toc-number">6.4.</span> <span class="toc-text">Q4: 备份文件应该保留多久？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E5%A6%82%E4%BD%95%E9%AA%8C%E8%AF%81%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E6%98%AF%E5%90%A6%E5%8F%AF%E7%94%A8%EF%BC%9F"><span class="toc-number">6.5.</span> <span class="toc-text">Q5: 如何验证备份文件是否可用？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">7.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.2.</span> <span class="toc-text">🎯 行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">8.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：一站式掌握 Oracle 与 MySQL 的备份恢复方法，从概念到命令，拿来即用<br>💡 <strong>核心理念</strong>：备份不是可选项而是必选项——理解分类体系、选对工具、定期验证，才能在灾难来临时从容应对</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开核心概念与速查表</strong></summary>
+
+<h3 id="备份分类全景图"><a href="#备份分类全景图" class="headerlink" title="备份分类全景图"></a>备份分类全景图</h3><pre class="mermaid">graph TD
+    A[数据库备份] --> B[物理备份]
+    A --> C[逻辑备份]
+    B --> D[冷备份<br/>关闭数据库]
+    B --> E[热备份<br/>RMAN / XtraBackup]
+    C --> F[Oracle<br/>exp / expdp]
+    C --> G[MySQL<br/>mysqldump]
+    A --> H[增量备份<br/>binlog / RMAN]
+
+    style A fill:#e3f2fd
+    style B fill:#fff3e0
+    style C fill:#c8e6c9
+    style H fill:#f3e5f5</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2023-03-02-database-backup-recovery/diagram_20260417_075402_00.webp" alt="备份分类全景图：数据库备份、物理备份、逻辑备份"></p>
+</details>
+
+<h3 id="Oracle-vs-MySQL-备份方式对比"><a href="#Oracle-vs-MySQL-备份方式对比" class="headerlink" title="Oracle vs MySQL 备份方式对比"></a>Oracle vs MySQL 备份方式对比</h3><table>
+<thead>
+<tr>
+<th>对比维度</th>
+<th>Oracle</th>
+<th>MySQL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>传统逻辑导出</td>
+<td><code>exp</code> &#x2F; <code>imp</code>（客户端工具）</td>
+<td><code>mysqldump</code>（客户端工具）</td>
+</tr>
+<tr>
+<td>数据泵导出</td>
+<td><code>expdp</code> &#x2F; <code>impdp</code>（服务端工具）</td>
+<td>—</td>
+</tr>
+<tr>
+<td>物理热备</td>
+<td>RMAN</td>
+<td>Percona XtraBackup</td>
+</tr>
+<tr>
+<td>增量备份</td>
+<td>RMAN 增量备份</td>
+<td>binlog + mysqlbinlog</td>
+</tr>
+<tr>
+<td>空表导出</td>
+<td><code>expdp</code>（10g+ 推荐）</td>
+<td><code>mysqldump</code>（默认支持）</td>
+</tr>
+<tr>
+<td>跨用户导入</td>
+<td><code>remap_schema</code> 参数</td>
+<td>手动修改 SQL 文件</td>
+</tr>
+<tr>
+<td>并行加速</td>
+<td><code>PARALLEL</code> 参数</td>
+<td><code>--single-transaction</code> + 多线程</td>
+</tr>
+</tbody></table>
+<h3 id="命令速查表"><a href="#命令速查表" class="headerlink" title="命令速查表"></a>命令速查表</h3><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>Oracle（expdp&#x2F;impdp）</th>
+<th>MySQL（mysqldump）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全库导出</td>
+<td><code>expdp sys/pwd@orcl full=y dumpfile=full.dmp directory=dir</code></td>
+<td><code>mysqldump -u root -p --all-databases &gt; full.sql</code></td>
+</tr>
+<tr>
+<td>按用户&#x2F;库导出</td>
+<td><code>expdp user/pwd schemas=user dumpfile=u.dmp directory=dir</code></td>
+<td><code>mysqldump -u root -p --database dbname &gt; db.sql</code></td>
+</tr>
+<tr>
+<td>按表导出</td>
+<td><code>expdp user/pwd tables=t1,t2 dumpfile=t.dmp directory=dir</code></td>
+<td><code>mysqldump -u root -p dbname t1 t2 &gt; t.sql</code></td>
+</tr>
+<tr>
+<td>全库导入</td>
+<td><code>impdp user/pwd full=y dumpfile=full.dmp directory=dir</code></td>
+<td><code>mysql -u root -p &lt; full.sql</code></td>
+</tr>
+<tr>
+<td>导入到其他用户</td>
+<td><code>impdp B/pwd remap_schema=A:B dumpfile=a.dmp directory=dir</code></td>
+<td>修改 SQL 文件中的 <code>USE</code> 语句</td>
+</tr>
+</tbody></table>
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-备份基础概念"><a href="#1-备份基础概念" class="headerlink" title="1. 备份基础概念"></a>1. 备份基础概念</h2><h3 id="1-1-什么是备份"><a href="#1-1-什么是备份" class="headerlink" title="1.1 什么是备份"></a>1.1 什么是备份</h3><p>备份就是把数据库复制到转储设备的过程。转储设备是指用于放置数据库副本的磁带或磁盘。通常也将存放于转储设备中的数据库的副本称为原数据库的备份或转储。简单来说，备份就是一份数据副本。</p>
+<h3 id="1-2-备份分类"><a href="#1-2-备份分类" class="headerlink" title="1.2 备份分类"></a>1.2 备份分类</h3><h4 id="按物理与逻辑角度分类"><a href="#按物理与逻辑角度分类" class="headerlink" title="按物理与逻辑角度分类"></a>按物理与逻辑角度分类</h4><p>从物理与逻辑的角度，备份可以分为<strong>物理备份</strong>和<strong>逻辑备份</strong>：</p>
+<ul>
+<li><strong>物理备份</strong>：对数据库操作系统的物理文件（数据文件、控制文件和日志文件）的备份<ul>
+<li><strong>冷备份（脱机备份）</strong>：在关闭数据库的时候进行</li>
+<li><strong>热备份（联机备份）</strong>：以归档日志的方式对运行中的数据库进行备份，可使用 Oracle 的 RMAN 或操作系统命令</li>
+</ul>
+</li>
+<li><strong>逻辑备份</strong>：对数据库逻辑组件（如表和存储过程等数据库对象）的备份。常用手段包括传统的 EXP、数据泵（EXPDP）、数据库闪回技术等</li>
+</ul>
+<h4 id="按备份策略分类"><a href="#按备份策略分类" class="headerlink" title="按备份策略分类"></a>按备份策略分类</h4><ul>
+<li><strong>完全备份</strong>：每次对数据库进行完整备份，恢复时无需依赖其他信息即可实现 100% 的数据恢复，恢复时间最短且操作最方便</li>
+<li><strong>增量备份</strong>：只备份上次完全备份或增量备份后被修改的文件。优点是备份数据量小、时间短；缺点是恢复时需要依赖以前的备份记录，出问题的风险较大</li>
+<li><strong>差异备份</strong>：备份自上次完全备份之后被修改过的文件。恢复时只需要最后一次完整备份和最后一次差异备份；缺点是每次备份需要的时间较长</li>
+</ul>
+<h3 id="1-3-什么是恢复"><a href="#1-3-什么是恢复" class="headerlink" title="1.3 什么是恢复"></a>1.3 什么是恢复</h3><p>恢复就是在发生故障后，利用已备份的数据文件或控制文件，重新建立一个完整的数据库。</p>
+<h2 id="2-Oracle-备份与恢复"><a href="#2-Oracle-备份与恢复" class="headerlink" title="2. Oracle 备份与恢复"></a>2. Oracle 备份与恢复</h2><h3 id="2-1-Oracle-恢复分类"><a href="#2-1-Oracle-恢复分类" class="headerlink" title="2.1 Oracle 恢复分类"></a>2.1 Oracle 恢复分类</h3><ul>
+<li><strong>实例恢复</strong>：当 Oracle 实例出现失败后，Oracle 自动进行的恢复</li>
+<li><strong>介质恢复</strong>：当存放数据库的介质出现故障时所做的恢复，分为：<ul>
+<li><strong>完全恢复</strong>：将数据库恢复到失败时的状态，通过装载数据库备份并应用全部重做日志</li>
+<li><strong>不完全恢复</strong>：将数据库恢复到失败前某一时刻的状态，通过装载数据库备份并应用部分重做日志。恢复后必须用 <code>resetlogs</code> 选项重设联机重做日志</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-2-exp-imp-与-expdp-impdp-的区别"><a href="#2-2-exp-imp-与-expdp-impdp-的区别" class="headerlink" title="2.2 exp&#x2F;imp 与 expdp&#x2F;impdp 的区别"></a>2.2 exp&#x2F;imp 与 expdp&#x2F;impdp 的区别</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>exp &#x2F; imp</th>
+<th>expdp &#x2F; impdp</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>运行位置</td>
+<td>客户端或服务端均可</td>
+<td>仅服务端</td>
+</tr>
+<tr>
+<td>文件互通</td>
+<td>仅适用于 exp 导出的文件</td>
+<td>仅适用于 expdp 导出的文件</td>
+</tr>
+<tr>
+<td>空表导出</td>
+<td>10g 以上通常无法导出空表</td>
+<td>可以正常导出空表</td>
+</tr>
+<tr>
+<td>推荐场景</td>
+<td>旧版本兼容</td>
+<td>10g 及以上版本首选</td>
+</tr>
+</tbody></table>
+<h3 id="2-3-exp-导出-imp-导入"><a href="#2-3-exp-导出-imp-导入" class="headerlink" title="2.3 exp 导出 &#x2F; imp 导入"></a>2.3 exp 导出 &#x2F; imp 导入</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 切换到 Oracle 用户</span></span><br><span class="line">su - oracle</span><br><span class="line"></span><br><span class="line"><span class="comment"># exp 导出指定表</span></span><br><span class="line"><span class="comment"># 语法：exp 用户名/密码 file=文件路径 tables=表1,表2</span></span><br><span class="line">exp smtdp/12345 file=/home/oracle/data/temp.dmp \</span><br><span class="line">  tables=table_name_01,table_name_02</span><br><span class="line"></span><br><span class="line"><span class="comment"># imp 导入</span></span><br><span class="line"><span class="comment"># 语法：imp 用户名/密码 file=文件路径 full=y ignore=y</span></span><br><span class="line">imp smtdp/12345 file=/home/oracle/data/temp.dmp</span><br><span class="line"></span><br><span class="line"><span class="comment"># 设置目录所有者为 oinstall 用户组的 Oracle 用户</span></span><br><span class="line"><span class="built_in">chown</span> -R oracle:oinstall temp.dmp</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-4-expdp-impdp-操作步骤"><a href="#2-4-expdp-impdp-操作步骤" class="headerlink" title="2.4 expdp &#x2F; impdp 操作步骤"></a>2.4 expdp &#x2F; impdp 操作步骤</h3><h4 id="前置准备"><a href="#前置准备" class="headerlink" title="前置准备"></a>前置准备</h4><p><strong>第一步：创建备份目录</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">su oracle</span><br><span class="line"><span class="built_in">mkdir</span> /home/oracle/oracle_bak</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二步：以管理员身份登录 sqlplus</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sqlplus <span class="operator">/</span>nolog</span><br><span class="line">conn sys<span class="operator">/</span>oracle <span class="keyword">as</span> sysdba</span><br></pre></td></tr></table></figure>
+
+<p><strong>第三步：创建逻辑目录</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> directory data_dir <span class="keyword">as</span> <span class="string">&#x27;/home/oracle/oracle_bak&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第四步：查看管理员目录是否存在</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="operator">*</span> <span class="keyword">from</span> dba_directories;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第五步：授予指定用户操作权限</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">grant</span> read,write <span class="keyword">on</span> directory data_dir <span class="keyword">to</span> C##BAK_TEST_USER;</span><br></pre></td></tr></table></figure>
+
+<h4 id="导出数据"><a href="#导出数据" class="headerlink" title="导出数据"></a>导出数据</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 全量导出数据库</span></span><br><span class="line">expdp sys/oracle@orcl dumpfile=expdp.dmp directory=data_dir \</span><br><span class="line">  full=y logfile=expdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 按用户导出</span></span><br><span class="line">expdp user/passwd@orcl schemas=user dumpfile=expdp.dmp \</span><br><span class="line">  directory=data_dir logfile=expdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 按表空间导出</span></span><br><span class="line">expdp sys/passwd@orcl tablespace=tbs1,tbs2 dumpfile=expdp.dmp \</span><br><span class="line">  directory=data_dir logfile=expdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 导出指定表</span></span><br><span class="line">expdp user/passwd@orcl tables=table1,table2 dumpfile=expdp.dmp \</span><br><span class="line">  directory=data_dir logfile=expdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 按查询条件导出</span></span><br><span class="line">expdp user/passwd@orcl tables=table1=<span class="string">&#x27;where number=1234&#x27;</span> \</span><br><span class="line">  dumpfile=expdp.dmp directory=data_dir logfile=expdp.log</span><br></pre></td></tr></table></figure>
+
+<h4 id="导入数据"><a href="#导入数据" class="headerlink" title="导入数据"></a>导入数据</h4><blockquote>
+<p>首先需要将导入的文件存放在目标数据库服务器上。</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 全量导入数据库</span></span><br><span class="line">impdp user/passwd directory=data_dir dumpfile=expdp.dmp full=y</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 同名用户导入</span></span><br><span class="line">impdp A/passwd schemas=A directory=data_dir \</span><br><span class="line">  dumpfile=expdp.dmp logfile=impdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 跨用户导入表（从 A 用户导入到 B 用户）</span></span><br><span class="line">impdp B/passwd tables=A.table1,A.table2 remap_schema=A:B \</span><br><span class="line">  directory=data_dir dumpfile=expdp.dmp logfile=impdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 跨表空间 + 跨用户导入</span></span><br><span class="line">impdp A/passwd remap_tablespace=TBS01:A_TBS,TBS02:A_TBS,TBS03:A_TBS \</span><br><span class="line">  remap_schema=B:A FULL=Y transform=oid:n \</span><br><span class="line">  directory=data_dir dumpfile=expdp.dmp logfile=impdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 5. 导入表空间</span></span><br><span class="line">impdp sys/passwd tablespaces=tbs1 directory=data_dir \</span><br><span class="line">  dumpfile=expdp.dmp logfile=impdp.log</span><br><span class="line"></span><br><span class="line"><span class="comment"># 6. 追加数据（处理已存在的表）</span></span><br><span class="line">impdp sys/passwd directory=data_dir dumpfile=expdp.dmp \</span><br><span class="line">  schemas=system table_exists_action=replace logfile=impdp.log</span><br><span class="line"><span class="comment"># table_exists_action 可选值：SKIP, APPEND, REPLACE, TRUNCATE</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-5-并行操作"><a href="#2-5-并行操作" class="headerlink" title="2.5 并行操作"></a>2.5 并行操作</h3><p>可以通过 <code>PARALLEL</code> 参数使用多个线程来加速导入导出作业：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 4 个并行线程导出</span></span><br><span class="line">expdp user/passwd@orcl schemas=user dumpfile=expdp_%U.dmp \</span><br><span class="line">  directory=data_dir parallel=4 logfile=expdp.log</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：使用并行时，<code>dumpfile</code> 建议加上 <code>%U</code> 通配符，自动生成多个文件。</p>
+</blockquote>
+<h2 id="3-MySQL-备份与恢复"><a href="#3-MySQL-备份与恢复" class="headerlink" title="3. MySQL 备份与恢复"></a>3. MySQL 备份与恢复</h2><h3 id="3-1-mysqldump-逻辑备份"><a href="#3-1-mysqldump-逻辑备份" class="headerlink" title="3.1 mysqldump 逻辑备份"></a>3.1 mysqldump 逻辑备份</h3><p>使用 <code>mysqldump</code> 工具来备份 MySQL 数据库，该工具可以生成 SQL 脚本文件。</p>
+<p><strong>优点</strong>：简单易用，可以跨平台和存储引擎，可以部分备份和恢复。</p>
+<p><strong>缺点</strong>：速度慢，占用空间大，可能影响数据库性能。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 备份指定数据库</span></span><br><span class="line">mysqldump -u 用户名 -p 密码 --database ytt &gt; ytt.sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 备份所有数据库</span></span><br><span class="line">mysqldump -u root -p --all-databases &gt; all_databases.sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 恢复数据库（方式一）</span></span><br><span class="line">mysql -u 用户名 -p 密码 &lt; ytt.sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 恢复数据库（方式二：在 mysql 命令行中执行）</span></span><br><span class="line">mysql -u 用户名 -p 密码</span><br><span class="line"><span class="built_in">source</span> ytt.sql</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-Percona-XtraBackup-物理备份"><a href="#3-2-Percona-XtraBackup-物理备份" class="headerlink" title="3.2 Percona XtraBackup 物理备份"></a>3.2 Percona XtraBackup 物理备份</h3><p>MySQL 有一个开源的物理热备工具叫做 <strong>Percona XtraBackup</strong>。它可以在不锁表的情况下备份 InnoDB、XtraDB 和 MyISAM 存储引擎的表，并且支持增量同步。</p>
+<p><strong>优点</strong>：速度快，占用空间小，不影响数据库性能。</p>
+<p><strong>缺点</strong>：恢复复杂，需要关闭数据库服务，可能导致数据不一致。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 全量备份</span></span><br><span class="line">innobackupex --user=用户名 --password=密码 --databases=<span class="string">&quot;ytt&quot;</span> /backup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 恢复步骤</span></span><br><span class="line"><span class="comment"># 1. 停止 MySQL 服务</span></span><br><span class="line"><span class="comment"># 2. 应用日志</span></span><br><span class="line">innobackupex --apply-log /backup/2023-02-27_00-00-00</span><br><span class="line"><span class="comment"># 3. 拷贝数据文件</span></span><br><span class="line"><span class="built_in">cp</span> -r /backup/2023-02-27_00-00-00/* /var/lib/mysql</span><br><span class="line"><span class="comment"># 4. 修改文件权限</span></span><br><span class="line"><span class="built_in">chown</span> -R mysql:mysql /var/lib/mysql</span><br><span class="line"><span class="comment"># 5. 启动 MySQL 服务</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：在恢复之前，需要停止 MySQL 服务，并确保数据目录为空。</p>
+</blockquote>
+<h3 id="3-3-基于-binlog-的增量备份"><a href="#3-3-基于-binlog-的增量备份" class="headerlink" title="3.3 基于 binlog 的增量备份"></a>3.3 基于 binlog 的增量备份</h3><p>全备份是指备份数据库中的所有数据。增量备份是指备份上次全备份或增量备份后发生变化的数据，需要开启 binlog 日志功能。</p>
+<p><strong>第一步：开启 binlog</strong></p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 在 my.cnf 中配置</span></span><br><span class="line"><span class="section">[mysqld]</span></span><br><span class="line"><span class="attr">log-bin</span>=/var/lib/mysql/mysql-bin</span><br><span class="line"><span class="attr">expire-logs-days</span>=<span class="number">7</span></span><br><span class="line"><span class="attr">max_binlog_size</span>=<span class="number">100</span>M</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二步：设置定时备份任务</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># crontab 定时任务：每天凌晨 0 点全备份</span></span><br><span class="line">0 0 * * * mysqldump -u root -p password \</span><br><span class="line">  --all-databases &gt; /backup/full_$(<span class="built_in">date</span> +\%Y\%m\%d).sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 每小时增量备份</span></span><br><span class="line">0 * * * * mysqlbinlog --read-from-remote-server --host=localhost \</span><br><span class="line">  --user=root --password=password --stop-never-slave-server-id=10 \</span><br><span class="line">  mysql-bin.000001 &gt; /backup/incremental_$(<span class="built_in">date</span> +\%Y\%m\%d\%H).sql</span><br></pre></td></tr></table></figure>
+
+<p><strong>第三步：恢复数据</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 恢复最近一次的全备份文件</span></span><br><span class="line">mysql -u root -p password &lt; /backup/full_20230227.sql</span><br><span class="line"></span><br><span class="line"><span class="comment"># 恢复之后产生的所有增量备份文件</span></span><br><span class="line">mysqlbinlog /backup/incremental_202302270*.sql \</span><br><span class="line">  | mysql -u root -p password</span><br></pre></td></tr></table></figure>
+
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-expdp-和-exp-应该选哪个？"><a href="#Q1-expdp-和-exp-应该选哪个？" class="headerlink" title="Q1: expdp 和 exp 应该选哪个？"></a>Q1: expdp 和 exp 应该选哪个？</h3><p><strong>A:</strong> 如果你的 Oracle 版本在 10g 及以上，优先使用 <code>expdp</code>&#x2F;<code>impdp</code>。它们是服务端工具，性能更好，支持并行操作，并且可以正常导出空表。<code>exp</code>&#x2F;<code>imp</code> 主要用于旧版本兼容或跨版本迁移。需要注意的是两者导出的文件格式不互通——<code>imp</code> 无法导入 <code>expdp</code> 导出的文件，反之亦然。</p>
+<h3 id="Q2-mysqldump-备份大数据库很慢怎么办？"><a href="#Q2-mysqldump-备份大数据库很慢怎么办？" class="headerlink" title="Q2: mysqldump 备份大数据库很慢怎么办？"></a>Q2: mysqldump 备份大数据库很慢怎么办？</h3><p><strong>A:</strong> 对于大型数据库，有几个优化方向：</p>
+<ol>
+<li>使用 <code>--single-transaction</code> 参数避免锁表（仅 InnoDB）</li>
+<li>使用 <code>--quick</code> 参数逐行读取，减少内存占用</li>
+<li>考虑改用 Percona XtraBackup 进行物理热备，速度远快于逻辑备份</li>
+<li>使用 <code>mydumper</code>（第三方多线程备份工具）实现并行导出</li>
+</ol>
+<h3 id="Q3-Oracle-跨用户导入数据时需要注意什么？"><a href="#Q3-Oracle-跨用户导入数据时需要注意什么？" class="headerlink" title="Q3: Oracle 跨用户导入数据时需要注意什么？"></a>Q3: Oracle 跨用户导入数据时需要注意什么？</h3><p><strong>A:</strong> 跨用户导入时需要关注以下几点：</p>
+<ol>
+<li>使用 <code>remap_schema=源用户:目标用户</code> 参数进行用户映射</li>
+<li>如果表空间不同，还需要使用 <code>remap_tablespace=源表空间:目标表空间</code></li>
+<li>目标用户需要有足够的权限和配额</li>
+<li>如果存在同名表，通过 <code>table_exists_action</code> 参数控制行为（SKIP &#x2F; APPEND &#x2F; REPLACE &#x2F; TRUNCATE）</li>
+</ol>
+<h3 id="Q4-备份文件应该保留多久？"><a href="#Q4-备份文件应该保留多久？" class="headerlink" title="Q4: 备份文件应该保留多久？"></a>Q4: 备份文件应该保留多久？</h3><p><strong>A:</strong> 建议根据业务重要程度制定保留策略：</p>
+<ul>
+<li><strong>全量备份</strong>：至少保留最近 7 天，关键业务保留 30 天</li>
+<li><strong>增量备份</strong>：保留到下一次全量备份完成后</li>
+<li><strong>binlog 日志</strong>：通过 <code>expire-logs-days</code> 控制自动清理周期，建议设置 7-14 天</li>
+<li>定期将备份文件归档到异地存储（如对象存储、磁带库），防止本地灾难导致备份与数据同时丢失</li>
+</ul>
+<h3 id="Q5-如何验证备份文件是否可用？"><a href="#Q5-如何验证备份文件是否可用？" class="headerlink" title="Q5: 如何验证备份文件是否可用？"></a>Q5: 如何验证备份文件是否可用？</h3><p><strong>A:</strong> 备份验证是备份策略中最容易被忽视但极其重要的环节：</p>
+<ol>
+<li><strong>定期恢复测试</strong>：在测试环境中定期执行恢复操作，确认备份文件完整可用</li>
+<li><strong>Oracle</strong>：使用 <code>impdp</code> 的 <code>SQLFILE</code> 参数生成 DDL 脚本而不实际导入，检查文件是否损坏</li>
+<li><strong>MySQL</strong>：使用 <code>mysqlcheck</code> 或在测试库中执行 <code>source backup.sql</code> 验证</li>
+<li><strong>自动化</strong>：将恢复验证纳入定时任务，定期自动验证并发送报告</li>
+</ol>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>备份分类</strong>：物理备份（冷&#x2F;热）与逻辑备份各有适用场景，完全&#x2F;增量&#x2F;差异备份各有优劣</li>
+<li><strong>Oracle 推荐方案</strong>：10g 及以上版本优先使用 <code>expdp</code>&#x2F;<code>impdp</code>，支持并行、空表导出、跨用户映射</li>
+<li><strong>MySQL 推荐方案</strong>：小型数据库用 <code>mysqldump</code>，大型数据库用 Percona XtraBackup，配合 binlog 实现增量备份</li>
+<li><strong>备份策略</strong>：全量 + 增量组合使用，定期验证备份可用性</li>
+</ol>
+<h3 id="🎯-行动建议"><a href="#🎯-行动建议" class="headerlink" title="🎯 行动建议"></a>🎯 行动建议</h3><ol>
+<li><strong>立即执行</strong>：检查当前数据库是否有定期备份任务，没有则立刻配置</li>
+<li><strong>本周完成</strong>：制定备份保留策略，配置自动清理过期备份</li>
+<li><strong>本月完成</strong>：搭建备份恢复验证流程，在测试环境定期执行恢复演练</li>
+<li><strong>持续改进</strong>：根据数据量增长调整备份策略（如从全量备份迁移到全量 + 增量模式）</li>
+</ol>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2023-03-02</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-11</td>
+<td>优化文档结构，添加速查版、对比分析和 FAQ</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/DBA/" rel="tag">DBA</a>, <a class="tag-none-link" href="/tags/MySQL/" rel="tag">MySQL</a>, <a class="tag-none-link" href="/tags/Oracle/" rel="tag">Oracle</a>, <a class="tag-none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD/" rel="tag">数据库备份</a>, <a class="tag-none-link" href="/tags/%E6%95%B0%E6%8D%AE%E6%81%A2%E5%A4%8D/" rel="tag">数据恢复</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" SQL 实用函数与技巧：Oracle/MySQL 常用操作速查" href="/2023/02/16/tech/backend/2023-02-17-sql-practical-tips/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" JVM 参数调优实战：8 步法搞定高并发场景下的 GC 选型与配置" href="/2023/03/02/tech/backend/2023-03-03-jvm-tuning-high-concurrency/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%87%E4%BB%BD%E5%88%86%E7%B1%BB%E5%85%A8%E6%99%AF%E5%9B%BE"><span class="toc-number">1.1.</span> <span class="toc-text">备份分类全景图</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle-vs-MySQL-%E5%A4%87%E4%BB%BD%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">Oracle vs MySQL 备份方式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.3.</span> <span class="toc-text">命令速查表</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%87%E4%BB%BD%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">1. 备份基础概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF%E5%A4%87%E4%BB%BD"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 什么是备份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%A4%87%E4%BB%BD%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 备份分类</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%89%E7%89%A9%E7%90%86%E4%B8%8E%E9%80%BB%E8%BE%91%E8%A7%92%E5%BA%A6%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.1.</span> <span class="toc-text">按物理与逻辑角度分类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8C%89%E5%A4%87%E4%BB%BD%E7%AD%96%E7%95%A5%E5%88%86%E7%B1%BB"><span class="toc-number">3.2.2.</span> <span class="toc-text">按备份策略分类</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%BB%80%E4%B9%88%E6%98%AF%E6%81%A2%E5%A4%8D"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 什么是恢复</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Oracle-%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="toc-number">4.</span> <span class="toc-text">2. Oracle 备份与恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Oracle-%E6%81%A2%E5%A4%8D%E5%88%86%E7%B1%BB"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 Oracle 恢复分类</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-exp-imp-%E4%B8%8E-expdp-impdp-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 exp&#x2F;imp 与 expdp&#x2F;impdp 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-exp-%E5%AF%BC%E5%87%BA-imp-%E5%AF%BC%E5%85%A5"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 exp 导出 &#x2F; imp 导入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-expdp-impdp-%E6%93%8D%E4%BD%9C%E6%AD%A5%E9%AA%A4"><span class="toc-number">4.4.</span> <span class="toc-text">2.4 expdp &#x2F; impdp 操作步骤</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%89%8D%E7%BD%AE%E5%87%86%E5%A4%87"><span class="toc-number">4.4.1.</span> <span class="toc-text">前置准备</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BC%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="toc-number">4.4.2.</span> <span class="toc-text">导出数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE"><span class="toc-number">4.4.3.</span> <span class="toc-text">导入数据</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%B9%B6%E8%A1%8C%E6%93%8D%E4%BD%9C"><span class="toc-number">4.5.</span> <span class="toc-text">2.5 并行操作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-MySQL-%E5%A4%87%E4%BB%BD%E4%B8%8E%E6%81%A2%E5%A4%8D"><span class="toc-number">5.</span> <span class="toc-text">3. MySQL 备份与恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-mysqldump-%E9%80%BB%E8%BE%91%E5%A4%87%E4%BB%BD"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 mysqldump 逻辑备份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Percona-XtraBackup-%E7%89%A9%E7%90%86%E5%A4%87%E4%BB%BD"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 Percona XtraBackup 物理备份</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%9F%BA%E4%BA%8E-binlog-%E7%9A%84%E5%A2%9E%E9%87%8F%E5%A4%87%E4%BB%BD"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 基于 binlog 的增量备份</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">6.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-expdp-%E5%92%8C-exp-%E5%BA%94%E8%AF%A5%E9%80%89%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">6.1.</span> <span class="toc-text">Q1: expdp 和 exp 应该选哪个？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-mysqldump-%E5%A4%87%E4%BB%BD%E5%A4%A7%E6%95%B0%E6%8D%AE%E5%BA%93%E5%BE%88%E6%85%A2%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">6.2.</span> <span class="toc-text">Q2: mysqldump 备份大数据库很慢怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-Oracle-%E8%B7%A8%E7%94%A8%E6%88%B7%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E6%97%B6%E9%9C%80%E8%A6%81%E6%B3%A8%E6%84%8F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">6.3.</span> <span class="toc-text">Q3: Oracle 跨用户导入数据时需要注意什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E5%BA%94%E8%AF%A5%E4%BF%9D%E7%95%99%E5%A4%9A%E4%B9%85%EF%BC%9F"><span class="toc-number">6.4.</span> <span class="toc-text">Q4: 备份文件应该保留多久？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E5%A6%82%E4%BD%95%E9%AA%8C%E8%AF%81%E5%A4%87%E4%BB%BD%E6%96%87%E4%BB%B6%E6%98%AF%E5%90%A6%E5%8F%AF%E7%94%A8%EF%BC%9F"><span class="toc-number">6.5.</span> <span class="toc-text">Q5: 如何验证备份文件是否可用？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">7.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.2.</span> <span class="toc-text">🎯 行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">8.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

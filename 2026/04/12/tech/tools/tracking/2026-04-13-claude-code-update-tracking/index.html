@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Claude Code 更新追踪 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CLI, anthropic, claude-code, 更新追踪" />
+  
+  <meta name="description" content="持续追踪 Claude Code CLI 的版本更新，按季度组织，记录新特性用法与关键修复。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code 更新追踪">
+<meta property="og:url" content="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="持续追踪 Claude Code CLI 的版本更新，按季度组织，记录新特性用法与关键修复。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-04-12T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.766Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CLI">
+<meta property="article:tag" content="anthropic">
+<meta property="article:tag" content="claude-code">
+<meta property="article:tag" content="更新追踪">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Claude Code 更新追踪","description":"持续追踪 Claude Code CLI 的版本更新，按季度组织，记录新特性用法与关键修复。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-12T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.766Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Claude Code 更新追踪</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-12T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-13</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~15.59K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2025-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2025 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%882025-10-12%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q4（2025-10 ~ 12）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%85%E8%A1%A5%E5%BD%95-vX-X-X-vX-X-X"><span class="toc-number">1.1.1.</span> <span class="toc-text">待补录 | vX.X.X ~ vX.X.X</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%882025-07-09%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">Q3（2025-07 ~ 09）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%85%E8%A1%A5%E5%BD%95-%E5%90%AB%E9%A6%96%E6%AC%A1%E5%85%AC%E5%BC%80%E5%8F%91%E5%B8%83"><span class="toc-number">1.2.1.</span> <span class="toc-text">待补录 | 含首次公开发布</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882025-04-06%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">Q2（2025-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%85%E8%A1%A5%E5%BD%95-%E5%86%85%E6%B5%8B-%E6%97%A9%E6%9C%9F%E7%89%88%E6%9C%AC"><span class="toc-number">1.3.1.</span> <span class="toc-text">待补录 | 内测 &#x2F; 早期版本</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">2.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-89-v2-1-97"><span class="toc-number">2.1.1.</span> <span class="toc-text">2026-04 | v2.1.89 ~ v2.1.97</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">2.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">2.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-98-v2-1-108"><span class="toc-number">2.1.2.</span> <span class="toc-text">2026-04 | v2.1.98 ~ v2.1.108</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">2.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">2.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-109-v2-1-114"><span class="toc-number">2.1.3.</span> <span class="toc-text">2026-04 | v2.1.109 ~ v2.1.114</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">2.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">2.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-116-v2-1-119"><span class="toc-number">2.1.4.</span> <span class="toc-text">2026-04 | v2.1.116 ~ v2.1.119</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">2.1.4.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">2.1.4.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-120-v2-1-122"><span class="toc-number">2.1.5.</span> <span class="toc-text">2026-04 | v2.1.120 ~ v2.1.122</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-4"><span class="toc-number">2.1.5.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-4"><span class="toc-number">2.1.5.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-v2-1-128-v2-1-143"><span class="toc-number">2.1.6.</span> <span class="toc-text">2026-05 | v2.1.128 ~ v2.1.143</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-5"><span class="toc-number">2.1.6.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-5"><span class="toc-number">2.1.6.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%882026-01-03%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">Q1（2026-01 ~ 03）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-03-v2-1-66-v2-1-87"><span class="toc-number">2.2.1.</span> <span class="toc-text">2026-03 | v2.1.66 ~ v2.1.87</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-6"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-6"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-02-v2-1-30-v2-1-63"><span class="toc-number">2.2.2.</span> <span class="toc-text">2026-02 | v2.1.30 ~ v2.1.63</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-7"><span class="toc-number">2.2.2.1.</span> <span class="toc-text">新特性用法</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-01-v2-1-1-v2-1-29"><span class="toc-number">2.2.3.</span> <span class="toc-text">2026-01 | v2.1.1 ~ v2.1.29</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>持续追加型文档，每次工具更新后由 AI 代理追加新批次。<br>主文章参见：<a href="/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/" title="Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流">Claude Code Vibecoding 指南</a></p>
+</blockquote>
+<hr>
+<h2 id="2025-年"><a href="#2025-年" class="headerlink" title="2025 年"></a>2025 年</h2><h3 id="Q4（2025-10-12）"><a href="#Q4（2025-10-12）" class="headerlink" title="Q4（2025-10 ~ 12）"></a>Q4（2025-10 ~ 12）</h3><h4 id="待补录-vX-X-X-vX-X-X"><a href="#待补录-vX-X-X-vX-X-X" class="headerlink" title="待补录 | vX.X.X ~ vX.X.X"></a>待补录 | vX.X.X ~ vX.X.X</h4><blockquote>
+<p>占位，待补录。信号来源：<a target="_blank" rel="noopener" href="https://docs.anthropic.com/en/release-notes/claude-code">Anthropic Docs</a> &#x2F; <a target="_blank" rel="noopener" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md">GitHub CHANGELOG</a></p>
+</blockquote>
+<hr>
+<h3 id="Q3（2025-07-09）"><a href="#Q3（2025-07-09）" class="headerlink" title="Q3（2025-07 ~ 09）"></a>Q3（2025-07 ~ 09）</h3><h4 id="待补录-含首次公开发布"><a href="#待补录-含首次公开发布" class="headerlink" title="待补录 | 含首次公开发布"></a>待补录 | 含首次公开发布</h4><blockquote>
+<p>占位，待补录。Claude Code 首次公开发布约在此季度。</p>
+</blockquote>
+<hr>
+<h3 id="Q2（2025-04-06）"><a href="#Q2（2025-04-06）" class="headerlink" title="Q2（2025-04 ~ 06）"></a>Q2（2025-04 ~ 06）</h3><h4 id="待补录-内测-早期版本"><a href="#待补录-内测-早期版本" class="headerlink" title="待补录 | 内测 &#x2F; 早期版本"></a>待补录 | 内测 &#x2F; 早期版本</h4><blockquote>
+<p>占位，待补录（如有公开版本）。</p>
+</blockquote>
+<hr>
+<h2 id="2026-年"><a href="#2026-年" class="headerlink" title="2026 年"></a>2026 年</h2><h3 id="Q2（2026-04-06）"><a href="#Q2（2026-04-06）" class="headerlink" title="Q2（2026-04 ~ 06）"></a>Q2（2026-04 ~ 06）</h3><h4 id="2026-04-v2-1-89-v2-1-97"><a href="#2026-04-v2-1-89-v2-1-97" class="headerlink" title="2026-04 | v2.1.89 ~ v2.1.97"></a>2026-04 | v2.1.89 ~ v2.1.97</h4><p><strong>信息截止</strong>：2026-04-09 | <strong>最新 Release</strong>：v2.1.97</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.97</code></td>
+<td>2026-04-08</td>
+<td><code>NO_FLICKER</code> 新增 <code>Ctrl+O</code> Focus View，状态栏支持 <code>refreshInterval</code>，<code>/agents</code> 显示子 Agent 数量；集中修了 <code>--resume</code>、权限、MCP reconnect、429 重试和 CJK 输入问题</td>
+</tr>
+<tr>
+<td><code>v2.1.96</code></td>
+<td>2026-04-08</td>
+<td>快速修复 <code>v2.1.94</code> 引入的 Bedrock <code>403 &quot;Authorization header is missing&quot;</code> 回归</td>
+</tr>
+<tr>
+<td><code>v2.1.94</code></td>
+<td>2026-04-07</td>
+<td>新增 Amazon Bedrock Mantle 支持；默认 effort 提升为 <code>high</code>；插件技能名优先用 frontmatter <code>name</code></td>
+</tr>
+<tr>
+<td><code>v2.1.92</code></td>
+<td>2026-04-04</td>
+<td>新增交互式 Bedrock 配置向导；<code>/cost</code> 显示按模型和 cache hit 的拆分；<code>/release-notes</code> 变为交互式；移除 <code>/tag</code> 和 <code>/vim</code></td>
+</tr>
+<tr>
+<td><code>v2.1.91</code></td>
+<td>2026-04-02</td>
+<td>MCP 工具结果持久化上限可放宽；新增 <code>disableSkillShellExecution</code>；插件支持 <code>bin/</code> 可执行文件</td>
+</tr>
+<tr>
+<td><code>v2.1.90</code></td>
+<td>2026-04-01</td>
+<td>新增 <code>/powerup</code> 交互式教学入口；离线时保留旧 marketplace cache</td>
+</tr>
+<tr>
+<td><code>v2.1.89</code></td>
+<td>2026-04-01</td>
+<td><code>CLAUDE_CODE_NO_FLICKER=1</code> 正式提供无闪烁界面；<code>PreToolUse</code> hooks 新增 <code>defer</code>；<code>@</code> 提示支持命名 subagents</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法"><a href="#新特性用法" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><code>NO_FLICKER</code> 界面：<code>export CLAUDE_CODE_NO_FLICKER=1</code> 后启动，按 <code>Ctrl+O</code> 打开 Focus View，把 prompt &#x2F; 工具摘要 &#x2F; 最终响应整理成更易扫读的结构</li>
+<li><code>/powerup</code> + <code>/release-notes</code> + <code>/cost</code> + <code>/effort</code>：快速摸清新能力、查版本、看成本、调推理强度的固定组合</li>
+<li>Bedrock Mantle：<code>export CLAUDE_CODE_USE_MANTLE=1</code> 后启动，在登录界面选 <code>3rd-party platform</code>，走交互式配置向导</li>
+<li>插件 <code>bin/</code> 目录：插件现在可打包可执行文件，直接从 Bash tool 调用，越来越接近可复用工具包</li>
+<li><code>@</code> 命名 subagent：composer 输入 <code>@</code> 可直接选命名 subagent，减少记忆负担</li>
+</ul>
+<h5 id="关键-fix"><a href="#关键-fix" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><code>--resume</code> 恢复链路多版本持续修复（v2.1.97 集中处理）</li>
+<li>CJK 输入法问题（v2.1.97）</li>
+<li>MCP reconnect 稳定性（v2.1.97）</li>
+<li>Bedrock <code>403</code> 鉴权回归（v2.1.96 修复 v2.1.94 引入的问题）</li>
+<li>429 重试逻辑（v2.1.97）</li>
+</ul>
+<h4 id="2026-04-v2-1-98-v2-1-108"><a href="#2026-04-v2-1-98-v2-1-108" class="headerlink" title="2026-04 | v2.1.98 ~ v2.1.108"></a>2026-04 | v2.1.98 ~ v2.1.108</h4><p><strong>信息截止</strong>：2026-04-15 | <strong>最新 Release</strong>：v2.1.108</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.108</code></td>
+<td>2026-04-12</td>
+<td>支持 <code>ENABLE_PROMPT_CACHING_1H</code> 环境变量；新增 <code>/recap</code> 总结功能；模型支持调用内置斜杠命令</td>
+</tr>
+<tr>
+<td><code>v2.1.107</code></td>
+<td>2026-04-11</td>
+<td>修复变音符号丢失问题；<code>/undo</code> 正式更名为 <code>/rewind</code> 别名；优化 Bash 工具对注释结尾环境文件的处理</td>
+</tr>
+<tr>
+<td><code>v2.1.100</code></td>
+<td>2026-04-10</td>
+<td>优化企业级 TLS 代理支持（默认信任 OS CA）；区分 Rate Limits 与 Plan Limits 提示</td>
+</tr>
+<tr>
+<td><code>v2.1.98</code></td>
+<td>2026-04-09</td>
+<td>补全 Google Vertex AI 交互配置向导；支持 <code>CLAUDE_CODE_PERFORCE_MODE</code></td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-1"><a href="#新特性用法-1" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>提示词缓存控制</strong>：设置 <code>export ENABLE_PROMPT_CACHING_1H=1</code>。在支持的平台上，这会将缓存 TTL 延长至 1 小时，显著降低长会话的推理成本。</li>
+<li><strong>会话回顾 (Recap)</strong>：输入 <code>/recap</code> 或在长时间离开后返回会话，Claude 会自动总结上下文。可在 <code>/config</code> 中设置自动触发。</li>
+<li><strong>内置命令工具化</strong>：Claude 现在可以将 <code>/init</code>、<code>/review</code> 等斜杠命令视为“工具”直接调用，无需用户手动输入。</li>
+<li><strong>Perforce 模式</strong>：设置 <code>export CLAUDE_CODE_PERFORCE_MODE=1</code> 后，Claude 编辑只读文件会触发 <code>p4 edit</code> 提示，适配 P4 工作流。</li>
+<li><strong>OS CA 证书支持</strong>：默认信任系统根证书，解决了企业网络环境下 TLS 代理导致的连接问题。</li>
+</ul>
+<h5 id="关键-fix-1"><a href="#关键-fix-1" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>变音符号丢失</strong>：修复了在特定终端环境下，响应中的重音符号、分音符号被截断的 Bug (v2.1.107)。</li>
+<li><strong>环境文件空输出</strong>：修复了当 <code>.zprofile</code> 等文件以 <code>#</code> 注释结尾时，Bash 工具执行返回空结果的问题 (v2.1.107)。</li>
+<li><strong>频率限制区分</strong>：现在能准确告知用户是触及了服务器频率限制 (529) 还是个人计划额度限制。</li>
+<li><strong>Vertex AI 向导</strong>：修正了配置流中 GCP 项目 ID 识别不准确的问题 (v2.1.98)。</li>
+</ul>
+<h4 id="2026-04-v2-1-109-v2-1-114"><a href="#2026-04-v2-1-109-v2-1-114" class="headerlink" title="2026-04 | v2.1.109 ~ v2.1.114"></a>2026-04 | v2.1.109 ~ v2.1.114</h4><p><strong>信息截止</strong>：2026-04-19 | <strong>最新 Release</strong>：v2.1.114</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.114</code></td>
+<td>2026-04-18</td>
+<td>修复 agent team 队友请求工具权限时权限对话框崩溃的问题</td>
+</tr>
+<tr>
+<td><code>v2.1.113</code></td>
+<td>2026-04-17</td>
+<td>改用原生二进制分发（per-platform optional dep）；新增 <code>sandbox.network.deniedDomains</code>；Bash 安全规则覆盖 <code>env</code>&#x2F;<code>sudo</code>&#x2F;<code>watch</code> 包装；subagent 卡住 10 分钟自动失败</td>
+</tr>
+<tr>
+<td><code>v2.1.112</code></td>
+<td>2026-04-16</td>
+<td>修复 auto 模式下 <code>claude-opus-4-7 temporarily unavailable</code></td>
+</tr>
+<tr>
+<td><code>v2.1.111</code></td>
+<td>2026-04-16</td>
+<td>新增 <code>xhigh</code> effort 档位；<code>/effort</code> 无参打开滑块；<code>/ultrareview</code> 云端并行评审；Auto 模式对 Max 订阅开放；Windows 灰度推出 PowerShell 工具</td>
+</tr>
+<tr>
+<td><code>v2.1.110</code></td>
+<td>2026-04-15</td>
+<td>新增 <code>/tui</code> 无闪烁全屏命令；<code>Ctrl+O</code> 改为切换 verbose transcript，<code>/focus</code> 切换 focus 视图；Remote Control 推送通知</td>
+</tr>
+<tr>
+<td><code>v2.1.109</code></td>
+<td>2026-04-15</td>
+<td>扩展思考指示器加入轮转进度提示</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-2"><a href="#新特性用法-2" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>原生二进制分发</strong>（v2.1.113）：CLI 通过平台 optional dependency 拉取原生 Claude Code 二进制，启动更快。无需额外配置；<code>pnpm i -g @anthropic-ai/claude-code</code> 时自动选择匹配平台的包。</p>
+</li>
+<li><p><strong>网络拒绝域名</strong>（v2.1.113）：在更宽的 allowlist 之上单独阻断域名。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;sandbox&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;network&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;deniedDomains&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;pastebin.com&quot;</span><span class="punctuation">,</span> <span class="string">&quot;*.untrusted.example&quot;</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>/tui</code> 无闪烁全屏</strong>（v2.1.110）：取代 <code>CLAUDE_CODE_NO_FLICKER=1</code> 的临时方案。在会话内输入 <code>/tui</code> 即可切换；持久化到 settings：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span> <span class="attr">&quot;tui&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span> <span class="attr">&quot;autoScrollEnabled&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span> <span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>Ctrl+O</code> 现在用于切换 verbose 模式，原 Focus View 改为 <code>/focus</code> 命令。</p>
+</li>
+<li><p><strong><code>/ultrareview</code> 并行代码评审</strong>（v2.1.111）：云端 fan-out 多个评审 agent 并行检查当前 diff，对话框内显示 diffstat 与动画状态。直接输入 <code>/ultrareview</code> 触发；适合 PR 自审。</p>
+</li>
+<li><p><strong><code>xhigh</code> effort 与 Auto 模式</strong>（v2.1.111）：Opus 4.7 新增介于 <code>high</code> 与 <code>max</code> 之间的 <code>xhigh</code> 档位；Max 订阅默认可用 Auto 模式（不再需要 <code>--enable-auto-mode</code>）。<code>/effort</code> 无参打开交互滑块。</p>
+</li>
+<li><p><strong>PowerShell 工具（Windows）</strong>（v2.1.111）：灰度推出。强制开启 &#x2F; 关闭：<code>set CLAUDE_CODE_USE_POWERSHELL_TOOL=1</code>（或 <code>=0</code> 禁用）。</p>
+</li>
+<li><p><strong><code>/loop</code> 流控增强</strong>（v2.1.113）：<code>Esc</code> 取消待触发的 wakeup；transcript 中显示 <code>Claude resuming /loop wakeup</code>。</p>
+</li>
+<li><p><strong>多行输入 readline 兼容</strong>（v2.1.113）：<code>Ctrl+A</code>&#x2F;<code>Ctrl+E</code> 跳转到逻辑行首&#x2F;尾；Windows 下 <code>Ctrl+Backspace</code> 删除前一个词。</p>
+</li>
+</ul>
+<h5 id="关键-fix-2"><a href="#关键-fix-2" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>Opus 4.7 auto 模式不可用</strong>（v2.1.112）：修复 <code>claude-opus-4-7 temporarily unavailable</code> 错误，影响所有 auto 模式用户。</li>
+<li><strong>Bedrock Opus 4.7 thinking 报错</strong>（v2.1.113）：修复通过 Bedrock ARN 调用 Opus 4.7 时返回 <code>thinking.type.enabled not supported</code>。</li>
+<li><strong>MCP 并发调用看门狗</strong>（v2.1.113）：修复一个工具的 watchdog 可能被另一个并发调用解除，导致超时不生效。</li>
+<li><strong><code>dangerouslyDisableSandbox</code> 越权</strong>（v2.1.113）：修复设置该开关后部分场景未触发权限提示就直接执行。以前需要手动 review 每次调用。</li>
+<li><strong>Bash 安全规则增强</strong>（v2.1.113）：deny 规则现在能匹配 <code>env</code>&#x2F;<code>sudo</code>&#x2F;<code>watch</code>&#x2F;<code>ionice</code>&#x2F;<code>setsid</code> 包装的命令；<code>Bash(find:*)</code> 不再自动批准 <code>find -exec</code>&#x2F;<code>-delete</code>；macOS 下 <code>/private/&#123;etc,var,tmp,home&#125;</code> 视为危险删除目标。以前可能被 wrapper 命令绕过。</li>
+<li><strong>Subagent 卡死无提示</strong>（v2.1.113）：subagent 在流中停滞 10 分钟会以明确错误失败，不再无限挂起。</li>
+<li><strong>PermissionRequest hook updatedInput 未复检</strong>（v2.1.110）：修复 hook 修改后的输入未重新走 deny 规则的安全漏洞。</li>
+<li><strong>agent team 权限对话框崩溃</strong>（v2.1.114）：队友请求工具权限时主端崩溃，已修复。</li>
+<li><strong>Markdown 表格 inline code 含 <code>|</code></strong>（v2.1.113）：修复 transcript 渲染破裂。</li>
+<li><strong><code>/effort auto</code> 确认文案错误</strong>（v2.1.113）：以前误导用户以为切到了固定档位。</li>
+</ul>
+<h4 id="2026-04-v2-1-116-v2-1-119"><a href="#2026-04-v2-1-116-v2-1-119" class="headerlink" title="2026-04 | v2.1.116 ~ v2.1.119"></a>2026-04 | v2.1.116 ~ v2.1.119</h4><p><strong>信息截止</strong>：2026-04-24 | <strong>最新 Release</strong>：v2.1.119</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.119</code></td>
+<td>2026-04-23</td>
+<td><code>/config</code> 设置写入 settings.json；新增 <code>prUrlTemplate</code>&#x2F;<code>CLAUDE_CODE_HIDE_CWD</code>；<code>--from-pr</code> 多平台；Hooks 新增 <code>duration_ms</code>；集中修复 40+ Bug</td>
+</tr>
+<tr>
+<td><code>v2.1.118</code></td>
+<td>2026-04-23</td>
+<td>Vim 可视模式上线；<code>/cost</code>+<code>/stats</code> 合并为 <code>/usage</code>；自定义主题系统；Hooks 直调 MCP 工具；新增 <code>DISABLE_UPDATES</code> 与 WSL 托管设置继承</td>
+</tr>
+<tr>
+<td><code>v2.1.117</code></td>
+<td>2026-04-22</td>
+<td>Opus 4.7 上下文修正为 1M；Pro&#x2F;Max 默认 effort 升为 <code>high</code>；原生构建 Glob&#x2F;Grep 换用 bfs&#x2F;ugrep；MCP 并发启动</td>
+</tr>
+<tr>
+<td><code>v2.1.116</code></td>
+<td>2026-04-20</td>
+<td>大会话 <code>/resume</code> 提速 67%；MCP 多服务器并发启动；思考进度内联显示；sandbox <code>rm</code> 危险路径安全加固</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-3"><a href="#新特性用法-3" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>Vim 可视模式</strong>（v2.1.118）：在 Vim 模式下，<code>v</code> 进入字符可视模式，<code>V</code> 进入行可视模式，支持选区操作（<code>y</code> 复制、<code>d</code> 删除等），与标准 Vim 行为一致。</p>
+</li>
+<li><p><strong><code>/usage</code> 合并 <code>/cost</code> + <code>/stats</code></strong>（v2.1.118）：<code>/cost</code> 和 <code>/stats</code> 已合并为统一入口 <code>/usage</code>，分 Tab 展示费用明细与会话统计。两个旧命令仍可作为快捷方式跳转到对应 Tab。</p>
+</li>
+<li><p><strong>自定义主题</strong>（v2.1.118）：在会话内输入 <code>/theme</code> 创建或切换主题；也可手动编辑 <code>~/.claude/themes/&lt;name&gt;.json</code>；插件可在自身的 <code>themes/</code> 目录下打包并分发主题文件。</p>
+</li>
+<li><p><strong>Hooks 直调 MCP 工具</strong>（v2.1.118）：hooks 配置新增 <code>type: &quot;mcp_tool&quot;</code>，可直接触发 MCP 工具，无需启动子进程。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;hooks&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;PostToolUse&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;mcp_tool&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;server&quot;</span><span class="punctuation">:</span> <span class="string">&quot;my-server&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;tool&quot;</span><span class="punctuation">:</span> <span class="string">&quot;notify&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;input&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;message&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Tool finished in &#123;&#123;duration_ms&#125;&#125;ms&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span><span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>DISABLE_UPDATES</code> 完全锁版本</strong>（v2.1.118）：比 <code>DISABLE_AUTOUPDATER</code> 更严格，连 <code>claude update</code> 手动命令也一并阻断，适合 CI&#x2F;CD 或企业受控环境。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> DISABLE_UPDATES=1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>prUrlTemplate</code> 自定义 PR 链接</strong>（v2.1.119）：将 footer PR 徽章指向内网 CR 系统，支持 <code>&#123;owner&#125;</code>、<code>&#123;repo&#125;</code>、<code>&#123;pr&#125;</code> 占位符。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ~/.claude/settings.json</span></span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;prUrlTemplate&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://cr.internal.example.com/&#123;owner&#125;/&#123;repo&#125;/pull/&#123;pr&#125;&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>CLAUDE_CODE_HIDE_CWD</code></strong>（v2.1.119）：隐藏启动 logo 中的工作目录路径，适合截图或录屏。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> CLAUDE_CODE_HIDE_CWD=1</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong><code>--from-pr</code> 多平台支持</strong>（v2.1.119）：现在接受 GitLab MR、Bitbucket PR 和 GitHub Enterprise PR URL，不再局限于 github.com。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">claude --from-pr https://gitlab.com/mygroup/myrepo/-/merge_requests/42</span><br><span class="line">claude --from-pr https://bitbucket.org/team/repo/pull-requests/7</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Hooks <code>duration_ms</code></strong>（v2.1.119）：<code>PostToolUse</code> &#x2F; <code>PostToolUseFailure</code> hook 输入新增 <code>duration_ms</code> 字段，记录工具执行耗时（不含权限提示与 PreToolUse 耗时），可用于性能监控与日志。</p>
+</li>
+<li><p><strong>Opus 4.7 上下文窗口修正</strong>（v2.1.117）：修正前 Claude Code 误以为 Opus 4.7 上下文为 200K，导致 <code>/context</code> 百分比虚高并过早触发 autocompact；现已正确使用 1M 窗口。</p>
+</li>
+<li><p><strong>Pro&#x2F;Max 默认 effort 升为 <code>high</code></strong>（v2.1.117）：Opus 4.6 与 Sonnet 4.6 在 Pro&#x2F;Max 订阅下默认从 <code>medium</code> 提升为 <code>high</code>，无需手动设置即可获得更强推理。</p>
+</li>
+<li><p><strong>大会话 <code>/resume</code> 性能优化</strong>（v2.1.116）：40MB+ 大会话文件恢复速度提升最高 67%；多个死 fork 条目也不再拖慢加载。</p>
+</li>
+<li><p><strong>思考进度内联展示</strong>（v2.1.116）：扩展思考期间 spinner 内联显示「still thinking → thinking more → almost done thinking」进度，替换了旧的独立提示行。</p>
+</li>
+</ul>
+<h5 id="关键-fix-3"><a href="#关键-fix-3" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>Opus 4.7 上下文百分比虚高</strong>（v2.1.117）：误将 200K 作为窗口计算，<code>/context</code> 显示异常且过早 autocompact；已修正为 1M。</li>
+<li><strong>OAuth Token 中途失效</strong>（v2.1.117）：Plain-CLI 会话中 access token 过期时不再报「Please run &#x2F;login」，改为自动刷新。</li>
+<li><strong><code>WebFetch</code> 超大 HTML 挂起</strong>（v2.1.117）：代理返回超大 HTML 时不再无限等待，转换前已截断。</li>
+<li><strong>Bedrock 应用推理 Profile 400</strong>（v2.1.117）：通过应用推理 Profile 调 Opus 4.7（关闭 thinking 时）返回 400 的问题已修复。</li>
+<li><strong>sandbox <code>rm</code> 危险路径绕过</strong>（v2.1.116）：sandbox 自动授权不再豁免对 <code>/</code>、<code>$HOME</code> 等关键目录的 <code>rm</code>&#x2F;<code>rmdir</code>，防止沙箱规则被绕过。</li>
+<li><strong>Ctrl+Z 挂起终端</strong>（v2.1.116）：通过 <code>npx</code>&#x2F;<code>bun run</code> 等包装启动时，<code>Ctrl+Z</code> 不再导致终端卡死。</li>
+<li><strong>Kitty 协议快捷键失效</strong>（v2.1.116）：<code>Ctrl+-</code> 撤销、<code>Cmd+Left/Right</code> 行首&#x2F;尾跳转在 iTerm2、Ghostty、WezTerm 等终端已修复。</li>
+<li><strong>MCP OAuth 多处竞态</strong>（v2.1.118）：跨进程刷新锁失效、keychain 并发写入覆盖、服务端吊销前本地仍继续使用等多个 OAuth 竞态问题集中修复。</li>
+<li><strong>credential 写入崩溃</strong>（v2.1.118）：Linux&#x2F;Windows 下写 <code>~/.claude/.credentials.json</code> 崩溃已修复。</li>
+<li><strong>Glob&#x2F;Grep 原生构建消失</strong>（v2.1.119）：Bash 工具被 permissions 拒绝时，Glob 与 Grep 工具不再同时消失。</li>
+<li><strong>自动模式干扰 plan 模式</strong>（v2.1.119）：auto 模式不再注入「Execute immediately」指令覆盖 plan 模式行为。</li>
+<li><strong>Agent worktree 重用旧工作区</strong>（v2.1.119）：<code>isolation: &quot;worktree&quot;</code> 的 Agent tool 不再跨 session 复用过期 worktree。</li>
+<li><strong><code>TaskList</code> 顺序不稳定</strong>（v2.1.119）：改为按 Task ID 排序，不再受文件系统顺序影响。</li>
+<li><strong><code>/export</code> 显示错误模型</strong>（v2.1.119）：现在正确显示会话实际使用模型，而非当前默认模型。</li>
+<li><strong><code>/plan</code> 进入模式失效</strong>（v2.1.119）：<code>/plan</code> 与 <code>/plan open</code> 现在能正确作用于已存在的 plan。</li>
+<li><strong>skills 在 autocompact 后重复执行</strong>（v2.1.119）：autocompact 前已调用的 skill 不再在下一条用户消息时被重新触发。</li>
+</ul>
+<h4 id="2026-04-v2-1-120-v2-1-122"><a href="#2026-04-v2-1-120-v2-1-122" class="headerlink" title="2026-04 | v2.1.120 ~ v2.1.122"></a>2026-04 | v2.1.120 ~ v2.1.122</h4><p><strong>信息截止</strong>：2026-04-29 | <strong>最新 Release</strong>：v2.1.122</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.122</code></td>
+<td>2026-04-28</td>
+<td>Bedrock service tier、MCP <code>httpHeaders</code> 动态命令、企业托管策略、非信任工作区自动拒绝、hook&#x2F;model 元数据与 session 搜索</td>
+</tr>
+<tr>
+<td><code>v2.1.121</code></td>
+<td>2026-04-25</td>
+<td><code>.mcp.json</code> 支持 HTTP&#x2F;SSE transport；新增危险 HTTP&#x2F;OAuth MCP 开关；PowerShell 解析与大消息渲染优化</td>
+</tr>
+<tr>
+<td><code>v2.1.120</code></td>
+<td>2026-04-24</td>
+<td>AWS Bearer Token、Bedrock ARN 推断、MCP progress&#x2F;header substitution、Agent tool allow&#x2F;deny、Windows sandbox；同日出现 resume 启动崩溃并回滚</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-4"><a href="#新特性用法-4" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>Bedrock service tier（v2.1.122）</strong>：企业或 Bedrock 用户可用环境变量选择<br>service tier，适合在成本、吞吐与延迟之间做受控切换。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> ANTHROPIC_BEDROCK_SERVICE_TIER=<span class="string">&quot;&lt;bedrock-service-tier&gt;&quot;</span></span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>HTTP&#x2F;SSE MCP 配置（v2.1.121+）</strong>：<code>.mcp.json</code> 可直接声明 HTTP&#x2F;SSE<br>server；v2.1.122 的 <code>httpHeaders</code> 还支持通过 shell 命令动态取值，避免把<br>token 明文写死在配置里。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;internal-api&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;sse&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;url&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://mcp.internal.example.com/sse&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;httpHeaders&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;Authorization&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Bearer $(security find-generic-password -s mcp-token -w)&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Agent tool 权限收口（v2.1.120）</strong>：Agent tool 支持 <code>allowedTools</code> 与<br><code>disallowedTools</code>，可以把子任务限制在只读、审查或指定工具集合中。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;allowedTools&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;Read&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Grep&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Glob&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;disallowedTools&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;Bash(rm:*)&quot;</span><span class="punctuation">,</span> <span class="string">&quot;Bash(curl:*)&quot;</span><span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>企业策略与不可信工作区（v2.1.122）</strong>：新增 enterprise managed<br>policies，并可按用户设置自动拒绝 untrusted workspace 的权限请求，适合<br>团队把敏感仓库和外部仓库分层管理。</p>
+</li>
+<li><p><strong>Hook &#x2F; SDK 元数据补强（v2.1.120~122）</strong>：<code>UserPromptSubmit</code> 新增<br><code>session_id</code>，<code>TurnStart</code> &#x2F; <code>Stop</code> 新增 model 信息，<code>precompact</code> 新增<br><code>model_context_window</code> 与 <code>transcript_path</code>；<code>tokenUsage</code> 进入 SDK progress<br>events，方便做会话审计与成本统计。</p>
+</li>
+<li><p><strong>搜索与提及体验（v2.1.122）</strong>：内置 slash commands 支持 session<br>search；<code>@</code> mention 支持行范围，例如 <code>@src/service.ts:80-140</code>。</p>
+</li>
+<li><p><strong>Windows &#x2F; PowerShell 线（v2.1.120~122）</strong>：PowerShell 命令解析增强、<br>Windows sandbox 进入实验阶段，并开始灰度将 PowerShell 作为默认 shell。</p>
+</li>
+</ul>
+<h5 id="关键-fix-4"><a href="#关键-fix-4" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>v2.1.120 resume 崩溃</strong>：官方状态页记录 <code>--resume</code>、<code>--continue</code> 与<br><code>/resume</code> 在 v2.1.120 启动崩溃，并通过自动更新把受影响客户端迁回<br>v2.1.119；若仍卡在该版本，优先升级到 v2.1.121+，临时止血可 pin<br><code>@anthropic-ai/claude-code@2.1.119</code>。</li>
+<li><strong>MCP HTTP &#x2F; OAuth 稳定性</strong>：v2.1.121 修复 HTTP server 权限、Docker &#x2F;<br>DevContainer MCP auth、OAuth 过期崩溃；v2.1.122 继续修复 OAuth token<br>refresh、plugin-scoped MCP tools、带 <code>.</code> 或 <code>/</code> 的 MCP tool name。</li>
+<li><strong>session &#x2F; transcript 可靠性</strong>：v2.1.122 为 JSONL 写入增加跨实例锁，<br>防止 session 文件损坏；并修复 compaction 后 transcript 重复消息。</li>
+<li><strong>Bash &#x2F; shell snapshot</strong>：修复<br><code>CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR=1</code> 下 <code>cd</code> 被送进持久 shell、<br>shell snapshot 性能、detached process 命令执行和慢 MCP server 启动。</li>
+<li><strong>plan &#x2F; diff &#x2F; symlink &#x2F; PowerShell</strong>：修复取消 plan mode 误取消当前请求、<br><code>/diff</code> 遇到非法 HEAD 崩溃、symlink loop、PowerShell background task 与<br>worktree git branch 显示问题。</li>
+<li><strong>原生安装与自动更新</strong>：修复 native install 的 npm autodetect、<br>auto-updater、<code>claude --version</code> 支持与 <code>--uninstall</code> 原生安装脚本路径。</li>
+</ul>
+<h4 id="2026-05-v2-1-128-v2-1-143"><a href="#2026-05-v2-1-128-v2-1-143" class="headerlink" title="2026-05 | v2.1.128 ~ v2.1.143"></a>2026-05 | v2.1.128 ~ v2.1.143</h4><p><strong>信息截止</strong>：2026-05-15 | <strong>最新 Release</strong>：v2.1.143</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.143</code></td>
+<td>2026-05-15</td>
+<td>插件依赖强校验、<code>/plugin</code> 市场显示上下文成本、<code>worktree.bgIsolation = &quot;none&quot;</code> 与 PowerShell 默认策略补强一起落地</td>
+</tr>
+<tr>
+<td><code>v2.1.142</code></td>
+<td>2026-05-14</td>
+<td><code>claude agents</code> 新增一组后台会话分发参数，Fast mode 默认切到 Opus 4.7</td>
+</tr>
+<tr>
+<td><code>v2.1.141</code></td>
+<td>2026-05-13</td>
+<td>hooks JSON 新增 <code>terminalSequence</code>，<code>claude agents --cwd</code> 与 <code>/feedback</code> 附近会话打包一起补上</td>
+</tr>
+<tr>
+<td><code>v2.1.139</code></td>
+<td>2026-05-11</td>
+<td><code>claude agents</code> 研究预览上线，<code>/goal</code> 让 Claude 跨 turn 持续推进任务，agent view 开始成型</td>
+</tr>
+<tr>
+<td><code>v2.1.128</code></td>
+<td>2026-05-06</td>
+<td><code>/color</code> 随机色、<code>/mcp</code> 工具计数、<code>.zip</code> 插件归档与 channels 控制台鉴权一起补齐</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-5"><a href="#新特性用法-5" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>Agent View + <code>/goal</code></strong>：如果你要把长任务拆成多个后台 session，<br>现在可以先开 <code>claude agents</code> 看全局，再配合 <code>/goal</code> 让当前会话围着一个<br>完成条件持续推进，而不是每轮都手工提醒。</p>
+</li>
+<li><p><strong>插件依赖可视化与强校验</strong>：<code>v2.1.143</code> 后，禁用某个插件前会先检查<br>是否还有依赖它的已启用插件；启用时则会自动拉起传递依赖，适合团队共用插件栈。</p>
+</li>
+<li><p><strong>背景会话直接写工作副本</strong>：当 repo 不适合大量 worktree 时，可在<br><code>settings.json</code> 里显式打开：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;worktree&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bgIsolation&quot;</span><span class="punctuation">:</span> <span class="string">&quot;none&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Hook 直达终端通知</strong>：<code>terminalSequence</code> 让 hook 可以发桌面通知、<br>改窗口标题或触发 bell，更适合做长任务完成提醒。</p>
+</li>
+</ul>
+<h5 id="关键-fix-5"><a href="#关键-fix-5" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>背景会话在 <code>/bg</code>、分离、休眠唤醒之后会更稳定地保留 model、effort、<br><code>--mcp-config</code>、<code>--settings</code> 与 <code>--plugin-dir</code>。</li>
+<li>删除 agent view 会话时，transcript 清理和 worktree 清理逻辑更一致，<br>减少“列表删了但本地残留”的混乱状态。</li>
+<li><code>git worktree remove</code> 失败后不再回退到 <code>rm -rf</code>，避免误删 gitignored<br>或进行中的文件。</li>
+<li>修复了损坏的 <code>.credentials.json</code>、PowerShell 启动、右键粘贴、<br>stop-hook 死循环和 macOS 受保护目录读取等稳定性问题。</li>
+</ul>
+<hr>
+<h3 id="Q1（2026-01-03）"><a href="#Q1（2026-01-03）" class="headerlink" title="Q1（2026-01 ~ 03）"></a>Q1（2026-01 ~ 03）</h3><h4 id="2026-03-v2-1-66-v2-1-87"><a href="#2026-03-v2-1-66-v2-1-87" class="headerlink" title="2026-03 | v2.1.66 ~ v2.1.87"></a>2026-03 | v2.1.66 ~ v2.1.87</h4><p><strong>信息截止</strong>：2026-03-29 | <strong>最新 Release</strong>：v2.1.87</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.87</code></td>
+<td>2026-03-29</td>
+<td>优化大型代码库的索引性能；<code>/cost</code> 精度提升</td>
+</tr>
+<tr>
+<td><code>v2.1.85</code></td>
+<td>2026-03-26</td>
+<td><strong>Hooks 成熟</strong>：支持条件 <code>if</code> 字段，实现更复杂的自动化流控</td>
+</tr>
+<tr>
+<td><code>v2.1.84</code></td>
+<td>2026-03-26</td>
+<td>新增 <code>TaskCreated</code> &#x2F; <code>WorktreeCreate</code> hook；企业级 <code>allowedChannelPlugins</code> 设置</td>
+</tr>
+<tr>
+<td><code>v2.1.83</code></td>
+<td>2026-03-25</td>
+<td>新增 <code>CwdChanged</code> &#x2F; <code>FileChanged</code> hook；支持 <code>/</code> 键进行 transcript 全文搜索</td>
+</tr>
+<tr>
+<td><code>v2.1.81</code></td>
+<td>2026-03-20</td>
+<td><strong>Channels 预览</strong>：引入 <code>--channels</code> 研究预览，支持并发会话</td>
+</tr>
+<tr>
+<td><code>v2.1.80</code></td>
+<td>2026-03-19</td>
+<td>Skills&#x2F;Commands 支持 <code>effort</code> frontmatter；插件市场支持 <code>settings</code> 源</td>
+</tr>
+<tr>
+<td><code>v2.1.75</code></td>
+<td>2026-03-13</td>
+<td><strong>语音模式</strong>：稳定性大幅增强，解决长对话音频截断问题</td>
+</tr>
+<tr>
+<td><code>v2.1.68</code></td>
+<td>2026-03-04</td>
+<td><strong>MCP OAuth</strong>：全面支持 RFC 9728，打通第三方工具授权链路</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-6"><a href="#新特性用法-6" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>条件 Hooks</strong>：在 <code>CLAUDE.md</code> 的 hooks 定义中新增 <code>if: &quot;shell command&quot;</code> 字段，仅当命令返回 0 时触发 hook。</li>
+<li><strong>Transcript 搜索</strong>：在交互界面按下 <code>/</code> 键，可快速搜索当前会话的历史上下文，对长 Vibecoding session 非常友好。</li>
+<li><strong>Channels 预览</strong>：通过 <code>claude --channels</code> 启动，允许在同一个项目目录下开启多个互不干扰的推理通道。</li>
+</ul>
+<h5 id="关键-fix-6"><a href="#关键-fix-6" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>并发会话下的 Token 刷新与重新鉴权逻辑修复 (v2.1.81)</li>
+<li>改进空闲 75 分钟后的超时提示，防止不必要的 Token 消耗 (v2.1.84)</li>
+<li><code>CLAUDE_CODE_SUBPROCESS_ENV_SCRUB</code> 环境污染清理 (v2.1.83)</li>
+</ul>
+<h4 id="2026-02-v2-1-30-v2-1-63"><a href="#2026-02-v2-1-30-v2-1-63" class="headerlink" title="2026-02 | v2.1.30 ~ v2.1.63"></a>2026-02 | v2.1.30 ~ v2.1.63</h4><p><strong>信息截止</strong>：2026-02-28 | <strong>最新 Release</strong>：v2.1.63</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.53</code></td>
+<td>2026-02-25</td>
+<td>安全加固批次：插件隔离增强，防止恶意脚本越权</td>
+</tr>
+<tr>
+<td><code>v2.1.45</code></td>
+<td>2026-02-17</td>
+<td><strong>插件系统引入</strong>：正式支持从 GitHub&#x2F;NPM 安装第三方 Plugins</td>
+</tr>
+<tr>
+<td><code>v2.1.41</code></td>
+<td>2026-02-13</td>
+<td>大幅改进 Session Resume 稳定性，减少恢复时的 Context 丢失</td>
+</tr>
+<tr>
+<td><code>v2.1.30</code></td>
+<td>2026-02-03</td>
+<td><strong>Hooks 基础系统</strong>：首次引入 <code>PreToolUse</code> 等生命周期钩子</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-7"><a href="#新特性用法-7" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>插件安装</strong>：支持 <code>/plugin install &lt;repo&gt;</code>，开启了 Claude Code 的生态扩展能力。</li>
+<li><strong>Session 恢复</strong>：<code>--resume</code> 成为默认推荐的故障恢复手段，内部优化了状态持久化层。</li>
+</ul>
+<h4 id="2026-01-v2-1-1-v2-1-29"><a href="#2026-01-v2-1-1-v2-1-29" class="headerlink" title="2026-01 | v2.1.1 ~ v2.1.29"></a>2026-01 | v2.1.1 ~ v2.1.29</h4><p><strong>信息截止</strong>：2026-01-31 | <strong>最新 Release</strong>：v2.1.29</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v2.1.20</code></td>
+<td>2026-01-27</td>
+<td>优化文件读取工具的 Chunking 策略，支持超大文件扫描</td>
+</tr>
+<tr>
+<td><code>v2.1.11</code></td>
+<td>2026-01-17</td>
+<td>进入 v2.1 稳定版序列；全新的交互式登录流</td>
+</tr>
+<tr>
+<td><code>v2.1.1</code></td>
+<td>2026-01-07</td>
+<td><strong>v2.1 时代开启</strong>：首个正式 v2.1 发布；核心架构重构，推理速度与准确度显著提升</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-13</td>
+<td>初始版本，建立追踪框架；迁移 v2.1.89~v2.1.97 批次；Q1 占位</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-13</td>
+<td>补录 Q1 2026 批次（v2.1.1~v2.1.88）；新增 2025 年占位结构</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-14</td>
+<td>核对 GitHub Releases API 实际日期；修正不存在的版本号（v2.1.0&#x2F;v2.1.10&#x2F;v2.1.40&#x2F;v2.1.88）及错误日期</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-15</td>
+<td>增量追踪至 v2.1.108（更正此前误报的 v2.2）；新增 1H 缓存控制、会话总结、OS CA 支持</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-04-19</td>
+<td>增量追踪至 v2.1.114；新增原生二进制分发、<code>/tui</code>、<code>/ultrareview</code>、<code>xhigh</code> effort、PowerShell 工具，以及 Bash&#x2F;sandbox 安全加固批次</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-04-24</td>
+<td>增量追踪至 v2.1.119；新增 Vim 可视模式、自定义主题、Hooks 直调 MCP 工具、<code>/usage</code> 合并、Opus 4.7 1M 上下文修正、多平台 <code>--from-pr</code>、<code>prUrlTemplate</code>&#x2F;<code>CLAUDE_CODE_HIDE_CWD</code></td>
+</tr>
+<tr>
+<td>v1.6</td>
+<td>2026-04-29</td>
+<td>增量追踪至 v2.1.122；补记 v2.1.120 resume 崩溃回滚、HTTP&#x2F;SSE MCP、Bedrock service tier、企业托管策略与 hook&#x2F;model 元数据</td>
+</tr>
+<tr>
+<td>v1.7</td>
+<td>2026-05-06</td>
+<td>全量结构对齐：tags 标准化为 kebab-case、frontmatter 同步至 v4.4 规范、复核占位章节</td>
+</tr>
+<tr>
+<td>v1.8</td>
+<td>2026-05-18</td>
+<td>追踪至 v2.1.143；补入 agents、goal、插件依赖与后台会话更新</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CLI/" rel="tag">CLI</a>, <a class="tag-none-link" href="/tags/anthropic/" rel="tag">anthropic</a>, <a class="tag-none-link" href="/tags/claude-code/" rel="tag">claude-code</a>, <a class="tag-none-link" href="/tags/%E6%9B%B4%E6%96%B0%E8%BF%BD%E8%B8%AA/" rel="tag">更新追踪</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.766Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" OpenCode &amp; oh-my-openagent 更新追踪" href="/2026/04/12/tech/tools/tracking/2026-04-13-opencode-update-tracking/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Google Gemini CLI 更新追踪" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2025-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2025 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%882025-10-12%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q4（2025-10 ~ 12）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%85%E8%A1%A5%E5%BD%95-vX-X-X-vX-X-X"><span class="toc-number">1.1.1.</span> <span class="toc-text">待补录 | vX.X.X ~ vX.X.X</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%882025-07-09%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">Q3（2025-07 ~ 09）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%85%E8%A1%A5%E5%BD%95-%E5%90%AB%E9%A6%96%E6%AC%A1%E5%85%AC%E5%BC%80%E5%8F%91%E5%B8%83"><span class="toc-number">1.2.1.</span> <span class="toc-text">待补录 | 含首次公开发布</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882025-04-06%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">Q2（2025-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%85%E8%A1%A5%E5%BD%95-%E5%86%85%E6%B5%8B-%E6%97%A9%E6%9C%9F%E7%89%88%E6%9C%AC"><span class="toc-number">1.3.1.</span> <span class="toc-text">待补录 | 内测 &#x2F; 早期版本</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">2.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">2.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-89-v2-1-97"><span class="toc-number">2.1.1.</span> <span class="toc-text">2026-04 | v2.1.89 ~ v2.1.97</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">2.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">2.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-98-v2-1-108"><span class="toc-number">2.1.2.</span> <span class="toc-text">2026-04 | v2.1.98 ~ v2.1.108</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">2.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">2.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-109-v2-1-114"><span class="toc-number">2.1.3.</span> <span class="toc-text">2026-04 | v2.1.109 ~ v2.1.114</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">2.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">2.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-116-v2-1-119"><span class="toc-number">2.1.4.</span> <span class="toc-text">2026-04 | v2.1.116 ~ v2.1.119</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">2.1.4.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">2.1.4.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v2-1-120-v2-1-122"><span class="toc-number">2.1.5.</span> <span class="toc-text">2026-04 | v2.1.120 ~ v2.1.122</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-4"><span class="toc-number">2.1.5.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-4"><span class="toc-number">2.1.5.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-v2-1-128-v2-1-143"><span class="toc-number">2.1.6.</span> <span class="toc-text">2026-05 | v2.1.128 ~ v2.1.143</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-5"><span class="toc-number">2.1.6.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-5"><span class="toc-number">2.1.6.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%882026-01-03%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">Q1（2026-01 ~ 03）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-03-v2-1-66-v2-1-87"><span class="toc-number">2.2.1.</span> <span class="toc-text">2026-03 | v2.1.66 ~ v2.1.87</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-6"><span class="toc-number">2.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-6"><span class="toc-number">2.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-02-v2-1-30-v2-1-63"><span class="toc-number">2.2.2.</span> <span class="toc-text">2026-02 | v2.1.30 ~ v2.1.63</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-7"><span class="toc-number">2.2.2.1.</span> <span class="toc-text">新特性用法</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-01-v2-1-1-v2-1-29"><span class="toc-number">2.2.3.</span> <span class="toc-text">2026-01 | v2.1.1 ~ v2.1.29</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">3.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

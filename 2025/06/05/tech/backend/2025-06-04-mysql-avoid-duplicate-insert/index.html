@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>避免MySQL重复插入的几种方式 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2025/06/05/tech/backend/2025-06-04-mysql-avoid-duplicate-insert/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="MySQL, 性能优化, 数据库" />
+  
+  <meta name="description" content="避免MySQL重复插入的几种方式[返回技术博客] 目录 应用场景 核心知识点 代码实现 注意事项 拓展应用 延伸阅读  一、应用场景1.1 数据去重场景在实际业务开发中，经常会遇到需要避免重复插入数据的场景，比如：  用户注册：防止同一用户重复注册 订单处理：防止重复订单生成 日志记录：避免重复记录相同操作日志 批量导入：数据导入时避免重复数据  1.2 幂等性保证在分布式系统和接口设计中，保证操">
+<meta property="og:type" content="article">
+<meta property="og:title" content="避免MySQL重复插入的几种方式">
+<meta property="og:url" content="https://leahana.github.io/2025/06/05/tech/backend/2025-06-04-mysql-avoid-duplicate-insert/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="避免MySQL重复插入的几种方式[返回技术博客] 目录 应用场景 核心知识点 代码实现 注意事项 拓展应用 延伸阅读  一、应用场景1.1 数据去重场景在实际业务开发中，经常会遇到需要避免重复插入数据的场景，比如：  用户注册：防止同一用户重复注册 订单处理：防止重复订单生成 日志记录：避免重复记录相同操作日志 批量导入：数据导入时避免重复数据  1.2 幂等性保证在分布式系统和接口设计中，保证操">
+<meta property="og:locale">
+<meta property="article:published_time" content="2025-06-05T02:05:39.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="性能优化">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"避免MySQL重复插入的几种方式","description":"避免MySQL重复插入的几种方式[返回技术博客]","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2025-06-05T02:05:39.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2025/06/05/tech/backend/2025-06-04-mysql-avoid-duplicate-insert/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2025/06/05/tech/backend/2025-06-04-mysql-avoid-duplicate-insert/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">避免MySQL重复插入的几种方式</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2025-06-05T02:05:39.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2025-06-05</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~7.40K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+            <hr />
+            <div itemprop="articleBody"><h2 id="避免MySQL重复插入的几种方式"><a href="#避免MySQL重复插入的几种方式" class="headerlink" title="避免MySQL重复插入的几种方式"></a>避免MySQL重复插入的几种方式</h2><p><a href="/">[返回技术博客]</a></p>
+<h2 id="目录"><a href="#目录" class="headerlink" title="目录"></a>目录</h2><ol>
+<li><a href="#%E4%B8%80%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF">应用场景</a></li>
+<li><a href="#%E4%BA%8C%E6%A0%B8%E5%BF%83%E7%9F%A5%E8%AF%86%E7%82%B9">核心知识点</a></li>
+<li><a href="#%E4%B8%89%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">代码实现</a></li>
+<li><a href="#%E5%9B%9B%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">注意事项</a></li>
+<li><a href="#%E4%BA%94%E6%8B%93%E5%B1%95%E5%BA%94%E7%94%A8">拓展应用</a></li>
+<li><a href="#%E5%85%AD%E5%BB%B6%E4%BC%B8%E9%98%85%E8%AF%BB">延伸阅读</a></li>
+</ol>
+<h2 id="一、应用场景"><a href="#一、应用场景" class="headerlink" title="一、应用场景"></a>一、应用场景</h2><h3 id="1-1-数据去重场景"><a href="#1-1-数据去重场景" class="headerlink" title="1.1 数据去重场景"></a>1.1 数据去重场景</h3><p>在实际业务开发中，经常会遇到需要避免重复插入数据的场景，比如：</p>
+<ul>
+<li><strong>用户注册</strong>：防止同一用户重复注册</li>
+<li><strong>订单处理</strong>：防止重复订单生成</li>
+<li><strong>日志记录</strong>：避免重复记录相同操作日志</li>
+<li><strong>批量导入</strong>：数据导入时避免重复数据</li>
+</ul>
+<h3 id="1-2-幂等性保证"><a href="#1-2-幂等性保证" class="headerlink" title="1.2 幂等性保证"></a>1.2 幂等性保证</h3><p>在分布式系统和接口设计中，保证操作的幂等性是非常重要的。避免重复插入是实现幂等性的关键手段之一。</p>
+<h3 id="1-3-数据一致性维护"><a href="#1-3-数据一致性维护" class="headerlink" title="1.3 数据一致性维护"></a>1.3 数据一致性维护</h3><p>通过合理的重复插入处理机制，可以确保数据库中的数据唯一性和一致性，避免脏数据产生。</p>
+<h2 id="二、核心知识点"><a href="#二、核心知识点" class="headerlink" title="二、核心知识点"></a>二、核心知识点</h2><h3 id="2-1-关键技术原理"><a href="#2-1-关键技术原理" class="headerlink" title="2.1 关键技术原理"></a>2.1 关键技术原理</h3><ul>
+<li><strong>唯一索引&#x2F;主键约束</strong>：数据库层面的唯一性保证机制</li>
+<li><strong>INSERT IGNORE</strong>：忽略重复键错误，静默处理</li>
+<li><strong>REPLACE INTO</strong>：删除旧记录后插入新记录</li>
+<li><strong>ON DUPLICATE KEY UPDATE</strong>：遇到重复键时执行更新操作</li>
+<li><strong>先查询后插入</strong>：应用层判断，性能较差但灵活</li>
+</ul>
+<h3 id="2-2-技术选型对比"><a href="#2-2-技术选型对比" class="headerlink" title="2.2 技术选型对比"></a>2.2 技术选型对比</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>INSERT IGNORE</td>
+<td>语法简单，性能好</td>
+<td>无法获取是否插入成功</td>
+<td>只需插入，不关心是否已存在</td>
+</tr>
+<tr>
+<td>REPLACE INTO</td>
+<td>自动替换，操作简单</td>
+<td>会删除旧记录，可能丢失数据</td>
+<td>需要替换旧数据的场景</td>
+</tr>
+<tr>
+<td>ON DUPLICATE KEY UPDATE</td>
+<td>灵活，可自定义更新逻辑</td>
+<td>语法稍复杂</td>
+<td>需要更新部分字段的场景</td>
+</tr>
+<tr>
+<td>先查询后插入</td>
+<td>逻辑清晰，可控性强</td>
+<td>性能差，存在并发问题</td>
+<td>需要复杂判断逻辑的场景</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>技术隐喻</strong>：INSERT IGNORE 像”静音模式”，遇到重复就跳过；REPLACE INTO 像”强制覆盖”，直接替换；ON DUPLICATE KEY UPDATE 像”智能更新”，遇到重复就更新；先查询后插入像”人工审核”，先检查再决定。</p>
+</blockquote>
+<h2 id="三、代码实现"><a href="#三、代码实现" class="headerlink" title="三、代码实现"></a>三、代码实现</h2><h3 id="3-1-INSERT-IGNORE"><a href="#3-1-INSERT-IGNORE" class="headerlink" title="3.1 INSERT IGNORE"></a>3.1 INSERT IGNORE</h3><h4 id="3-1-1-基础用法"><a href="#3-1-1-基础用法" class="headerlink" title="3.1.1 基础用法"></a>3.1.1 基础用法</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 单条插入</span></span><br><span class="line"><span class="keyword">INSERT</span> IGNORE <span class="keyword">INTO</span> users (id, username, email) </span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 批量插入</span></span><br><span class="line"><span class="keyword">INSERT</span> IGNORE <span class="keyword">INTO</span> users (id, username, email) </span><br><span class="line"><span class="keyword">VALUES</span> </span><br><span class="line">    (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>),</span><br><span class="line">    (<span class="number">2</span>, <span class="string">&#x27;jane&#x27;</span>, <span class="string">&#x27;jane@example.com&#x27;</span>),</span><br><span class="line">    (<span class="number">3</span>, <span class="string">&#x27;bob&#x27;</span>, <span class="string">&#x27;bob@example.com&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-1-2-实现原理"><a href="#3-1-2-实现原理" class="headerlink" title="3.1.2 实现原理"></a>3.1.2 实现原理</h4><p>当使用 <code>INSERT IGNORE</code> 时，如果插入的数据违反了唯一索引或主键约束，MySQL会忽略这个错误，不会抛出异常，也不会插入数据。</p>
+<p><strong>技术说明</strong>：</p>
+<ul>
+<li>需要表中有唯一索引或主键约束</li>
+<li>返回的 <code>affected_rows</code> 为实际插入的行数</li>
+<li>不会触发 <code>ON DUPLICATE KEY UPDATE</code></li>
+</ul>
+<h3 id="3-2-REPLACE-INTO"><a href="#3-2-REPLACE-INTO" class="headerlink" title="3.2 REPLACE INTO"></a>3.2 REPLACE INTO</h3><h4 id="3-2-1-基础用法"><a href="#3-2-1-基础用法" class="headerlink" title="3.2.1 基础用法"></a>3.2.1 基础用法</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 单条替换</span></span><br><span class="line">REPLACE <span class="keyword">INTO</span> users (id, username, email) </span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 批量替换</span></span><br><span class="line">REPLACE <span class="keyword">INTO</span> users (id, username, email) </span><br><span class="line"><span class="keyword">VALUES</span> </span><br><span class="line">    (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>),</span><br><span class="line">    (<span class="number">2</span>, <span class="string">&#x27;jane&#x27;</span>, <span class="string">&#x27;jane@example.com&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-2-2-实现原理"><a href="#3-2-2-实现原理" class="headerlink" title="3.2.2 实现原理"></a>3.2.2 实现原理</h4><p><code>REPLACE INTO</code> 的执行逻辑是：</p>
+<ol>
+<li>如果记录不存在，直接插入</li>
+<li>如果记录存在（根据主键或唯一索引判断），先删除旧记录，再插入新记录</li>
+</ol>
+<p><strong>技术说明</strong>：</p>
+<ul>
+<li>⚠️ <strong>注意</strong>：会触发 <code>DELETE</code> 和 <code>INSERT</code> 操作，可能影响自增ID</li>
+<li>⚠️ <strong>注意</strong>：如果有外键约束，可能因为删除操作而失败</li>
+<li>返回的 <code>affected_rows</code> 为 2（删除1条 + 插入1条）</li>
+</ul>
+<h3 id="3-3-ON-DUPLICATE-KEY-UPDATE"><a href="#3-3-ON-DUPLICATE-KEY-UPDATE" class="headerlink" title="3.3 ON DUPLICATE KEY UPDATE"></a>3.3 ON DUPLICATE KEY UPDATE</h3><h4 id="3-3-1-基础用法"><a href="#3-3-1-基础用法" class="headerlink" title="3.3.1 基础用法"></a>3.3.1 基础用法</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 单条插入或更新</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> users (id, username, email, update_time) </span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>, NOW())</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span> </span><br><span class="line">    username <span class="operator">=</span> <span class="keyword">VALUES</span>(username),</span><br><span class="line">    email <span class="operator">=</span> <span class="keyword">VALUES</span>(email),</span><br><span class="line">    update_time <span class="operator">=</span> NOW();</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 批量插入或更新</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> users (id, username, email, update_time) </span><br><span class="line"><span class="keyword">VALUES</span> </span><br><span class="line">    (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>, NOW()),</span><br><span class="line">    (<span class="number">2</span>, <span class="string">&#x27;jane&#x27;</span>, <span class="string">&#x27;jane@example.com&#x27;</span>, NOW())</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span> </span><br><span class="line">    username <span class="operator">=</span> <span class="keyword">VALUES</span>(username),</span><br><span class="line">    email <span class="operator">=</span> <span class="keyword">VALUES</span>(email),</span><br><span class="line">    update_time <span class="operator">=</span> NOW();</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-3-2-高级用法"><a href="#3-3-2-高级用法" class="headerlink" title="3.3.2 高级用法"></a>3.3.2 高级用法</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用字段引用（MySQL 8.0.19+）</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> users (id, username, email, update_time) </span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>, NOW())</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span> </span><br><span class="line">    username <span class="operator">=</span> <span class="keyword">VALUES</span>(username),</span><br><span class="line">    email <span class="operator">=</span> <span class="keyword">VALUES</span>(email),</span><br><span class="line">    update_time <span class="operator">=</span> NOW(),</span><br><span class="line">    version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span>;  <span class="comment">-- 版本号自增</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 条件更新</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> users (id, username, email, update_time) </span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>, NOW())</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span> </span><br><span class="line">    username <span class="operator">=</span> IF(<span class="keyword">VALUES</span>(username) <span class="operator">!=</span> <span class="string">&#x27;&#x27;</span>, <span class="keyword">VALUES</span>(username), username),</span><br><span class="line">    email <span class="operator">=</span> <span class="keyword">VALUES</span>(email),</span><br><span class="line">    update_time <span class="operator">=</span> NOW();</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-3-3-在MyBatis中的应用"><a href="#3-3-3-在MyBatis中的应用" class="headerlink" title="3.3.3 在MyBatis中的应用"></a>3.3.3 在MyBatis中的应用</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- MyBatis映射文件示例 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">insert</span> <span class="attr">id</span>=<span class="string">&quot;insertOrUpdate&quot;</span>&gt;</span></span><br><span class="line">    INSERT INTO users (id, username, email, update_time) </span><br><span class="line">    VALUES </span><br><span class="line">    <span class="tag">&lt;<span class="name">foreach</span> <span class="attr">collection</span>=<span class="string">&quot;list&quot;</span> <span class="attr">item</span>=<span class="string">&quot;item&quot;</span> <span class="attr">separator</span>=<span class="string">&quot;,&quot;</span>&gt;</span></span><br><span class="line">        (#&#123;item.id&#125;, #&#123;item.username&#125;, #&#123;item.email&#125;, NOW())</span><br><span class="line">    <span class="tag">&lt;/<span class="name">foreach</span>&gt;</span></span><br><span class="line">    ON DUPLICATE KEY UPDATE </span><br><span class="line">        username = VALUES(username),</span><br><span class="line">        email = VALUES(email),</span><br><span class="line">        update_time = NOW()</span><br><span class="line"><span class="tag">&lt;/<span class="name">insert</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>技术说明</strong>：</p>
+<ul>
+<li>这是最灵活和常用的方案</li>
+<li>可以自定义更新哪些字段</li>
+<li>返回的 <code>affected_rows</code> 为 1（插入）或 2（更新）</li>
+<li>不会删除旧记录，只是更新</li>
+</ul>
+<h3 id="3-4-先查询后插入"><a href="#3-4-先查询后插入" class="headerlink" title="3.4 先查询后插入"></a>3.4 先查询后插入</h3><h4 id="3-4-1-基础实现"><a href="#3-4-1-基础实现" class="headerlink" title="3.4.1 基础实现"></a>3.4.1 基础实现</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java代码示例</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">insertIfNotExists</span><span class="params">(User user)</span> &#123;</span><br><span class="line">    <span class="type">User</span> <span class="variable">existing</span> <span class="operator">=</span> userMapper.selectById(user.getId());</span><br><span class="line">    <span class="keyword">if</span> (existing == <span class="literal">null</span>) &#123;</span><br><span class="line">        userMapper.insert(user);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 已存在，可以选择更新或忽略</span></span><br><span class="line">        log.info(<span class="string">&quot;用户已存在，ID: &#123;&#125;&quot;</span>, user.getId());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-4-2-使用SELECT-…-FOR-UPDATE防止并发"><a href="#3-4-2-使用SELECT-…-FOR-UPDATE防止并发" class="headerlink" title="3.4.2 使用SELECT … FOR UPDATE防止并发"></a>3.4.2 使用SELECT … FOR UPDATE防止并发</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用事务和行锁</span></span><br><span class="line"><span class="keyword">START</span> TRANSACTION;</span><br><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> users <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="number">1</span> <span class="keyword">FOR</span> <span class="keyword">UPDATE</span>;</span><br><span class="line"><span class="comment">-- 如果不存在则插入</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> users (id, username, email) <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>);</span><br><span class="line"><span class="keyword">COMMIT</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>技术说明</strong>：</p>
+<ul>
+<li>⚠️ <strong>性能问题</strong>：需要额外的查询操作，性能较差</li>
+<li>⚠️ <strong>并发问题</strong>：在高并发场景下可能出现竞态条件</li>
+<li>✅ <strong>灵活性</strong>：可以添加复杂的业务逻辑判断</li>
+<li>建议使用 <code>SELECT ... FOR UPDATE</code> 或分布式锁来避免并发问题</li>
+</ul>
+<h3 id="3-5-唯一索引-主键约束"><a href="#3-5-唯一索引-主键约束" class="headerlink" title="3.5 唯一索引&#x2F;主键约束"></a>3.5 唯一索引&#x2F;主键约束</h3><h4 id="3-5-1-创建唯一索引"><a href="#3-5-1-创建唯一索引" class="headerlink" title="3.5.1 创建唯一索引"></a>3.5.1 创建唯一索引</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建表时定义唯一索引</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> users (</span><br><span class="line">    id <span class="type">INT</span> <span class="keyword">PRIMARY KEY</span> AUTO_INCREMENT,</span><br><span class="line">    username <span class="type">VARCHAR</span>(<span class="number">50</span>) <span class="keyword">UNIQUE</span>,</span><br><span class="line">    email <span class="type">VARCHAR</span>(<span class="number">100</span>) <span class="keyword">UNIQUE</span>,</span><br><span class="line">    phone <span class="type">VARCHAR</span>(<span class="number">20</span>),</span><br><span class="line">    <span class="keyword">UNIQUE</span> KEY uk_phone (phone)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 为已存在的表添加唯一索引</span></span><br><span class="line"><span class="keyword">ALTER TABLE</span> users <span class="keyword">ADD</span> <span class="keyword">UNIQUE</span> KEY uk_email (email);</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-5-2-复合唯一索引"><a href="#3-5-2-复合唯一索引" class="headerlink" title="3.5.2 复合唯一索引"></a>3.5.2 复合唯一索引</h4><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建复合唯一索引</span></span><br><span class="line"><span class="keyword">CREATE TABLE</span> user_roles (</span><br><span class="line">    user_id <span class="type">INT</span>,</span><br><span class="line">    role_id <span class="type">INT</span>,</span><br><span class="line">    <span class="keyword">UNIQUE</span> KEY uk_user_role (user_id, role_id)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 这样 user_id + role_id 的组合必须唯一</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>技术说明</strong>：</p>
+<ul>
+<li>唯一索引是避免重复插入的基础</li>
+<li>可以在数据库层面保证数据唯一性</li>
+<li>建议在业务设计阶段就规划好唯一约束</li>
+</ul>
+<h2 id="四、注意事项"><a href="#四、注意事项" class="headerlink" title="四、注意事项"></a>四、注意事项</h2><h3 id="4-1-性能优化建议"><a href="#4-1-性能优化建议" class="headerlink" title="4.1 性能优化建议"></a>4.1 性能优化建议</h3><p>❗️<strong>批量操作优化</strong></p>
+<blockquote>
+<p>对于批量插入场景，建议使用 <code>INSERT ... ON DUPLICATE KEY UPDATE</code> 或 <code>INSERT IGNORE</code>，避免循环单条插入</p>
+</blockquote>
+<p>❗️<strong>索引设计</strong></p>
+<blockquote>
+<p>确保唯一索引字段的选择合理，避免过多唯一索引影响插入性能</p>
+</blockquote>
+<p>❗️<strong>事务控制</strong></p>
+<blockquote>
+<p>批量操作时建议使用事务，保证数据一致性</p>
+</blockquote>
+<h3 id="4-2-常见陷阱"><a href="#4-2-常见陷阱" class="headerlink" title="4.2 常见陷阱"></a>4.2 常见陷阱</h3><ol>
+<li><p><strong>REPLACE INTO 会删除旧记录</strong></p>
+<ul>
+<li>可能导致数据丢失</li>
+<li>会触发 DELETE 触发器</li>
+<li>自增ID会递增</li>
+</ul>
+</li>
+<li><p><strong>INSERT IGNORE 无法区分插入和忽略</strong></p>
+<ul>
+<li>需要通过 <code>affected_rows</code> 判断</li>
+<li>无法获取被忽略的数据信息</li>
+</ul>
+</li>
+<li><p><strong>ON DUPLICATE KEY UPDATE 的字段引用</strong></p>
+<ul>
+<li>MySQL 8.0.19+ 可以使用 <code>VALUES()</code> 函数</li>
+<li>老版本需要使用字段名直接引用</li>
+</ul>
+</li>
+<li><p><strong>并发场景下的竞态条件</strong></p>
+<ul>
+<li>先查询后插入在高并发下可能失效</li>
+<li>建议使用数据库层面的约束或分布式锁</li>
+</ul>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>常见问题</th>
+<th>排查建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>重复插入仍然发生</td>
+<td>检查唯一索引是否正确创建</td>
+</tr>
+<tr>
+<td>性能问题</td>
+<td>检查是否使用了批量操作</td>
+</tr>
+<tr>
+<td>数据丢失</td>
+<td>检查是否误用了 REPLACE INTO</td>
+</tr>
+<tr>
+<td>并发问题</td>
+<td>检查是否使用了合适的锁机制</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>检查清单</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> 是否创建了合适的唯一索引</li>
+<li><input disabled="" type="checkbox"> 是否选择了合适的插入策略</li>
+<li><input disabled="" type="checkbox"> 是否考虑了并发场景</li>
+<li><input disabled="" type="checkbox"> 是否处理了异常情况</li>
+</ul>
+</blockquote>
+<h2 id="五、拓展应用"><a href="#五、拓展应用" class="headerlink" title="五、拓展应用"></a>五、拓展应用</h2><h3 id="5-1-分布式场景下的幂等性保证"><a href="#5-1-分布式场景下的幂等性保证" class="headerlink" title="5.1 分布式场景下的幂等性保证"></a>5.1 分布式场景下的幂等性保证</h3><p>在分布式系统中，除了数据库层面的约束，还可以结合以下方案：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用分布式锁保证幂等性</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">insertWithDistributedLock</span><span class="params">(User user)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">lockKey</span> <span class="operator">=</span> <span class="string">&quot;user:insert:&quot;</span> + user.getId();</span><br><span class="line">    <span class="keyword">if</span> (distributedLock.tryLock(lockKey, <span class="number">5</span>, TimeUnit.SECONDS)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            userMapper.insertOrUpdate(user);</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            distributedLock.unlock(lockKey);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-批量操作的优化策略"><a href="#5-2-批量操作的优化策略" class="headerlink" title="5.2 批量操作的优化策略"></a>5.2 批量操作的优化策略</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 批量插入或更新优化</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">batchInsertOrUpdate</span><span class="params">(List&lt;User&gt; users)</span> &#123;</span><br><span class="line">    <span class="comment">// 分批处理，避免单次SQL过大</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">batchSize</span> <span class="operator">=</span> <span class="number">1000</span>;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; users.size(); i += batchSize) &#123;</span><br><span class="line">        <span class="type">int</span> <span class="variable">end</span> <span class="operator">=</span> Math.min(i + batchSize, users.size());</span><br><span class="line">        List&lt;User&gt; batch = users.subList(i, end);</span><br><span class="line">        userMapper.batchInsertOrUpdate(batch);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-与消息队列结合"><a href="#5-3-与消息队列结合" class="headerlink" title="5.3 与消息队列结合"></a>5.3 与消息队列结合</h3><p>在消息队列场景中，可以通过唯一消息ID来避免重复消费：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 消息处理时的幂等性保证</span></span><br><span class="line"><span class="meta">@RabbitListener(queues = &quot;user.queue&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">handleUserMessage</span><span class="params">(UserMessage message)</span> &#123;</span><br><span class="line">    <span class="comment">// 使用消息ID作为唯一标识</span></span><br><span class="line">    <span class="keyword">if</span> (userMapper.existsByMessageId(message.getId())) &#123;</span><br><span class="line">        log.info(<span class="string">&quot;消息已处理，跳过: &#123;&#125;&quot;</span>, message.getId());</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    userMapper.insertOrUpdate(message.getUser());</span><br><span class="line">    userMapper.insertMessageLog(message.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-数据同步场景"><a href="#5-4-数据同步场景" class="headerlink" title="5.4 数据同步场景"></a>5.4 数据同步场景</h3><p>在数据同步场景中，可以使用时间戳或版本号来判断是否需要更新：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 使用时间戳判断是否需要更新</span></span><br><span class="line"><span class="keyword">INSERT INTO</span> users (id, username, email, update_time) </span><br><span class="line"><span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">&#x27;john&#x27;</span>, <span class="string">&#x27;john@example.com&#x27;</span>, <span class="string">&#x27;2025-06-05 10:00:00&#x27;</span>)</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span> </span><br><span class="line">    username <span class="operator">=</span> IF(<span class="keyword">VALUES</span>(update_time) <span class="operator">&gt;</span> update_time, <span class="keyword">VALUES</span>(username), username),</span><br><span class="line">    email <span class="operator">=</span> IF(<span class="keyword">VALUES</span>(update_time) <span class="operator">&gt;</span> update_time, <span class="keyword">VALUES</span>(email), email),</span><br><span class="line">    update_time <span class="operator">=</span> IF(<span class="keyword">VALUES</span>(update_time) <span class="operator">&gt;</span> update_time, <span class="keyword">VALUES</span>(update_time), update_time);</span><br></pre></td></tr></table></figure>
+
+<h2 id="六、延伸阅读"><a href="#六、延伸阅读" class="headerlink" title="六、延伸阅读"></a>六、延伸阅读</h2><ol>
+<li>^^<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/insert.html">MySQL官方文档 - INSERT语法</a>^^</li>
+<li>^^<a target="_blank" rel="noopener" href="https://dev.mysql.com/doc/refman/8.0/en/insert-on-duplicate.html">MySQL官方文档 - ON DUPLICATE KEY UPDATE</a>^^</li>
+<li>^^<a target="_blank" rel="noopener" href="https://book.douban.com/subject/23008813/">高性能MySQL - 索引优化章节</a>^^</li>
+<li>^^<a target="_blank" rel="noopener" href="https://github.com/alibaba/p3c">阿里巴巴Java开发手册 - 数据库规约</a>^^</li>
+</ol>
+<blockquote>
+<p><strong>技术检查点</strong></p>
+<ul>
+<li><input disabled="" type="checkbox"> 是否理解了各种方案的适用场景</li>
+<li><input disabled="" type="checkbox"> 是否考虑了性能影响</li>
+<li><input disabled="" type="checkbox"> 是否处理了并发场景</li>
+<li><input disabled="" type="checkbox"> 是否设计了合适的唯一约束</li>
+</ul>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2025-06-04</td>
+<td>初始版本</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/MySQL/" rel="tag">MySQL</a>, <a class="tag-none-link" href="/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/" rel="tag">性能优化</a>, <a class="tag-none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 利用 Redis 管道命令提高批量更新缓存效率" href="/2025/05/21/tech/backend/2025-05-22-redis-pipeline-batch-update/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 不同关系型数据库实现ROW_NUM函数的区别" href="/2025/06/05/tech/backend/2025-06-04-db-row-num-comparison/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

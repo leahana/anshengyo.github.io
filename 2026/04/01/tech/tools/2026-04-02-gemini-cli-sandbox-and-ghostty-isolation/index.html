@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>AI 时代的安全边界：Gemini CLI Sandbox vs. Ghostty Sandbox 深度解析 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI Security, Gemini CLI, Ghostty, Sandbox, Terminal" />
+  
+  <meta name="description" content="探讨 AI 代理工具在执行高风险任务时的安全隔离必要性，深度对比系统级沙盒与应用级沙盒的技术实现与应用场景。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI 时代的安全边界：Gemini CLI Sandbox vs. Ghostty Sandbox 深度解析">
+<meta property="og:url" content="https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="探讨 AI 代理工具在执行高风险任务时的安全隔离必要性，深度对比系统级沙盒与应用级沙盒的技术实现与应用场景。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/diagram_20260417_083904_00.webp">
+<meta property="article:published_time" content="2026-04-01T18:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.766Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI Security">
+<meta property="article:tag" content="Gemini CLI">
+<meta property="article:tag" content="Ghostty">
+<meta property="article:tag" content="Sandbox">
+<meta property="article:tag" content="Terminal">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/diagram_20260417_083904_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"AI 时代的安全边界：Gemini CLI Sandbox vs. Ghostty Sandbox 深度解析","description":"探讨 AI 代理工具在执行高风险任务时的安全隔离必要性，深度对比系统级沙盒与应用级沙盒的技术实现与应用场景。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-01T18:30:00.000Z","dateModified":"2026-05-18T05:47:58.766Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">AI 时代的安全边界：Gemini CLI Sandbox vs. Ghostty Sandbox 深度解析</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-01T18:30:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-02</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~3.48K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%EF%BC%9A%E4%B8%A4%E7%A7%8D%E6%B2%99%E7%9B%92%E7%9A%84%E7%BB%B4%E5%BA%A6%E5%B7%AE%E5%BC%82"><span class="toc-number">1.1.</span> <span class="toc-text">核心对比：两种沙盒的维度差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E5%86%B3%E7%AD%96%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">安全决策流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E8%BF%AB%E5%88%87%E9%9C%80%E8%A6%81-AI-Sandbox%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么我们迫切需要 AI Sandbox？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E%E2%80%9C%E5%B9%BB%E8%A7%89%E2%80%9D%E5%88%B0%E2%80%9C%E7%A0%B4%E5%9D%8F%E2%80%9D%E7%9A%84%E5%8D%87%E7%BA%A7"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 从“幻觉”到“破坏”的升级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E9%9A%94%E7%A6%BB%E7%9A%84%E6%9C%AC%E8%B4%A8%EF%BC%9A%E6%9C%80%E5%B0%8F%E6%9D%83%E9%99%90%E5%8E%9F%E5%88%99-PoLP"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 隔离的本质：最小权限原则 (PoLP)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%EF%BC%9AGemini-CLI-%E7%9A%84%E7%B3%BB%E7%BB%9F%E7%BA%A7%E9%9A%94%E7%A6%BB"><span class="toc-number">3.</span> <span class="toc-text">2. 深度剖析：Gemini CLI 的系统级隔离</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 技术实现细节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A0%B8%E5%BF%83%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 核心安全策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Ghostty-Sandbox%EF%BC%9A%E5%BA%94%E7%94%A8%E5%B1%82%E7%9A%84%E2%80%9C%E6%B4%81%E7%99%96%E2%80%9D"><span class="toc-number">4.</span> <span class="toc-text">3. Ghostty Sandbox：应用层的“洁癖”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%83%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 它的优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%83%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 它的局限</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97%EF%BC%9A%E6%89%93%E9%80%A0%E2%80%9C%E6%97%A0%E6%84%9F%E2%80%9D%E7%9A%84%E5%AE%89%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">4. 实战指南：打造“无感”的安全流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%96%B9%E6%A1%88-A%EF%BC%9A%E5%BF%AB%E9%80%9F%E9%87%8D%E6%9E%84%EF%BC%88%E6%B2%99%E7%9B%92-%E6%8C%81%E4%B9%85%E5%8C%96%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 方案 A：快速重构（沙盒 + 持久化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%96%B9%E6%A1%88-B%EF%BC%9A%E5%AE%9E%E9%AA%8C%E6%80%A7%E6%8E%A2%E7%B4%A2%EF%BC%88%E6%B2%99%E7%9B%92-Git-%E5%B7%A5%E4%BD%9C%E6%A0%91%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 方案 B：实验性探索（沙盒 + Git 工作树）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%B7%A8%E7%AA%97%E5%8F%A3%E5%8D%8F%E4%BD%9C%E4%B8%8E-Session-%E7%AE%A1%E7%90%86-%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 跨窗口协作与 Session 管理 (断点续传)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%AE%89%E5%85%A8%E4%B8%8D%E6%98%AF%E9%98%BB%E7%A2%8D%EF%BC%8C%E8%80%8C%E6%98%AF%E5%8A%A0%E9%80%9F%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">5. 总结：安全不是阻碍，而是加速器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p><strong>核心摘要</strong>：当 AI 从“对话框”走向“生产环境”时，<br>本地文件系统操作权限成了安全重灾区。本文探讨为何<br>AI Sandbox 是开发者必备的“隔离服”，并详解 Gemini CLI<br>与 Ghostty 两种不同维度的沙盒实践。</p>
+</blockquote>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary>⏱️ 3 分钟速览版：核心对比与安全决策</summary>
+
+<h3 id="核心对比：两种沙盒的维度差异"><a href="#核心对比：两种沙盒的维度差异" class="headerlink" title="核心对比：两种沙盒的维度差异"></a>核心对比：两种沙盒的维度差异</h3><table>
+<thead>
+<tr>
+<th align="left">特性</th>
+<th align="left"><strong>Ghostty Sandbox (终端配置隔离)</strong></th>
+<th align="left"><strong>Gemini CLI Sandbox (系统资源隔离)</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>隔离层级</strong></td>
+<td align="left"><strong>应用层 (Shell Runtime)</strong></td>
+<td align="left"><strong>系统层 (Process&#x2F;Kernel)</strong></td>
+</tr>
+<tr>
+<td align="left"><strong>防御目标</strong></td>
+<td align="left">配置污染、环境变量冲突</td>
+<td align="left">恶意指令执行、数据窃取、物理删库</td>
+</tr>
+<tr>
+<td align="left"><strong>文件访问</strong></td>
+<td align="left"><strong>完全开放</strong>。与普通终端无异</td>
+<td align="left"><strong>严格受限</strong>。仅限项目目录白名单</td>
+</tr>
+<tr>
+<td align="left"><strong>网络权限</strong></td>
+<td align="left">继承主机网络</td>
+<td align="left"><strong>默认禁用</strong>（防止 Prompt 注入攻击外泄数据）</td>
+</tr>
+<tr>
+<td align="left"><strong>典型场景</strong></td>
+<td align="left">测试新插件、多环境切换</td>
+<td align="left">重构代码、运行 AI 生成的测试脚本</td>
+</tr>
+</tbody></table>
+<h3 id="安全决策流程"><a href="#安全决策流程" class="headerlink" title="安全决策流程"></a>安全决策流程</h3><pre class="mermaid">graph TD
+    A[准备运行 AI 工具] --> B{AI 是否需要执行 Shell 命令?}
+    B -- 否 --> C[普通对话模式: 无需沙盒]
+    B -- 是 --> D{任务涉及哪些范围?}
+    D -- 仅限 UI/配置测试 --> E[使用 Ghostty Sandbox]
+    D -- 涉及文件修改/安装依赖 --> F{是否信任生成内容?}
+    F -- 100% 信任 --> G[直接运行]
+    F -- 有潜在风险/大规模重构 --> H[开启 Gemini CLI Sandbox: gemini -s]
+    H --> I{需要一键撤回?}
+    I -- 是 --> J[结合 Git Worktree: gemini -s -w]</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/diagram_20260417_083904_00.webp" alt="安全决策流程：准备运行 AI 工具、普通对话模式: 无需沙盒"></p>
+</details>
+
+</details>
+
+<h2 id="1-为什么我们迫切需要-AI-Sandbox？"><a href="#1-为什么我们迫切需要-AI-Sandbox？" class="headerlink" title="1. 为什么我们迫切需要 AI Sandbox？"></a>1. 为什么我们迫切需要 AI Sandbox？</h2><p>在过去，AI 只是一个“建议者”；而现在，随着 Gemini CLI<br>等 Agent 工具的普及，AI 变成了“执行者”。<br>这种角色的转变带来了前所未有的安全风险。</p>
+<h3 id="1-1-从“幻觉”到“破坏”的升级"><a href="#1-1-从“幻觉”到“破坏”的升级" class="headerlink" title="1.1 从“幻觉”到“破坏”的升级"></a>1.1 从“幻觉”到“破坏”的升级</h3><p>传统的 LLM 幻觉最多导致代码写错，但具备 Shell 执行能力的 AI 幻觉可能导致：</p>
+<ul>
+<li><strong>误操作风险</strong>：AI 可能在理解 <code>rm -rf</code> 的范围时出错，<br>误删项目外的备份目录。</li>
+<li><strong>指令注入攻击（Prompt Injection）</strong>：<br>如果 AI 在处理第三方文档或不受信任的代码时被注入恶意指令，<br>它可能尝试读取 <code>~/.ssh/id_rsa</code> 并通过网络发送出去。</li>
+<li><strong>供应链攻击</strong>：AI 生成的脚本可能引用带后门的 npm 包，<br>在无隔离环境下安装时会自动触发 <code>preinstall</code> 恶意脚本。</li>
+</ul>
+<h3 id="1-2-隔离的本质：最小权限原则-PoLP"><a href="#1-2-隔离的本质：最小权限原则-PoLP" class="headerlink" title="1.2 隔离的本质：最小权限原则 (PoLP)"></a>1.2 隔离的本质：最小权限原则 (PoLP)</h3><p>AI Sandbox 的必要性，在于将 AI 的操作范围限定在<br>“必要且最小”的范围内。它不仅是保护主机，<br>更是给开发者提供一个**“试错实验室”**，<br>让你敢于让 AI 处理成千上万行代码的重构，<br>而不必担心它跳出项目边界。</p>
+<h2 id="2-深度剖析：Gemini-CLI-的系统级隔离"><a href="#2-深度剖析：Gemini-CLI-的系统级隔离" class="headerlink" title="2. 深度剖析：Gemini CLI 的系统级隔离"></a>2. 深度剖析：Gemini CLI 的系统级隔离</h2><p>Gemini CLI 的沙盒（开启标志 <code>-s</code>）是一个底层安全屏障，<br>它会根据不同操作系统调用对应的内核能力。</p>
+<h3 id="2-1-技术实现细节"><a href="#2-1-技术实现细节" class="headerlink" title="2.1 技术实现细节"></a>2.1 技术实现细节</h3><ul>
+<li><strong>macOS (Seatbelt)</strong>：利用 Apple 的内核沙盒框架<br><code>sandbox-exec</code>。它通过一个 <code>.sb</code> 配置文件，<br>精确定义哪些目录可写、哪些端口可访问。<br>这使得 AI 进程即使拥有 Root 权限，<br>也无法跨越内核设定的红线。</li>
+<li><strong>Linux (Docker&#x2F;gVisor)</strong>：将 AI 运行在 OCI 容器中，<br>通过 <code>bind-mount</code> 仅挂载当前项目目录。<br>高级用户还可以配合 <code>gVisor</code>（runsc）<br>实现更强的内核态隔离。</li>
+<li><strong>Windows (AppContainer)</strong>：使用低完整性级别<br>（Low Integrity Level）运行进程，<br>限制其对敏感注册表和系统文件的访问。</li>
+</ul>
+<h3 id="2-2-核心安全策略"><a href="#2-2-核心安全策略" class="headerlink" title="2.2 核心安全策略"></a>2.2 核心安全策略</h3><p>在 Gemini CLI 的 <code>.gemini/settings.json</code> 中，<br>你可以定义严苛的隔离策略：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;tools&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;sandbox&quot;</span><span class="punctuation">:</span> <span class="string">&quot;docker&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;sandboxNetworkAccess&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">false</span></span><span class="punctuation">,</span> <span class="comment">// 彻底断网，杜绝数据外泄</span></span><br><span class="line">    <span class="attr">&quot;sandboxAllowedPaths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;./src&quot;</span><span class="punctuation">,</span> <span class="string">&quot;./tests&quot;</span><span class="punctuation">,</span> <span class="string">&quot;/tmp/build-cache&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span> <span class="comment">// 仅允许访问这些路径</span></span><br><span class="line">    <span class="attr">&quot;sandboxReadOnlyPaths&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;/etc/hosts&quot;</span><span class="punctuation">]</span> <span class="comment">// 一些只能读不能改的参考文件</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="3-Ghostty-Sandbox：应用层的“洁癖”"><a href="#3-Ghostty-Sandbox：应用层的“洁癖”" class="headerlink" title="3. Ghostty Sandbox：应用层的“洁癖”"></a>3. Ghostty Sandbox：应用层的“洁癖”</h2><p>与 Gemini CLI 的硬核隔离不同，Ghostty 的沙盒更多是为了<strong>环境管理</strong>。</p>
+<h3 id="3-1-它的优势"><a href="#3-1-它的优势" class="headerlink" title="3.1 它的优势"></a>3.1 它的优势</h3><p>当你需要一个干净的终端环境来测试<br>AI 生成的 Zsh 插件或复杂的 <code>alias</code> 时，<br>Ghostty 的沙盒会显得又快又轻。<br>它通过修改 <code>ZDOTDIR</code>，<br>让你的 Shell 认为 <code>~/</code> 是另一个空目录，<br>从而保护主机上的 <code>.zshrc</code> 不被改乱。</p>
+<h3 id="3-2-它的局限"><a href="#3-2-它的局限" class="headerlink" title="3.2 它的局限"></a>3.2 它的局限</h3><p>Ghostty 沙盒无法阻止恶意程序通过绝对路径<br>（如 <code>/Users/name/.ssh</code>）读取文件。<br>因此，它<strong>不能替代</strong> Gemini CLI 的系统沙盒。</p>
+<h2 id="4-实战指南：打造“无感”的安全流程"><a href="#4-实战指南：打造“无感”的安全流程" class="headerlink" title="4. 实战指南：打造“无感”的安全流程"></a>4. 实战指南：打造“无感”的安全流程</h2><p>开启沙盒不应以牺牲效率为代价。</p>
+<h3 id="4-1-方案-A：快速重构（沙盒-持久化）"><a href="#4-1-方案-A：快速重构（沙盒-持久化）" class="headerlink" title="4.1 方案 A：快速重构（沙盒 + 持久化）"></a>4.1 方案 A：快速重构（沙盒 + 持久化）</h3><p>如果你正在进行一项高风险的重构，但又不确定 AI 会改写哪些文件：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gemini -s <span class="string">&quot;全面重构 src/legacy 目录下的过时代码&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>安全说明</strong>：改动是实时写入硬盘的，<br>即使 AI 崩溃，进度也不会丢失。</p>
+<h3 id="4-2-方案-B：实验性探索（沙盒-Git-工作树）"><a href="#4-2-方案-B：实验性探索（沙盒-Git-工作树）" class="headerlink" title="4.2 方案 B：实验性探索（沙盒 + Git 工作树）"></a>4.2 方案 B：实验性探索（沙盒 + Git 工作树）</h3><p>这是目前最推荐的“终极方案”：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gemini -s -w</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li><code>-s</code> 确保 AI 不能偷看你的私钥。</li>
+<li><code>-w</code> 创建一个独立的 Git 工作区目录。</li>
+<li>任务结束后，在主窗口检查工作区差异。<br>满意则合并，不满意则执行 <code>git worktree remove</code>。</li>
+</ol>
+<h3 id="4-3-跨窗口协作与-Session-管理-断点续传"><a href="#4-3-跨窗口协作与-Session-管理-断点续传" class="headerlink" title="4.3 跨窗口协作与 Session 管理 (断点续传)"></a>4.3 跨窗口协作与 Session 管理 (断点续传)</h3><p>在使用 Gemini CLI 时，如果你需要在不同窗口间同步任务，<br>或者在重启终端后恢复之前的重构进度，Session ID 是核心。</p>
+<ul>
+<li><p><strong>查看历史会话清单</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gemini --list-sessions</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>获取当前 Session ID</strong>：<br>在对话中输入 <code>/stats session</code>。</p>
+</li>
+<li><p><strong>恢复特定对话</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gemini --resume &lt;YOUR_SESSION_ID&gt;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>最佳实践</strong>：在分享或记录对话时，<br>建议将具体 ID 替换为说明文字，<br>或使用 <code>/title</code> 命令为会话命名，<br>方便通过 <code>gemini --resume</code> 的交互界面快速查找。</p>
+</li>
+</ul>
+<h2 id="5-总结：安全不是阻碍，而是加速器"><a href="#5-总结：安全不是阻碍，而是加速器" class="headerlink" title="5. 总结：安全不是阻碍，而是加速器"></a>5. 总结：安全不是阻碍，而是加速器</h2><p>在 AI 辅助开发的今天，<br>Sandbox 不再是一个可选的“高级选项”，<br>而应当成为默认工作流。</p>
+<ul>
+<li><strong>Ghostty Sandbox</strong> 负责环境的<strong>整洁</strong>。</li>
+<li><strong>Gemini CLI Sandbox</strong> 负责系统的<strong>安全</strong>。</li>
+</ul>
+<p>当这两个工具结合使用时，<br>你就拥有了一个既能随心实验配置，<br>又能放心让 AI 操作核心代码的安全港湾。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-02</td>
+<td>初始版本。</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td>2026-04-02</td>
+<td>大幅扩充内容，增加 AI Sandbox 必要性探讨，优化对比架构，脱敏处理 Session ID。</td>
+</tr>
+<tr>
+<td>v2.1</td>
+<td>2026-04-03</td>
+<td>强化 Gemini CLI 会话管理与断点续传实践。</td>
+</tr>
+<tr>
+<td>v2.2</td>
+<td>2026-04-06</td>
+<td>收敛 Markdown 排版并修复 lint 规范。</td>
+</tr>
+<tr>
+<td>v2.3</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI-Security/" rel="tag">AI Security</a>, <a class="tag-none-link" href="/tags/Gemini-CLI/" rel="tag">Gemini CLI</a>, <a class="tag-none-link" href="/tags/Ghostty/" rel="tag">Ghostty</a>, <a class="tag-none-link" href="/tags/Sandbox/" rel="tag">Sandbox</a>, <a class="tag-none-link" href="/tags/Terminal/" rel="tag">Terminal</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.766Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 从 iTerm2 迁移到 Ghostty：配置、取舍与实践" href="/2026/03/31/tech/tools/2026-04-01-iterm2-to-ghostty-migration-guide/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Claude Code Code Review 插件对比：官方插件 vs codex-review" href="/2026/04/01/tech/ai/2026-04-02-claude-code-review-plugins-comparison/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%EF%BC%9A%E4%B8%A4%E7%A7%8D%E6%B2%99%E7%9B%92%E7%9A%84%E7%BB%B4%E5%BA%A6%E5%B7%AE%E5%BC%82"><span class="toc-number">1.1.</span> <span class="toc-text">核心对比：两种沙盒的维度差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E5%85%A8%E5%86%B3%E7%AD%96%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.</span> <span class="toc-text">安全决策流程</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E8%BF%AB%E5%88%87%E9%9C%80%E8%A6%81-AI-Sandbox%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么我们迫切需要 AI Sandbox？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E%E2%80%9C%E5%B9%BB%E8%A7%89%E2%80%9D%E5%88%B0%E2%80%9C%E7%A0%B4%E5%9D%8F%E2%80%9D%E7%9A%84%E5%8D%87%E7%BA%A7"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 从“幻觉”到“破坏”的升级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E9%9A%94%E7%A6%BB%E7%9A%84%E6%9C%AC%E8%B4%A8%EF%BC%9A%E6%9C%80%E5%B0%8F%E6%9D%83%E9%99%90%E5%8E%9F%E5%88%99-PoLP"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 隔离的本质：最小权限原则 (PoLP)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%EF%BC%9AGemini-CLI-%E7%9A%84%E7%B3%BB%E7%BB%9F%E7%BA%A7%E9%9A%94%E7%A6%BB"><span class="toc-number">3.</span> <span class="toc-text">2. 深度剖析：Gemini CLI 的系统级隔离</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%8A%80%E6%9C%AF%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 技术实现细节</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A0%B8%E5%BF%83%E5%AE%89%E5%85%A8%E7%AD%96%E7%95%A5"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 核心安全策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Ghostty-Sandbox%EF%BC%9A%E5%BA%94%E7%94%A8%E5%B1%82%E7%9A%84%E2%80%9C%E6%B4%81%E7%99%96%E2%80%9D"><span class="toc-number">4.</span> <span class="toc-text">3. Ghostty Sandbox：应用层的“洁癖”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AE%83%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 它的优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%83%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 它的局限</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97%EF%BC%9A%E6%89%93%E9%80%A0%E2%80%9C%E6%97%A0%E6%84%9F%E2%80%9D%E7%9A%84%E5%AE%89%E5%85%A8%E6%B5%81%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">4. 实战指南：打造“无感”的安全流程</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%96%B9%E6%A1%88-A%EF%BC%9A%E5%BF%AB%E9%80%9F%E9%87%8D%E6%9E%84%EF%BC%88%E6%B2%99%E7%9B%92-%E6%8C%81%E4%B9%85%E5%8C%96%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 方案 A：快速重构（沙盒 + 持久化）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%96%B9%E6%A1%88-B%EF%BC%9A%E5%AE%9E%E9%AA%8C%E6%80%A7%E6%8E%A2%E7%B4%A2%EF%BC%88%E6%B2%99%E7%9B%92-Git-%E5%B7%A5%E4%BD%9C%E6%A0%91%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 方案 B：实验性探索（沙盒 + Git 工作树）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E8%B7%A8%E7%AA%97%E5%8F%A3%E5%8D%8F%E4%BD%9C%E4%B8%8E-Session-%E7%AE%A1%E7%90%86-%E6%96%AD%E7%82%B9%E7%BB%AD%E4%BC%A0"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 跨窗口协作与 Session 管理 (断点续传)</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%80%BB%E7%BB%93%EF%BC%9A%E5%AE%89%E5%85%A8%E4%B8%8D%E6%98%AF%E9%98%BB%E7%A2%8D%EF%BC%8C%E8%80%8C%E6%98%AF%E5%8A%A0%E9%80%9F%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">5. 总结：安全不是阻碍，而是加速器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

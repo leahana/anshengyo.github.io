@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>博得之门 3 骰子机制解析：用 Python 模拟 DnD 攻击命中与豁免概率 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/23/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="DnD, Python, pandas, 博得之门 3, 概率论, 骰子机制" />
+  
+  <meta name="description" content="将博得之门 3 的 DnD 骰子投掷机制拆解为概率模型，用 Python 和 pandas 模拟攻击命中、控制法术、豁免检定的实际概率分布，帮助你用数据做出更好的战术决策。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="博得之门 3 骰子机制解析：用 Python 模拟 DnD 攻击命中与豁免概率">
+<meta property="og:url" content="https://leahana.github.io/2026/03/23/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="将博得之门 3 的 DnD 骰子投掷机制拆解为概率模型，用 Python 和 pandas 模拟攻击命中、控制法术、豁免检定的实际概率分布，帮助你用数据做出更好的战术决策。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/attack-flow.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/advantage-comparison.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/advantage-timing.png">
+<meta property="article:published_time" content="2026-03-23T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="DnD">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="pandas">
+<meta property="article:tag" content="博得之门 3">
+<meta property="article:tag" content="概率论">
+<meta property="article:tag" content="骰子机制">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/attack-flow.png">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"博得之门 3 骰子机制解析：用 Python 模拟 DnD 攻击命中与豁免概率","description":"将博得之门 3 的 DnD 骰子投掷机制拆解为概率模型，用 Python 和 pandas 模拟攻击命中、控制法术、豁免检定的实际概率分布，帮助你用数据做出更好的战术决策。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-23T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/23/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/23/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">博得之门 3 骰子机制解析：用 Python 模拟 DnD 攻击命中与豁免概率</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-23T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-24</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~9.13K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E5%88%A4%E5%AE%9A%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">攻击判定流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%B8%AD%E6%A6%82%E7%8E%87%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">命中概率速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%93%E8%AE%BA"><span class="toc-number">3.</span> <span class="toc-text">核心结论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DnD-%E9%AA%B0%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80"><span class="toc-number">4.</span> <span class="toc-text">DnD 骰子系统基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#d20-%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-number">4.1.</span> <span class="toc-text">d20 核心机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BG3-%E4%B8%89%E7%A7%8D%E6%A0%B8%E5%BF%83%E6%A3%80%E5%AE%9A"><span class="toc-number">4.2.</span> <span class="toc-text">BG3 三种核心检定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF%E4%B8%8E%E5%8A%A3%E5%8A%BF"><span class="toc-number">4.3.</span> <span class="toc-text">优势与劣势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E7%84%B6-1-%E4%B8%8E%E8%87%AA%E7%84%B6-20"><span class="toc-number">4.4.</span> <span class="toc-text">自然 1 与自然 20</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E7%8E%87%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80"><span class="toc-number">5.</span> <span class="toc-text">概率数学基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E6%AC%A1-d20-%E7%9A%84%E5%9D%87%E5%8C%80%E5%88%86%E5%B8%83"><span class="toc-number">5.1.</span> <span class="toc-text">单次 d20 的均匀分布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-%E5%8A%A3%E5%8A%BF%E7%9A%84%E6%A6%82%E7%8E%87%E5%85%AC%E5%BC%8F"><span class="toc-number">5.2.</span> <span class="toc-text">优势&#x2F;劣势的概率公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A3%E5%B8%B8%E3%80%81%E4%BC%98%E5%8A%BF%E3%80%81%E5%8A%A3%E5%8A%BF%E6%A6%82%E7%8E%87%E5%AF%B9%E6%AF%94"><span class="toc-number">5.3.</span> <span class="toc-text">正常、优势、劣势概率对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Python-%E6%A8%A1%E6%8B%9F%E5%AE%9E%E6%88%98"><span class="toc-number">6.</span> <span class="toc-text">Python 模拟实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E6%94%BB%E5%87%BB%E5%91%BD%E4%B8%AD%E6%A8%A1%E6%8B%9F"><span class="toc-number">6.1.</span> <span class="toc-text">基础攻击命中模拟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-%E5%8A%A3%E5%8A%BF%E5%AF%B9%E6%AF%94%E6%A8%A1%E6%8B%9F"><span class="toc-number">6.2.</span> <span class="toc-text">优势&#x2F;劣势对比模拟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%91%BD%E4%B8%AD%E6%A6%82%E7%8E%87%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">6.3.</span> <span class="toc-text">生成命中概率速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B1%81%E5%85%8D%E6%A3%80%E5%AE%9A%E5%A4%B1%E8%B4%A5%E7%8E%87%E6%A8%A1%E6%8B%9F"><span class="toc-number">6.4.</span> <span class="toc-text">豁免检定失败率模拟</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BG3-%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF%E5%88%86%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">BG3 实战场景分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A1-%E7%BA%A7%E6%88%98%E5%A3%AB-vs-%E5%9C%B0%E7%B2%BE%E7%BE%A4"><span class="toc-number">7.1.</span> <span class="toc-text">场景一：1 级战士 vs 地精群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A5-%E7%BA%A7%E6%B3%95%E5%B8%88%E6%94%BE-Hold-Person"><span class="toc-number">7.2.</span> <span class="toc-text">场景二：5 级法师放 Hold Person</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9ABoss-%E6%88%98%E4%B8%AD%E7%9A%84%E4%BC%98%E5%8A%BF%E4%BB%B7%E5%80%BC"><span class="toc-number">7.3.</span> <span class="toc-text">场景三：Boss 战中的优势价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%98%E6%9C%AF%E5%86%B3%E7%AD%96%E6%8C%87%E5%8D%97"><span class="toc-number">8.</span> <span class="toc-text">战术决策指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF%E7%9A%84%E9%80%89%E6%8B%A9%E6%97%B6%E6%9C%BA"><span class="toc-number">8.1.</span> <span class="toc-text">优势的选择时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%88%98%E6%9C%AF%E5%8E%9F%E5%88%99"><span class="toc-number">8.2.</span> <span class="toc-text">关键战术原则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FAQ"><span class="toc-number">9.</span> <span class="toc-text">FAQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E5%A5%97%E6%A1%86%E6%9E%B6%E7%9A%84%E8%BF%81%E7%A7%BB%E6%80%A7"><span class="toc-number">10.2.</span> <span class="toc-text">这套框架的迁移性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8E%E7%BB%AD%E6%96%B9%E5%90%91"><span class="toc-number">10.3.</span> <span class="toc-text">后续方向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：把 BG3 里”感觉运气不好”的直觉，变成有数据支撑的概率认知——用 Python 算清楚每一次骰子背后的真实胜率。</p>
+<p>💡 <strong>核心理念</strong>：DnD 的 d20 骰子系统不是纯随机赌博，而是一个参数可控的概率模型。理解了 AC、DC、修正值、优势&#x2F;劣势的数学本质，你的战术决策就从”赌脸”变成了”算牌”。</p>
+</blockquote>
+<hr>
+<details>
+<summary>📋 3 分钟速览版（点击展开）</summary>
+
+<h3 id="攻击判定流程"><a href="#攻击判定流程" class="headerlink" title="攻击判定流程"></a>攻击判定流程</h3><pre class="mermaid">graph TD
+    A["投掷 d20"] --> B["加上攻击修正值"]
+    B --> C{"合计 >= 目标 AC?"}
+    C -->|"是"| D["命中！投掷伤害骰"]
+    C -->|"否"| E["未命中"]
+    A -->|"自然 20"| F["暴击！伤害骰翻倍"]
+    A -->|"自然 1"| G["自动未命中"]
+
+    style A fill:#e3f2fd,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000
+    style E fill:#ffcdd2,stroke:#333,color:#000
+    style G fill:#ffcdd2,stroke:#333,color:#000</pre>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/attack-flow.png" alt="攻击判定流程"></p>
+<h3 id="命中概率速查表"><a href="#命中概率速查表" class="headerlink" title="命中概率速查表"></a>命中概率速查表</h3><table>
+<thead>
+<tr>
+<th>攻击修正</th>
+<th>AC 12</th>
+<th>AC 14</th>
+<th>AC 16</th>
+<th>AC 18</th>
+<th>AC 20</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>+0</td>
+<td>45%</td>
+<td>35%</td>
+<td>25%</td>
+<td>15%</td>
+<td>5%</td>
+</tr>
+<tr>
+<td>+3</td>
+<td>60%</td>
+<td>50%</td>
+<td>40%</td>
+<td>30%</td>
+<td>20%</td>
+</tr>
+<tr>
+<td>+5</td>
+<td>70%</td>
+<td>60%</td>
+<td>50%</td>
+<td>40%</td>
+<td>30%</td>
+</tr>
+<tr>
+<td>+8</td>
+<td>85%</td>
+<td>75%</td>
+<td>65%</td>
+<td>55%</td>
+<td>45%</td>
+</tr>
+</tbody></table>
+<h3 id="核心结论"><a href="#核心结论" class="headerlink" title="核心结论"></a>核心结论</h3><ul>
+<li>优势投掷平均等效 <strong>+3.325</strong> 点修正，命中率 35%-65% 时价值最大</li>
+<li>AC 每提升 1 点，对方命中率降低 <strong>5%</strong>（无上限）</li>
+<li>豁免修正 +0 面对 DC 15 的控制法术，失败率高达 <strong>70%</strong></li>
+</ul>
+</details>
+
+<hr>
+<h2 id="DnD-骰子系统基础"><a href="#DnD-骰子系统基础" class="headerlink" title="DnD 骰子系统基础"></a>DnD 骰子系统基础</h2><h3 id="d20-核心机制"><a href="#d20-核心机制" class="headerlink" title="d20 核心机制"></a>d20 核心机制</h3><p>博得之门 3 完整复刻了 DnD 5e 的核心判定机制：每次攻击、豁免或技能检定都通过投掷一枚 20 面骰（d20）来决定。</p>
+<p>基本判定公式：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">d20 投掷值 + 修正值 &gt;= 目标阈值 → 成功</span><br></pre></td></tr></table></figure>
+
+<p>其中：</p>
+<ul>
+<li><strong>攻击检定</strong>：修正值 &#x3D; 能力修正 + 熟练加值；目标阈值 &#x3D; 敌方 AC（护甲等级）</li>
+<li><strong>技能&#x2F;能力检定</strong>：修正值 &#x3D; 对应能力修正（+ 熟练加值）；目标阈值 &#x3D; GM 设定的 DC</li>
+<li><strong>豁免检定</strong>：修正值 &#x3D; 对应属性的豁免修正；目标阈值 &#x3D; 法术 DC</li>
+</ul>
+<h3 id="BG3-三种核心检定"><a href="#BG3-三种核心检定" class="headerlink" title="BG3 三种核心检定"></a>BG3 三种核心检定</h3><table>
+<thead>
+<tr>
+<th>检定类型</th>
+<th>触发场景</th>
+<th>公式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>攻击命中</td>
+<td>近战&#x2F;远程攻击</td>
+<td>d20 + 攻击修正 &gt;&#x3D; 目标 AC</td>
+</tr>
+<tr>
+<td>豁免检定</td>
+<td>法术控制、陷阱、毒素</td>
+<td>d20 + 豁免修正 &gt;&#x3D; 法术 DC</td>
+</tr>
+<tr>
+<td>技能检定</td>
+<td>对话说服、开锁、感知</td>
+<td>d20 + 技能修正 &gt;&#x3D; DC</td>
+</tr>
+</tbody></table>
+<h3 id="优势与劣势"><a href="#优势与劣势" class="headerlink" title="优势与劣势"></a>优势与劣势</h3><p>优势（Advantage）和劣势（Disadvantage）是改变概率分布的最强机制：</p>
+<ul>
+<li><strong>优势</strong>：同时投两枚 d20，取<strong>较高值</strong></li>
+<li><strong>劣势</strong>：同时投两枚 d20，取<strong>较低值</strong></li>
+<li><strong>两者相消</strong>：同时拥有优势和劣势时效果互相抵消，退回单骰投掷</li>
+</ul>
+<h3 id="自然-1-与自然-20"><a href="#自然-1-与自然-20" class="headerlink" title="自然 1 与自然 20"></a>自然 1 与自然 20</h3><p>BG3 的实现规则（与桌游 RAW 略有不同）：</p>
+<ul>
+<li><strong>自然 20</strong>：攻击检定自动命中并触发暴击；豁免检定自动成功</li>
+<li><strong>自然 1</strong>：攻击检定自动未命中；豁免检定自动失败（桌游 RAW 不一定如此）</li>
+<li><strong>暴击阈值可以更低</strong>：部分 BG3 装备（如地脉迷城匕首）可将暴击触发值降至 19，即 d20 投出 19 或 20 均触发暴击，暴击率从 5% 提升至 10%</li>
+</ul>
+<hr>
+<h2 id="概率数学基础"><a href="#概率数学基础" class="headerlink" title="概率数学基础"></a>概率数学基础</h2><h3 id="单次-d20-的均匀分布"><a href="#单次-d20-的均匀分布" class="headerlink" title="单次 d20 的均匀分布"></a>单次 d20 的均匀分布</h3><p>d20 是标准均匀分布，每个值（1-20）出现概率均为 5%。投出 &gt;&#x3D; k 的概率：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">P(d20 &gt;= k) = (21 - k) / 20</span><br></pre></td></tr></table></figure>
+
+<p>例如，需要投出 &gt;&#x3D; 11 才能命中（攻击修正 +5，对面 AC 16）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">需要值 k = 16 - 5 = 11</span><br><span class="line">P(&gt;=11) = (21 - 11) / 20 = 10 / 20 = 50%</span><br></pre></td></tr></table></figure>
+
+<h3 id="优势-劣势的概率公式"><a href="#优势-劣势的概率公式" class="headerlink" title="优势&#x2F;劣势的概率公式"></a>优势&#x2F;劣势的概率公式</h3><p>设”需要投出 &gt;&#x3D; k 才成功”，三种情况的公式如下：</p>
+<ul>
+<li><strong>正常</strong>：<code>P = (21 - k) / 20</code></li>
+<li><strong>优势</strong>：<code>P = 1 - ((k - 1) / 20)²</code>（两次都失败的概率取补集）</li>
+<li><strong>劣势</strong>：<code>P = ((21 - k) / 20)²</code>（两次都成功才算成功）</li>
+</ul>
+<p>优势相较正常的提升量在 k &#x3D; 11 时最大（+25%），在 k 接近 2 或 20 时趋近于 0。</p>
+<h3 id="正常、优势、劣势概率对比"><a href="#正常、优势、劣势概率对比" class="headerlink" title="正常、优势、劣势概率对比"></a>正常、优势、劣势概率对比</h3><pre class="mermaid">graph LR
+    A["需要投 d20"] --> B{"是否有优/劣势?"}
+    B -->|"优势"| C["投 2d20 取高值"]
+    B -->|"正常"| D["投 1d20"]
+    B -->|"劣势"| E["投 2d20 取低值"]
+    C --> F["命中概率提升最多 +25%"]
+    E --> G["命中概率降低最多 -25%"]
+
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#e3f2fd,stroke:#333,color:#000
+    style E fill:#ffcdd2,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000
+    style G fill:#ffcdd2,stroke:#333,color:#000</pre>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/advantage-comparison.png" alt="优势劣势概率对比"></p>
+<hr>
+<h2 id="Python-模拟实战"><a href="#Python-模拟实战" class="headerlink" title="Python 模拟实战"></a>Python 模拟实战</h2><p>以下代码使用 numpy 和 pandas 进行蒙特卡洛模拟，安装依赖后可直接运行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install numpy pandas</span><br></pre></td></tr></table></figure>
+
+<h3 id="基础攻击命中模拟"><a href="#基础攻击命中模拟" class="headerlink" title="基础攻击命中模拟"></a>基础攻击命中模拟</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> numpy <span class="keyword">as</span> np</span><br><span class="line"><span class="keyword">import</span> pandas <span class="keyword">as</span> pd</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">simulate_attacks</span>(<span class="params"></span></span><br><span class="line"><span class="params">    n: <span class="built_in">int</span>, attack_modifier: <span class="built_in">int</span>, target_ac: <span class="built_in">int</span>, crit_threshold: <span class="built_in">int</span> = <span class="number">20</span></span></span><br><span class="line"><span class="params"></span>) -&gt; pd.DataFrame:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;蒙特卡洛模拟 n 次攻击，返回逐次结果 DataFrame</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    crit_threshold: 暴击触发阈值，默认 20；地脉迷城匕首等装备可降至 19</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    rolls = np.random.randint(<span class="number">1</span>, <span class="number">21</span>, size=n)</span><br><span class="line">    df = pd.DataFrame(&#123;</span><br><span class="line">        <span class="string">&#x27;d20&#x27;</span>: rolls,</span><br><span class="line">        <span class="string">&#x27;total&#x27;</span>: rolls + attack_modifier,</span><br><span class="line">        <span class="string">&#x27;ac&#x27;</span>: target_ac,</span><br><span class="line">    &#125;)</span><br><span class="line">    <span class="comment"># 达到暴击阈值自动命中，自然 1 自动未命中</span></span><br><span class="line">    df[<span class="string">&#x27;crit&#x27;</span>] = df[<span class="string">&#x27;d20&#x27;</span>] &gt;= crit_threshold</span><br><span class="line">    df[<span class="string">&#x27;hit&#x27;</span>] = (df[<span class="string">&#x27;total&#x27;</span>] &gt;= target_ac) | df[<span class="string">&#x27;crit&#x27;</span>]</span><br><span class="line">    df.loc[df[<span class="string">&#x27;d20&#x27;</span>] == <span class="number">1</span>, <span class="string">&#x27;hit&#x27;</span>] = <span class="literal">False</span></span><br><span class="line">    <span class="keyword">return</span> df</span><br><span class="line"></span><br><span class="line"><span class="comment"># 示例：+5 攻击修正 vs AC 16，模拟 10 万次</span></span><br><span class="line">results = simulate_attacks(<span class="number">100_000</span>, attack_modifier=<span class="number">5</span>, target_ac=<span class="number">16</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;命中率: <span class="subst">&#123;results[<span class="string">&#x27;hit&#x27;</span>].mean():<span class="number">.1</span>%&#125;</span>&quot;</span>)   <span class="comment"># 理论值: 50%</span></span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;暴击率: <span class="subst">&#123;results[<span class="string">&#x27;crit&#x27;</span>].mean():<span class="number">.1</span>%&#125;</span>&quot;</span>)  <span class="comment"># 理论值: 5%</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 装备地脉迷城匕首（暴击阈值降至 19）</span></span><br><span class="line">results_19 = simulate_attacks(<span class="number">100_000</span>, attack_modifier=<span class="number">5</span>, target_ac=<span class="number">16</span>, crit_threshold=<span class="number">19</span>)</span><br><span class="line"><span class="built_in">print</span>(<span class="string">f&quot;暴击率（阈值 19）: <span class="subst">&#123;results_19[<span class="string">&#x27;crit&#x27;</span>].mean():<span class="number">.1</span>%&#125;</span>&quot;</span>)  <span class="comment"># 理论值: 10%</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="优势-劣势对比模拟"><a href="#优势-劣势对比模拟" class="headerlink" title="优势&#x2F;劣势对比模拟"></a>优势&#x2F;劣势对比模拟</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">compare_advantage</span>(<span class="params">n: <span class="built_in">int</span>, modifier: <span class="built_in">int</span>, ac: <span class="built_in">int</span></span>) -&gt; <span class="built_in">dict</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;对比正常/优势/劣势三种情况下的命中率&quot;&quot;&quot;</span></span><br><span class="line">    r1 = np.random.randint(<span class="number">1</span>, <span class="number">21</span>, size=n)</span><br><span class="line">    r2 = np.random.randint(<span class="number">1</span>, <span class="number">21</span>, size=n)</span><br><span class="line"></span><br><span class="line">    normal = r1</span><br><span class="line">    advantage = np.maximum(r1, r2)      <span class="comment"># 取高值</span></span><br><span class="line">    disadvantage = np.minimum(r1, r2)   <span class="comment"># 取低值</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">hit_rate</span>(<span class="params">rolls: np.ndarray</span>) -&gt; <span class="built_in">float</span>:</span><br><span class="line">        hits = ((rolls + modifier) &gt;= ac) | (rolls == <span class="number">20</span>)</span><br><span class="line">        hits = hits.copy()</span><br><span class="line">        hits[rolls == <span class="number">1</span>] = <span class="literal">False</span></span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">float</span>(hits.mean())</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> &#123;</span><br><span class="line">        <span class="string">&#x27;正常&#x27;</span>: <span class="string">f&quot;<span class="subst">&#123;hit_rate(normal):<span class="number">.1</span>%&#125;</span>&quot;</span>,</span><br><span class="line">        <span class="string">&#x27;优势&#x27;</span>: <span class="string">f&quot;<span class="subst">&#123;hit_rate(advantage):<span class="number">.1</span>%&#125;</span>&quot;</span>,</span><br><span class="line">        <span class="string">&#x27;劣势&#x27;</span>: <span class="string">f&quot;<span class="subst">&#123;hit_rate(disadvantage):<span class="number">.1</span>%&#125;</span>&quot;</span>,</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 示例：+5 修正 vs AC 16</span></span><br><span class="line"><span class="built_in">print</span>(compare_advantage(<span class="number">100_000</span>, modifier=<span class="number">5</span>, ac=<span class="number">16</span>))</span><br><span class="line"><span class="comment"># 输出示例：&#123;&#x27;正常&#x27;: &#x27;50.0%&#x27;, &#x27;优势&#x27;: &#x27;75.0%&#x27;, &#x27;劣势&#x27;: &#x27;25.0%&#x27;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="生成命中概率速查表"><a href="#生成命中概率速查表" class="headerlink" title="生成命中概率速查表"></a>生成命中概率速查表</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">build_hit_table</span>() -&gt; pd.DataFrame:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;生成攻击修正 × 目标 AC 的命中概率矩阵（精确计算，无需模拟）&quot;&quot;&quot;</span></span><br><span class="line">    rows = []</span><br><span class="line">    <span class="keyword">for</span> mod <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">0</span>, <span class="number">11</span>):</span><br><span class="line">        <span class="keyword">for</span> ac <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">10</span>, <span class="number">21</span>):</span><br><span class="line">            k = ac - mod  <span class="comment"># 需要投出的最低 d20 值</span></span><br><span class="line">            <span class="keyword">if</span> k &lt;= <span class="number">1</span>:</span><br><span class="line">                prob = <span class="number">0.95</span>   <span class="comment"># 只有自然 1 才 miss</span></span><br><span class="line">            <span class="keyword">elif</span> k &gt;= <span class="number">21</span>:</span><br><span class="line">                prob = <span class="number">0.05</span>   <span class="comment"># 只有自然 20 才 hit</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                prob = (<span class="number">21</span> - k) / <span class="number">20</span></span><br><span class="line">            rows.append(&#123;<span class="string">&#x27;修正&#x27;</span>: <span class="string">f&quot;+<span class="subst">&#123;mod&#125;</span>&quot;</span>, <span class="string">&#x27;AC&#x27;</span>: ac, <span class="string">&#x27;命中率&#x27;</span>: prob&#125;)</span><br><span class="line"></span><br><span class="line">    df = pd.DataFrame(rows)</span><br><span class="line">    pivot = df.pivot(index=<span class="string">&#x27;修正&#x27;</span>, columns=<span class="string">&#x27;AC&#x27;</span>, values=<span class="string">&#x27;命中率&#x27;</span>)</span><br><span class="line">    <span class="keyword">return</span> pivot.<span class="built_in">map</span>(<span class="keyword">lambda</span> x: <span class="string">f&quot;<span class="subst">&#123;x:<span class="number">.0</span>%&#125;</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(build_hit_table().to_string())</span><br></pre></td></tr></table></figure>
+
+<h3 id="豁免检定失败率模拟"><a href="#豁免检定失败率模拟" class="headerlink" title="豁免检定失败率模拟"></a>豁免检定失败率模拟</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">saving_throw_fail_rate</span>(<span class="params">spell_dc: <span class="built_in">int</span>, save_modifier: <span class="built_in">int</span>, n: <span class="built_in">int</span> = <span class="number">100_000</span></span>) -&gt; <span class="built_in">float</span>:</span><br><span class="line">    <span class="string">&quot;&quot;&quot;模拟目标豁免失败（即控制法术生效）的概率，使用 BG3 规则&quot;&quot;&quot;</span></span><br><span class="line">    rolls = np.random.randint(<span class="number">1</span>, <span class="number">21</span>, size=n)</span><br><span class="line">    totals = rolls + save_modifier</span><br><span class="line">    <span class="comment"># BG3 规则：自然 20 总是豁免成功，自然 1 总是豁免失败</span></span><br><span class="line">    failed = (totals &lt; spell_dc).copy()</span><br><span class="line">    failed[rolls == <span class="number">20</span>] = <span class="literal">False</span>  <span class="comment"># nat20 强制成功</span></span><br><span class="line">    failed[rolls == <span class="number">1</span>] = <span class="literal">True</span>    <span class="comment"># nat1 强制失败</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">float</span>(failed.mean())</span><br><span class="line"></span><br><span class="line"><span class="comment"># 多目标对比：Hold Person (DC 15) 对不同敌人的效果</span></span><br><span class="line">targets = [</span><br><span class="line">    (<span class="string">&quot;精英地精（WIS +0）&quot;</span>, <span class="number">0</span>),</span><br><span class="line">    (<span class="string">&quot;普通人类士兵（WIS +1）&quot;</span>, <span class="number">1</span>),</span><br><span class="line">    (<span class="string">&quot;法师（WIS +3）&quot;</span>, <span class="number">3</span>),</span><br><span class="line">    (<span class="string">&quot;圣骑士（WIS +5）&quot;</span>, <span class="number">5</span>),</span><br><span class="line">]</span><br><span class="line"><span class="keyword">for</span> name, mod <span class="keyword">in</span> targets:</span><br><span class="line">    r = saving_throw_fail_rate(spell_dc=<span class="number">15</span>, save_modifier=mod)</span><br><span class="line">    <span class="built_in">print</span>(<span class="string">f&quot;<span class="subst">&#123;name&#125;</span>: 控制生效 <span class="subst">&#123;r:<span class="number">.1</span>%&#125;</span>&quot;</span>)</span><br><span class="line"><span class="comment"># 理论输出：70% / 65% / 55% / 45%</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="BG3-实战场景分析"><a href="#BG3-实战场景分析" class="headerlink" title="BG3 实战场景分析"></a>BG3 实战场景分析</h2><h3 id="场景一：1-级战士-vs-地精群"><a href="#场景一：1-级战士-vs-地精群" class="headerlink" title="场景一：1 级战士 vs 地精群"></a>场景一：1 级战士 vs 地精群</h3><ul>
+<li><strong>角色</strong>：战士，攻击修正 +5（力量修正 +3，熟练加值 +2）</li>
+<li><strong>目标</strong>：地精，AC 15</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">理论命中率 = (21 - (15 - 5)) / 20 = 11 / 20 = 55%</span><br><span class="line">开启优势后 = 1 - (9/20)² = 1 - 0.2025 ≈ 79.75%</span><br></pre></td></tr></table></figure>
+
+<p>对低 AC 敌人，优势将命中率从 55% 提升到 80%，相当于额外增加了 45% 的相对输出期望。</p>
+<h3 id="场景二：5-级法师放-Hold-Person"><a href="#场景二：5-级法师放-Hold-Person" class="headerlink" title="场景二：5 级法师放 Hold Person"></a>场景二：5 级法师放 Hold Person</h3><ul>
+<li><strong>法术 DC</strong>：15（8 + 熟练 +3 + 智力修正 +4）</li>
+<li><strong>目标</strong>：人类士兵，WIS 豁免修正 +1</li>
+</ul>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">控制生效概率 ≈ (15 - 1 - 1) / 20 = 13/20 = 65%（加 nat1 惩罚后约 70%）</span><br></pre></td></tr></table></figure>
+
+<p>选择 WIS 较低的目标时，控制法术的期望收益远高于同等环位的直接伤害。</p>
+<h3 id="场景三：Boss-战中的优势价值"><a href="#场景三：Boss-战中的优势价值" class="headerlink" title="场景三：Boss 战中的优势价值"></a>场景三：Boss 战中的优势价值</h3><p>当敌方 AC 为 20（Boss 级），己方攻击修正仅 +5 时：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>命中率</th>
+<th>相对正常</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>劣势</td>
+<td>9%</td>
+<td>-21pp</td>
+</tr>
+<tr>
+<td>正常</td>
+<td>30%</td>
+<td>—</td>
+</tr>
+<tr>
+<td>优势</td>
+<td>51%</td>
+<td>+21pp</td>
+</tr>
+</tbody></table>
+<p>面对高 AC Boss，优势的绝对提升量（+21pp）与低 AC 场景相似，但相对收益接近<strong>翻倍期望输出</strong>，远超低 AC 时的相对价值。</p>
+<hr>
+<h2 id="战术决策指南"><a href="#战术决策指南" class="headerlink" title="战术决策指南"></a>战术决策指南</h2><h3 id="优势的选择时机"><a href="#优势的选择时机" class="headerlink" title="优势的选择时机"></a>优势的选择时机</h3><pre class="mermaid">graph TD
+    A["考虑如何提升输出"] --> B{"当前命中率?"}
+    B -->|"< 40%（高 AC 敌人）"| C["优先获取优势"]
+    B -->|"40%-70%（中等 AC）"| D{"能否获取优势?"}
+    B -->|"> 70%（低 AC 敌人）"| E["叠加伤害修正更划算"]
+    D -->|"是"| F["优势带来 15-25% 提升"]
+    D -->|"否"| G["尝试降低敌方 AC 或提升修正"]
+    C --> H["俯冲攻击、法术、祝福等手段"]
+
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style E fill:#e3f2fd,stroke:#333,color:#000
+    style H fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/advantage-timing.png" alt="优势选择时机"></p>
+<h3 id="关键战术原则"><a href="#关键战术原则" class="headerlink" title="关键战术原则"></a>关键战术原则</h3><p><strong>优势 vs 伤害加成的选择</strong>：</p>
+<ul>
+<li>命中率 &lt; 50% 时，优势收益通常大于叠加伤害修正</li>
+<li>命中率 &gt; 70% 时，祝福（Bless）&#x2F; 狂怒等伤害加成更高效</li>
+<li>优势对暴击率有隐性加成：5% 提升至约 9.75%，对触发额外效果的职业影响显著</li>
+</ul>
+<p><strong>控制法术的目标优先级</strong>：</p>
+<p>用 <code>saving_throw_fail_rate()</code> 在战前估算控制成功率，选择豁免修正最低的敌人。控制生效概率 &gt;&#x3D; 60% 且目标威胁度高时，控制的期望价值通常优于直接输出。</p>
+<p><strong>优势不叠加</strong>：</p>
+<p>即使有三个来源提供优势，效果等同于一个。在已有优势的情况下，应将行动资源投入其他增益，如浓度 buff、场地控制或额外攻击。</p>
+<hr>
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><p><strong>Q：我总是 Miss，游戏是不是在作弊？</strong></p>
+<p>A：这是确认偏误。当命中率为 50% 时，连续 Miss 3 次的概率是 12.5%，每 8 场战斗必然出现一次。蒙特卡洛模拟的价值就在于：跑 10 万次之后，它不会说谎。</p>
+<p><strong>Q：优势到底等效多少点修正？</strong></p>
+<p>A：平均等效 +3.325 点，但非线性。需要投 10-12 时，优势约带来 25% 提升；需要投 2 或 19 时，提升接近 0。最值钱的区间是需要投 8-14（对应命中率 35%-65%）。</p>
+<p><strong>Q：AC 堆到多少才有意义？</strong></p>
+<p>A：AC 每提升 1 点，对方命中率绝对降低 5%，没有上限。从 AC 14 升到 AC 16，对面命中率从 55% 降到 45%，相对减伤约 18%。从 AC 18 升到 AC 20，相对减伤反而接近 33%——高 AC 段的边际防御价值更高，不是递减而是递增。</p>
+<p><strong>Q：控制法术 vs 直接伤害怎么选？</strong></p>
+<p>A：核心变量是控制生效概率和目标威胁度。控制生效 &gt;&#x3D; 65% 时，等效于该目标至少”退出战斗”一回合，通常比单回合直接伤害价值更高。若目标豁免修正极高（如圣骑士 WIS +5 对 DC 15），成功率只有约 45%，此时直接伤害往往更稳。</p>
+<p><strong>Q：BG3 的骰子规则和桌游 DnD 5e 完全一样吗？</strong></p>
+<p>A：不完全一样。标准 RAW 5e 中，普通豁免检定并不强制”自然 1 &#x3D; 自动失败”，但 BG3 选择了这个强化规则，使控制法术的稳定性略低于桌游。本文所有模拟均遵循 BG3 实际规则。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li>d20 均匀分布，命中率 &#x3D; (21 - 需求值) &#x2F; 20，所有概率均可精确计算</li>
+<li>优势在命中率 35%-65% 区间价值最大，约等效 +3 至 +5 点修正</li>
+<li>蒙特卡洛模拟的结果与理论公式高度吻合，可用来验证或推翻直觉判断</li>
+</ol>
+<h3 id="这套框架的迁移性"><a href="#这套框架的迁移性" class="headerlink" title="这套框架的迁移性"></a>这套框架的迁移性</h3><p>相同的分析方法也适用于：</p>
+<ul>
+<li><strong>XCOM 系列</strong>：百分制命中率，换个参数即可复用</li>
+<li><strong>桌游 DnD &#x2F; Pathfinder</strong>：调整 nat1&#x2F;nat20 规则后直接套用</li>
+<li><strong>其他骰子 TRPG</strong>：修改骰型（d6、d8、d12）和修正规则即可</li>
+</ul>
+<h3 id="后续方向"><a href="#后续方向" class="headerlink" title="后续方向"></a>后续方向</h3><ul>
+<li>加入伤害期望计算：命中率 × 平均伤害骰 × 暴击倍率（已有完整实现，见 <a target="_blank" rel="noopener" href="https://github.com/leahana/BaldursGate3-DamageCalc">BaldursGate3-DamageCalc</a>）</li>
+<li>模拟多回合连续攻击的累积概率分布</li>
+<li>对比不同职业&#x2F;专长在各 AC 段的 DPS 期望曲线</li>
+</ul>
+<blockquote>
+<p>📦 <strong>延伸工具</strong>：本文聚焦命中概率与豁免分析。如果你还想计算<strong>期望伤害</strong>（含祝福骰、暴击翻倍、神射手 -5&#x2F;+10 等复杂表达式），可以直接使用 <a target="_blank" rel="noopener" href="https://github.com/leahana/BaldursGate3-DamageCalc">BaldursGate3-DamageCalc</a>，输入攻击&#x2F;伤害表达式即可运行。</p>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-24</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-24</td>
+<td>补充暴击阈值可配置说明，更新 simulate_attacks 支持 crit_threshold 参数；添加仓库联动引用</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-15</td>
+<td>为三张流程图追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/DnD/" rel="tag">DnD</a>, <a class="tag-none-link" href="/tags/Python/" rel="tag">Python</a>, <a class="tag-none-link" href="/tags/pandas/" rel="tag">pandas</a>, <a class="tag-none-link" href="/tags/%E5%8D%9A%E5%BE%97%E4%B9%8B%E9%97%A8-3/" rel="tag">博得之门 3</a>, <a class="tag-none-link" href="/tags/%E6%A6%82%E7%8E%87%E8%AE%BA/" rel="tag">概率论</a>, <a class="tag-none-link" href="/tags/%E9%AA%B0%E5%AD%90%E6%9C%BA%E5%88%B6/" rel="tag">骰子机制</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" CI/CD 从零到实战：基于 GitHub Actions 的 Hexo 博客自动化部署" href="/2026/03/23/tech/tools/2026-03-24-github-actions-hexo-auto-deploy/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型" href="/2026/03/25/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E5%88%A4%E5%AE%9A%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">攻击判定流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%91%BD%E4%B8%AD%E6%A6%82%E7%8E%87%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">命中概率速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%93%E8%AE%BA"><span class="toc-number">3.</span> <span class="toc-text">核心结论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#DnD-%E9%AA%B0%E5%AD%90%E7%B3%BB%E7%BB%9F%E5%9F%BA%E7%A1%80"><span class="toc-number">4.</span> <span class="toc-text">DnD 骰子系统基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#d20-%E6%A0%B8%E5%BF%83%E6%9C%BA%E5%88%B6"><span class="toc-number">4.1.</span> <span class="toc-text">d20 核心机制</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#BG3-%E4%B8%89%E7%A7%8D%E6%A0%B8%E5%BF%83%E6%A3%80%E5%AE%9A"><span class="toc-number">4.2.</span> <span class="toc-text">BG3 三种核心检定</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF%E4%B8%8E%E5%8A%A3%E5%8A%BF"><span class="toc-number">4.3.</span> <span class="toc-text">优势与劣势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%87%AA%E7%84%B6-1-%E4%B8%8E%E8%87%AA%E7%84%B6-20"><span class="toc-number">4.4.</span> <span class="toc-text">自然 1 与自然 20</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A6%82%E7%8E%87%E6%95%B0%E5%AD%A6%E5%9F%BA%E7%A1%80"><span class="toc-number">5.</span> <span class="toc-text">概率数学基础</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E6%AC%A1-d20-%E7%9A%84%E5%9D%87%E5%8C%80%E5%88%86%E5%B8%83"><span class="toc-number">5.1.</span> <span class="toc-text">单次 d20 的均匀分布</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-%E5%8A%A3%E5%8A%BF%E7%9A%84%E6%A6%82%E7%8E%87%E5%85%AC%E5%BC%8F"><span class="toc-number">5.2.</span> <span class="toc-text">优势&#x2F;劣势的概率公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%AD%A3%E5%B8%B8%E3%80%81%E4%BC%98%E5%8A%BF%E3%80%81%E5%8A%A3%E5%8A%BF%E6%A6%82%E7%8E%87%E5%AF%B9%E6%AF%94"><span class="toc-number">5.3.</span> <span class="toc-text">正常、优势、劣势概率对比</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Python-%E6%A8%A1%E6%8B%9F%E5%AE%9E%E6%88%98"><span class="toc-number">6.</span> <span class="toc-text">Python 模拟实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E6%94%BB%E5%87%BB%E5%91%BD%E4%B8%AD%E6%A8%A1%E6%8B%9F"><span class="toc-number">6.1.</span> <span class="toc-text">基础攻击命中模拟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF-%E5%8A%A3%E5%8A%BF%E5%AF%B9%E6%AF%94%E6%A8%A1%E6%8B%9F"><span class="toc-number">6.2.</span> <span class="toc-text">优势&#x2F;劣势对比模拟</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%88%90%E5%91%BD%E4%B8%AD%E6%A6%82%E7%8E%87%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">6.3.</span> <span class="toc-text">生成命中概率速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B1%81%E5%85%8D%E6%A3%80%E5%AE%9A%E5%A4%B1%E8%B4%A5%E7%8E%87%E6%A8%A1%E6%8B%9F"><span class="toc-number">6.4.</span> <span class="toc-text">豁免检定失败率模拟</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#BG3-%E5%AE%9E%E6%88%98%E5%9C%BA%E6%99%AF%E5%88%86%E6%9E%90"><span class="toc-number">7.</span> <span class="toc-text">BG3 实战场景分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A1-%E7%BA%A7%E6%88%98%E5%A3%AB-vs-%E5%9C%B0%E7%B2%BE%E7%BE%A4"><span class="toc-number">7.1.</span> <span class="toc-text">场景一：1 级战士 vs 地精群</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A5-%E7%BA%A7%E6%B3%95%E5%B8%88%E6%94%BE-Hold-Person"><span class="toc-number">7.2.</span> <span class="toc-text">场景二：5 级法师放 Hold Person</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9ABoss-%E6%88%98%E4%B8%AD%E7%9A%84%E4%BC%98%E5%8A%BF%E4%BB%B7%E5%80%BC"><span class="toc-number">7.3.</span> <span class="toc-text">场景三：Boss 战中的优势价值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%88%98%E6%9C%AF%E5%86%B3%E7%AD%96%E6%8C%87%E5%8D%97"><span class="toc-number">8.</span> <span class="toc-text">战术决策指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF%E7%9A%84%E9%80%89%E6%8B%A9%E6%97%B6%E6%9C%BA"><span class="toc-number">8.1.</span> <span class="toc-text">优势的选择时机</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%88%98%E6%9C%AF%E5%8E%9F%E5%88%99"><span class="toc-number">8.2.</span> <span class="toc-text">关键战术原则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FAQ"><span class="toc-number">9.</span> <span class="toc-text">FAQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BF%99%E5%A5%97%E6%A1%86%E6%9E%B6%E7%9A%84%E8%BF%81%E7%A7%BB%E6%80%A7"><span class="toc-number">10.2.</span> <span class="toc-text">这套框架的迁移性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%8E%E7%BB%AD%E6%96%B9%E5%90%91"><span class="toc-number">10.3.</span> <span class="toc-text">后续方向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

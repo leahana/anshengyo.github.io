@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>AI 工具 API Key 统一管理：从 .env 到企业级密钥治理 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/03/tech/ai/2026-03-04-ai-api-key-management/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="api-key, claude-code, docker, mcp, secret-management, security" />
+  
+  <meta name="description" content="一句话定位：用一套 .env + source ~&#x2F;.zshrc 的模式，统一管理 Claude Code、OpenCode、Docker、MCP Server 等所有 AI 工具的 API Key，告别明文硬编码。   核心理念：密钥是基础设施，不是代码——一切 secret 只应存在于一个地方，一切消费者只应通过环境变量读取。    3分钟速览版 点击展开核心概念  核心架构graph TB">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI 工具 API Key 统一管理：从 .env 到企业级密钥治理">
+<meta property="og:url" content="https://leahana.github.io/2026/03/03/tech/ai/2026-03-04-ai-api-key-management/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="一句话定位：用一套 .env + source ~&#x2F;.zshrc 的模式，统一管理 Claude Code、OpenCode、Docker、MCP Server 等所有 AI 工具的 API Key，告别明文硬编码。   核心理念：密钥是基础设施，不是代码——一切 secret 只应存在于一个地方，一切消费者只应通过环境变量读取。    3分钟速览版 点击展开核心概念  核心架构graph TB">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/before-after.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_060946_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_060937_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_061036_02.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_061113_03.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_061303_00.webp">
+<meta property="article:published_time" content="2026-03-03T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="api-key">
+<meta property="article:tag" content="claude-code">
+<meta property="article:tag" content="docker">
+<meta property="article:tag" content="mcp">
+<meta property="article:tag" content="secret-management">
+<meta property="article:tag" content="security">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/before-after.png">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"AI 工具 API Key 统一管理：从 .env 到企业级密钥治理","description":"\n一句话定位：用一套 .env + source ~/.zshrc 的模式，统一管理 Claude Code、OpenCode、Docker、MCP Server 等所有 AI 工具的 API Key，告...","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-03T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/03/tech/ai/2026-03-04-ai-api-key-management/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/03/tech/ai/2026-03-04-ai-api-key-management/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">AI 工具 API Key 统一管理：从 .env 到企业级密钥治理</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-03T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-04</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~13.64K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">核心架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E9%80%9F%E6%9F%A5"><span class="toc-number">1.2.</span> <span class="toc-text">方案对比速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">1.3.</span> <span class="toc-text">决策树</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%97%AE%E9%A2%98%EF%BC%9AAI-%E5%B7%A5%E5%85%B7%E7%9A%84%E5%AF%86%E9%92%A5%E6%95%A3%E8%90%BD%E5%90%84%E5%A4%84"><span class="toc-number">3.</span> <span class="toc-text">1. 问题：AI 工具的密钥散落各处</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%85%B8%E5%9E%8B%E7%9A%84%E6%B7%B7%E4%B9%B1%E7%8E%B0%E7%8A%B6"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 典型的混乱现状</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%BF%99%E5%BE%88%E5%8D%B1%E9%99%A9"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 这很危险</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%88%91%E4%BB%AC%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 我们需要什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%EF%BC%9A-env-source-zshrc"><span class="toc-number">4.</span> <span class="toc-text">2. 架构设计：.env + source ~&#x2F;.zshrc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%96%87%E4%BB%B6%E5%B8%83%E5%B1%80"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 文件布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 加载机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E6%88%98%EF%BC%9A%E5%90%84%E5%B7%A5%E5%85%B7%E5%A6%82%E4%BD%95%E6%8E%A5%E5%85%A5"><span class="toc-number">5.</span> <span class="toc-text">3. 实战：各工具如何接入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-env-%E6%96%87%E4%BB%B6%E8%A7%84%E8%8C%83"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 .env 文件规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Claude-Code-cc-switch"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 Claude Code (cc-switch)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-MCP-Server"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 MCP Server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Docker"><span class="toc-number">5.4.</span> <span class="toc-text">3.4 Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-OpenCode"><span class="toc-number">5.5.</span> <span class="toc-text">3.5 OpenCode</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA"><span class="toc-number">6.</span> <span class="toc-text">4. 安全加固</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 文件权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Git-%E9%98%B2%E6%B3%84%E9%9C%B2"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 Git 防泄露</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AE%9A%E6%9C%9F%E5%AE%A1%E8%AE%A1"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 定期审计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">6.4.</span> <span class="toc-text">4.4 安全检查清单</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%85%B6%E4%BB%96%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">5. 其他方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%96%B9%E6%A1%88%E5%85%A8%E6%99%AF"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 方案全景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E8%AF%A6%E7%BB%86%E5%AF%B9%E6%AF%94"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 详细对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%BF%9B%E9%98%B6%E6%96%B9%E6%A1%88%E7%AE%80%E4%BB%8B"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 进阶方案简介</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#direnv%EF%BC%9A%E6%8C%89%E7%9B%AE%E5%BD%95%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">7.3.1.</span> <span class="toc-text">direnv：按目录自动加载环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Doppler%EF%BC%9A%E4%BA%91%E7%AB%AF%E5%AF%86%E9%92%A5%E7%AE%A1%E7%90%86"><span class="toc-number">7.3.2.</span> <span class="toc-text">Doppler：云端密钥管理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#dotenv-vault%EF%BC%9A%E5%8A%A0%E5%AF%86%E5%90%8C%E6%AD%A5-env"><span class="toc-number">7.3.3.</span> <span class="toc-text">dotenv-vault：加密同步 .env</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">6. 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%9C%AA%E5%8A%A0%E8%BD%BD"><span class="toc-number">8.1.</span> <span class="toc-text">问题 1：环境变量未加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%EF%BC%9AClaude-Code-%E6%9C%AA%E4%BD%BF%E7%94%A8%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">8.2.</span> <span class="toc-text">问题 2：Claude Code 未使用环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%EF%BC%9ADocker-Compose-%E5%8F%98%E9%87%8F%E6%9C%AA%E6%9B%BF%E6%8D%A2"><span class="toc-number">8.3.</span> <span class="toc-text">问题 3：Docker Compose 变量未替换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%EF%BC%9AKey-%E5%B7%B2%E6%8F%90%E4%BA%A4%E5%88%B0-Git"><span class="toc-number">8.4.</span> <span class="toc-text">问题 4：Key 已提交到 Git</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%AE%8C%E6%95%B4%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">7. 完整实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A1%88%E4%BE%8B%EF%BC%9A%E4%BB%8E%E9%9B%B6%E9%85%8D%E7%BD%AE-AI-%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-number">9.1.</span> <span class="toc-text">案例：从零配置 AI 开发环境</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-1-%E5%88%9B%E5%BB%BA-env-%E6%96%87%E4%BB%B6"><span class="toc-number">9.1.1.</span> <span class="toc-text">Step 1 - 创建 .env 文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-2-%E9%85%8D%E7%BD%AE-zshrc-%E5%8A%A0%E8%BD%BD"><span class="toc-number">9.1.2.</span> <span class="toc-text">Step 2 - 配置 zshrc 加载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-3-%E9%85%8D%E7%BD%AE-Claude-Code"><span class="toc-number">9.1.3.</span> <span class="toc-text">Step 3 - 配置 Claude Code</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-4-%E9%85%8D%E7%BD%AE-MCP-Server"><span class="toc-number">9.1.4.</span> <span class="toc-text">Step 4 - 配置 MCP Server</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-5-%E5%90%AF%E5%8A%A8-Docker"><span class="toc-number">9.1.5.</span> <span class="toc-text">Step 5 - 启动 Docker</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-6-%E9%AA%8C%E8%AF%81"><span class="toc-number">9.1.6.</span> <span class="toc-text">Step 6 - 验证</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-FAQ"><span class="toc-number">10.</span> <span class="toc-text">8. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89-config-opencode-env-%E8%80%8C%E4%B8%8D%E6%98%AF-env%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1: 为什么选 ~&#x2F;.config&#x2F;opencode&#x2F;.env 而不是 ~&#x2F;.env？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-set-a-%E5%92%8C%E9%80%90%E8%A1%8C-export-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2: set -a 和逐行 export 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A4%9A%E4%B8%AA-AI-%E5%B7%A5%E5%85%B7%E4%BC%9A%E4%B8%8D%E4%BC%9A%E6%9C%89%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%86%B2%E7%AA%81%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3: 多个 AI 工具会不会有环境变量冲突？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B9%9F%E7%94%A8-env-%E6%96%87%E4%BB%B6%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4: 生产环境也用 .env 文件吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E5%A6%82%E4%BD%95%E5%AE%89%E5%85%A8%E5%9C%B0%E5%9C%A8%E5%A4%9A%E5%8F%B0%E8%AE%BE%E5%A4%87%E9%97%B4%E5%90%8C%E6%AD%A5%E5%AF%86%E9%92%A5%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5: 如何安全地在多台设备间同步密钥？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-Key-%E6%B3%84%E9%9C%B2%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">10.6.</span> <span class="toc-text">Q6: Key 泄露了怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q7-cc-switch-%E7%9A%84-profiles-%E5%92%8C-env-%E6%98%AF%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">10.7.</span> <span class="toc-text">Q7: cc-switch 的 profiles 和 .env 是什么关系？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">9. 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">11.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.2.</span> <span class="toc-text">行动建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E8%AF%9D"><span class="toc-number">11.3.</span> <span class="toc-text">最后的话</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%BA%90"><span class="toc-number">12.</span> <span class="toc-text">参考资源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p><strong>一句话定位</strong>：用一套 <code>.env + source ~/.zshrc</code> 的模式，统一管理 Claude Code、OpenCode、Docker、MCP Server 等所有 AI 工具的 API Key，告别明文硬编码。</p>
+</blockquote>
+<blockquote>
+<p><strong>核心理念</strong>：密钥是基础设施，不是代码——一切 secret 只应存在于一个地方，一切消费者只应通过环境变量读取。</p>
+</blockquote>
+<p><img src="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/before-after.png" alt="API密钥管理：从混乱到集中管理的对比"></p>
+<hr>
+<h2 id="3分钟速览版"><a href="#3分钟速览版" class="headerlink" title="3分钟速览版"></a>3分钟速览版</h2><details>
+<summary><strong>点击展开核心概念</strong></summary>
+
+<h3 id="核心架构"><a href="#核心架构" class="headerlink" title="核心架构"></a>核心架构</h3><pre class="mermaid">graph TB
+    ENV["~/.config/opencode/.env<br/>(唯一密钥源)"]
+    ZSHRC["~/.zshrc<br/>(set -a; source .env; set +a)"]
+    CC["Claude Code<br/>${ZHIPU_API_KEY}"]
+    MCP["MCP Server<br/>env:CONTEXT7_API_KEY"]
+    DOCKER["Docker Compose<br/>${MYSQL_PASSWORD}"]
+    OC["OpenCode<br/>直接读 env"]
+    PROFILE["cc-switch profiles<br/>dev.env / prod-guard.env"]
+
+    ENV --> ZSHRC
+    ZSHRC --> CC
+    ZSHRC --> MCP
+    ZSHRC --> DOCKER
+    ZSHRC --> OC
+    ZSHRC --> PROFILE
+
+    style ENV fill:#ffcdd2
+    style ZSHRC fill:#bbdefb
+    style CC fill:#c8e6c9
+    style MCP fill:#c8e6c9
+    style DOCKER fill:#c8e6c9
+    style OC fill:#c8e6c9
+    style PROFILE fill:#c8e6c9</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_060946_00.webp" alt="AI 密钥管理核心架构"></p>
+</details>
+
+<h3 id="方案对比速查"><a href="#方案对比速查" class="headerlink" title="方案对比速查"></a>方案对比速查</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>适用场景</th>
+<th>复杂度</th>
+<th>团队协作</th>
+<th>审计能力</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.env</code> + <code>source</code></td>
+<td>个人开发者 &#x2F; 本地开发</td>
+<td>低</td>
+<td>低</td>
+<td>低</td>
+</tr>
+<tr>
+<td>dotenv-vault</td>
+<td>小团队、跨设备同步</td>
+<td>中</td>
+<td>中</td>
+<td>中</td>
+</tr>
+<tr>
+<td>Doppler</td>
+<td>中型团队、多环境</td>
+<td>中</td>
+<td>高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>HashiCorp Vault</td>
+<td>企业级、合规要求</td>
+<td>高</td>
+<td>高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>AWS Secrets Manager</td>
+<td>AWS 生态、生产环境</td>
+<td>中</td>
+<td>高</td>
+<td>高</td>
+</tr>
+</tbody></table>
+<h3 id="决策树"><a href="#决策树" class="headerlink" title="决策树"></a>决策树</h3><pre class="mermaid">graph TD
+    Start["你的场景是？"] --> Q1{"团队规模"}
+    Q1 -->|"个人 / 2-3人"| A1["dotenv + source zshrc"]
+    Q1 -->|"5-20人"| Q2{"需要审计？"}
+    Q1 -->|"20+人"| A3["HashiCorp Vault / AWS SM"]
+    Q2 -->|"否"| A4["dotenv-vault / Doppler Free"]
+    Q2 -->|"是"| A5["Doppler / Vault"]
+
+    style A1 fill:#c8e6c9
+    style A3 fill:#ffcdd2
+    style A4 fill:#fff9c4
+    style A5 fill:#fff9c4</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_060937_01.webp" alt="密钥管理方案选型决策树"></p>
+</details>
+
+</details>
+
+<hr>
+<h2 id="深度剖析版"><a href="#深度剖析版" class="headerlink" title="深度剖析版"></a>深度剖析版</h2><h2 id="1-问题：AI-工具的密钥散落各处"><a href="#1-问题：AI-工具的密钥散落各处" class="headerlink" title="1. 问题：AI 工具的密钥散落各处"></a>1. 问题：AI 工具的密钥散落各处</h2><h3 id="1-1-典型的混乱现状"><a href="#1-1-典型的混乱现状" class="headerlink" title="1.1 典型的混乱现状"></a>1.1 典型的混乱现状</h3><p>当你同时使用 Claude Code、OpenCode、Cursor、MCP Server、Docker 等工具时，API Key 往往散落在：</p>
+<ul>
+<li><code>~/.zshrc</code> 中 <code>export API_KEY=&quot;sk-xxx&quot;</code> 明文导出</li>
+<li><code>settings.json</code> 中硬编码 token</li>
+<li><code>docker-compose.yml</code> 中直接写密码</li>
+<li>MCP 配置文件中嵌入 bearer token</li>
+<li>项目 <code>.env</code> 文件被不小心提交到 Git</li>
+</ul>
+<h3 id="1-2-这很危险"><a href="#1-2-这很危险" class="headerlink" title="1.2 这很危险"></a>1.2 这很危险</h3><pre class="mermaid">graph LR
+    A["明文 Key<br/>散落各处"] --> B["git push"]
+    B --> C["GitHub 公开仓库"]
+    C --> D["爬虫扫描"]
+    D --> E["Key 被盗用"]
+    E --> F["账单暴涨 / 数据泄露"]
+
+    style A fill:#ffcdd2
+    style E fill:#ffcdd2
+    style F fill:#ffcdd2</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_061036_02.webp" alt="密钥泄露风险流程图"></p>
+</details>
+
+<p>根据 <a target="_blank" rel="noopener" href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety">OpenAI 官方安全指南</a>，被泄露的 API Key 可导致：</p>
+<ul>
+<li>未授权调用消耗你的配额</li>
+<li>意外的高额账单</li>
+<li>数据被第三方访问</li>
+</ul>
+<h3 id="1-3-我们需要什么"><a href="#1-3-我们需要什么" class="headerlink" title="1.3 我们需要什么"></a>1.3 我们需要什么</h3><p>我们需要一个「一个密钥源 + 多个消费者」的架构：所有 Key 存在一个 <code>.env</code> 文件中，所有工具通过环境变量读取。</p>
+<h2 id="2-架构设计：-env-source-zshrc"><a href="#2-架构设计：-env-source-zshrc" class="headerlink" title="2. 架构设计：.env + source ~&#x2F;.zshrc"></a>2. 架构设计：.env + source ~&#x2F;.zshrc</h2><h3 id="2-1-文件布局"><a href="#2-1-文件布局" class="headerlink" title="2.1 文件布局"></a>2.1 文件布局</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">~/.config/opencode/.env              # 唯一密钥源（全局）</span><br><span class="line">~/.zshrc                             # 自动加载器</span><br><span class="line">~/.claude/settings.glm.json          # Claude Code 配置（引用 env）</span><br><span class="line">~/WorkSpace/ai-config/</span><br><span class="line">  ├── .env.example                   # 公开模板（提交到 Git）</span><br><span class="line">  ├── .gitignore                     # 保护 .env 不被提交</span><br><span class="line">  ├── profiles/</span><br><span class="line">  │   ├── dev.env                    # cc-switch 开发模式</span><br><span class="line">  │   └── prod-guard.env             # cc-switch 生产模式</span><br><span class="line">  └── mcp/</span><br><span class="line">      └── context7/</span><br><span class="line">          ├── server.env             # MCP 元数据（env:VAR_NAME）</span><br><span class="line">          └── codex.toml             # Codex 配置</span><br><span class="line">~/WorkSpace/docker-data/             # Docker 数据卷（独立管理）</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-加载机制"><a href="#2-2-加载机制" class="headerlink" title="2.2 加载机制"></a>2.2 加载机制</h3><div align="center">
+
+<pre class="mermaid">graph TD
+    A["用户打开终端"] --> B["执行 source zshrc"]
+    B --> C["set -a 开启自动export"]
+    C --> D["source .env文件"]
+    D --> E["set +a 恢复"]
+    E --> F["环境变量加载到环境"]
+    F --> G["工具启动时继承变量"]
+    G --> H["工具读取变量使用"]
+
+    style A fill:#e1f5ff
+    style H fill:#c8e6c9</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_061113_03.webp" alt="环境变量加载机制流程图"></p>
+</details>
+
+</div>
+
+<p>关键代码（<code>~/.zshrc</code> 中）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ========== 全局 .env 加载 ==========</span></span><br><span class="line"><span class="keyword">if</span> [[ -f ~/.config/opencode/.env ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">set</span> -a          <span class="comment"># 自动 export 后续所有赋值</span></span><br><span class="line">  <span class="built_in">source</span> ~/.config/opencode/.env</span><br><span class="line">  <span class="built_in">set</span> +a          <span class="comment"># 恢复默认行为</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 项目级 .env 覆盖（可选）</span></span><br><span class="line"><span class="keyword">if</span> [[ -f .opencode/.env ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">set</span> -a</span><br><span class="line">  <span class="built_in">source</span> .opencode/.env</span><br><span class="line">  <span class="built_in">set</span> +a</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<p><code>set -a</code> 是核心技巧——它让 <code>source</code> 加载的所有变量自动变成环境变量（等价于每行前加 <code>export</code>），从而被所有子进程继承。</p>
+<h2 id="3-实战：各工具如何接入"><a href="#3-实战：各工具如何接入" class="headerlink" title="3. 实战：各工具如何接入"></a>3. 实战：各工具如何接入</h2><h3 id="3-1-env-文件规范"><a href="#3-1-env-文件规范" class="headerlink" title="3.1 .env 文件规范"></a>3.1 .env 文件规范</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.config/opencode/.env</span></span><br><span class="line"><span class="comment"># ==============================================</span></span><br><span class="line"><span class="comment"># 统一密钥管理 - 所有 AI 工具 API Keys</span></span><br><span class="line"><span class="comment"># ==============================================</span></span><br><span class="line"><span class="comment"># 警告: 此文件包含敏感信息，请勿提交到版本控制</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- AI 供应商 ----</span></span><br><span class="line">ZHIPU_API_KEY=&lt;your-zhipu-key&gt;</span><br><span class="line">DEEPSEEK_API_KEY=&lt;your-deepseek-key&gt;</span><br><span class="line">MOONSHOT_API_KEY=&lt;your-moonshot-key&gt;</span><br><span class="line">OPENROUTER_API_KEY=&lt;your-openrouter-key&gt;</span><br><span class="line">GOOGLE_API_KEY=&lt;your-google-key&gt;</span><br><span class="line">KIMI_API_KEY=&lt;your-kimi-key&gt;</span><br><span class="line">MINIMAX_API_KEY=&lt;your-minimax-key&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- MCP 服务 ----</span></span><br><span class="line">CONTEXT7_API_KEY=&lt;your-context7-key&gt;</span><br><span class="line">GITHUB_PERSONAL_ACCESS_TOKEN=&lt;your-github-pat&gt;</span><br><span class="line"></span><br><span class="line"><span class="comment"># ---- 基础设施 ----</span></span><br><span class="line">DISPATCH_MYSQL_HOST=127.0.0.1</span><br><span class="line">DISPATCH_MYSQL_PORT=3306</span><br><span class="line">DISPATCH_MYSQL_USER=readonly_user</span><br><span class="line">DISPATCH_MYSQL_PASSWORD=&lt;your-mysql-password&gt;</span><br><span class="line">DISPATCH_REDIS_HOST=127.0.0.1</span><br><span class="line">DISPATCH_REDIS_PORT=6379</span><br><span class="line">DISPATCH_REDIS_PASSWORD=&lt;your-redis-password&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-Claude-Code-cc-switch"><a href="#3-2-Claude-Code-cc-switch" class="headerlink" title="3.2 Claude Code (cc-switch)"></a>3.2 Claude Code (cc-switch)</h3><p>之前的做法是明文硬编码：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;your-plaintext-token-here&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>改进后使用环境变量引用：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;env&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span><span class="punctuation">:</span> <span class="string">&quot;$&#123;ZHIPU_API_KEY&#125;&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_BASE_URL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://open.bigmodel.cn/api/anthropic&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_HAIKU_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;glm-4.7&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_SONNET_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;glm-5&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;ANTHROPIC_DEFAULT_OPUS_MODEL&quot;</span><span class="punctuation">:</span> <span class="string">&quot;glm-5&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>cc-switch 的 <code>profiles/</code> 目录存储的是行为策略（model tier、sandbox、approval 等），不存储密钥：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># profiles/dev.env - 仅包含行为配置，无密钥</span></span><br><span class="line">PROFILE_NAME=dev</span><br><span class="line">MODE=fast</span><br><span class="line">MODEL_TIER=fast</span><br><span class="line">SANDBOX=workspace-write</span><br><span class="line">APPROVAL=on-request</span><br><span class="line">MCP_READ_POLICY=allow</span><br><span class="line">MCP_WRITE_POLICY=deny</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-MCP-Server"><a href="#3-3-MCP-Server" class="headerlink" title="3.3 MCP Server"></a>3.3 MCP Server</h3><p>MCP 服务使用 <code>env:VAR_NAME</code> 语法引用环境变量：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ai-config/mcp/context7/server.env</span></span><br><span class="line">SERVER_ID=context7</span><br><span class="line">MCP_URL=https://mcp.context7.com/mcp</span><br><span class="line">BEARER_TOKEN_ENV_VAR=CONTEXT7_API_KEY     <span class="comment"># 指向环境变量名</span></span><br><span class="line">AUTH_SOURCE=<span class="built_in">env</span>:CONTEXT7_API_KEY          <span class="comment"># 标准化引用格式</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ai-config/mcp/context7/codex.toml</span></span><br><span class="line"><span class="section">[mcp_servers.context7]</span></span><br><span class="line"><span class="attr">url</span> = <span class="string">&quot;https://mcp.context7.com/mcp&quot;</span></span><br><span class="line"><span class="attr">bearer_token_env_var</span> = <span class="string">&quot;CONTEXT7_API_KEY&quot;</span>  <span class="comment"># 运行时从 env 读取</span></span><br></pre></td></tr></table></figure>
+
+<p>根据 <a target="_blank" rel="noopener" href="https://support.claude.com/en/articles/12304248-managing-api-key-environment-variables-in-claude-code">Claude Code 官方文档</a>，<code>.mcp.json</code> 也支持 <code>${VAR}</code> 和 <code>${VAR:-default}</code> 语法。</p>
+<h3 id="3-4-Docker"><a href="#3-4-Docker" class="headerlink" title="3.4 Docker"></a>3.4 Docker</h3><p>Docker Compose 原生支持 <code>.env</code> 文件。数据卷独立存放在 <code>docker-data/</code>：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># docker-compose.yml</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">mysql:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mysql:8.0.33</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="attr">MYSQL_ROOT_PASSWORD:</span> <span class="string">$&#123;DISPATCH_MYSQL_PASSWORD&#125;</span></span><br><span class="line">      <span class="attr">MYSQL_DATABASE:</span> <span class="string">$&#123;DISPATCH_MYSQL_DATABASE&#125;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">~/WorkSpace/docker-data/mysql80331el8:/var/lib/mysql</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;$&#123;DISPATCH_MYSQL_PORT&#125;:3306&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">redis:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">redis:7-alpine</span></span><br><span class="line">    <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">--requirepass</span> <span class="string">$&#123;DISPATCH_REDIS_PASSWORD&#125;</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;$&#123;DISPATCH_REDIS_PORT&#125;:6379&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Docker Compose 会按优先级读取：</p>
+<ol>
+<li>Shell 环境变量（已通过 <code>source ~/.zshrc</code> 加载）</li>
+<li>项目目录下的 <code>.env</code> 文件</li>
+<li><code>docker-compose.yml</code> 中的 <code>default</code> 值</li>
+</ol>
+<h3 id="3-5-OpenCode"><a href="#3-5-OpenCode" class="headerlink" title="3.5 OpenCode"></a>3.5 OpenCode</h3><p>OpenCode 直接读取 shell 环境变量，无需额外配置：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ~/.zshrc 中已通过 set -a; source .env; set +a 导出</span></span><br><span class="line"><span class="comment"># OpenCode 启动时自动继承以下变量：</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$ZHIPU_API_KEY</span>     <span class="comment"># AI 供应商 Key</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$CONTEXT7_API_KEY</span>  <span class="comment"># MCP Key</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$DEEPSEEK_API_KEY</span>  <span class="comment"># DeepSeek Key</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="4-安全加固"><a href="#4-安全加固" class="headerlink" title="4. 安全加固"></a>4. 安全加固</h2><h3 id="4-1-文件权限"><a href="#4-1-文件权限" class="headerlink" title="4.1 文件权限"></a>4.1 文件权限</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># .env 文件只允许本用户读写</span></span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.config/opencode/.env</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证权限</span></span><br><span class="line"><span class="built_in">ls</span> -la ~/.config/opencode/.env</span><br><span class="line"><span class="comment"># -rw-------  1 user  staff  1234  Mar  4 12:00 .env</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-2-Git-防泄露"><a href="#4-2-Git-防泄露" class="headerlink" title="4.2 Git 防泄露"></a>4.2 Git 防泄露</h3><p><code>.gitignore</code>（必须配置）：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 环境变量 - 敏感信息</span><br><span class="line">.env</span><br><span class="line">.env.local</span><br><span class="line">.env.*.local</span><br><span class="line">.opencode/.env</span><br></pre></td></tr></table></figure>
+
+<p>Git pre-commit hook（推荐）：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"><span class="comment"># .git/hooks/pre-commit</span></span><br><span class="line"><span class="comment"># 扫描即将提交的文件中是否包含疑似 API Key</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> git diff --cached --name-only | xargs grep -lE \</span><br><span class="line">  <span class="string">&quot;sk-[a-zA-Z0-9]&#123;20,&#125;|ctx7sk-|github_pat_|AIzaSy&quot;</span> 2&gt;/dev/null; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;ERROR: 检测到疑似 API Key，请检查后重新提交&quot;</span></span><br><span class="line">  <span class="built_in">exit</span> 1</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-定期审计"><a href="#4-3-定期审计" class="headerlink" title="4.3 定期审计"></a>4.3 定期审计</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 扫描工作目录中的明文密钥</span></span><br><span class="line">grep -r <span class="string">&quot;sk-\|ctx7sk-\|AIzaSy\|github_pat_&quot;</span> ~/WorkSpace \</span><br><span class="line">  --include=<span class="string">&quot;*.json&quot;</span> --include=<span class="string">&quot;*.yaml&quot;</span> --include=<span class="string">&quot;*.yml&quot;</span> \</span><br><span class="line">  --include=<span class="string">&quot;*.toml&quot;</span> --include=<span class="string">&quot;*.sh&quot;</span> --include=<span class="string">&quot;*.zsh&quot;</span> \</span><br><span class="line">  --exclude-dir=node_modules --exclude-dir=.git</span><br><span class="line"></span><br><span class="line"><span class="comment"># 应该返回空（除了 .env.example 中的占位符）</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-4-安全检查清单"><a href="#4-4-安全检查清单" class="headerlink" title="4.4 安全检查清单"></a>4.4 安全检查清单</h3><ul>
+<li><input disabled="" type="checkbox"> <code>.env</code> 文件权限为 <code>600</code></li>
+<li><input disabled="" type="checkbox"> <code>.gitignore</code> 包含 <code>.env</code></li>
+<li><input disabled="" type="checkbox"> <code>~/.zshrc</code> 中无明文 Key</li>
+<li><input disabled="" type="checkbox"> <code>settings.json</code> 中无明文 Token</li>
+<li><input disabled="" type="checkbox"> <code>docker-compose.yml</code> 中使用 <code>${VAR}</code> 而非明文</li>
+<li><input disabled="" type="checkbox"> MCP 配置使用 <code>env:VAR_NAME</code></li>
+<li><input disabled="" type="checkbox"> Git pre-commit hook 已启用</li>
+<li><input disabled="" type="checkbox"> 定期运行密钥扫描</li>
+</ul>
+<h2 id="5-其他方案对比"><a href="#5-其他方案对比" class="headerlink" title="5. 其他方案对比"></a>5. 其他方案对比</h2><h3 id="5-1-方案全景"><a href="#5-1-方案全景" class="headerlink" title="5.1 方案全景"></a>5.1 方案全景</h3><pre class="mermaid">graph TB
+    subgraph "Level 1: 本地开发"
+        A1[".env + source"]
+        A2["direnv"]
+    end
+
+    subgraph "Level 2: 团队协作"
+        B1["dotenv-vault"]
+        B2["Doppler"]
+        B3["1Password CLI"]
+    end
+
+    subgraph "Level 3: 企业级"
+        C1["HashiCorp Vault"]
+        C2["AWS Secrets Manager"]
+        C3["Azure Key Vault"]
+        C4["GCP Secret Manager"]
+    end
+
+    A1 --> B1
+    A1 --> B2
+    B1 --> C1
+    B2 --> C1
+
+    style A1 fill:#c8e6c9
+    style B2 fill:#fff9c4
+    style C1 fill:#ffcdd2</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-04-ai-api-key-management/diagram_20260417_061303_00.webp" alt="密钥管理方案分层对比全景图"></p>
+</details>
+
+<h3 id="5-2-详细对比"><a href="#5-2-详细对比" class="headerlink" title="5.2 详细对比"></a>5.2 详细对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th align="center">.env + source</th>
+<th align="center">direnv</th>
+<th align="center">dotenv-vault</th>
+<th align="center">Doppler</th>
+<th align="center">HashiCorp Vault</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>安装成本</td>
+<td align="center">零</td>
+<td align="center">低</td>
+<td align="center">低</td>
+<td align="center">中</td>
+<td align="center">高</td>
+</tr>
+<tr>
+<td>学习曲线</td>
+<td align="center">零</td>
+<td align="center">低</td>
+<td align="center">低</td>
+<td align="center">中</td>
+<td align="center">高</td>
+</tr>
+<tr>
+<td>多环境支持</td>
+<td align="center">手动</td>
+<td align="center">自动</td>
+<td align="center">内建</td>
+<td align="center">内建</td>
+<td align="center">内建</td>
+</tr>
+<tr>
+<td>加密存储</td>
+<td align="center">否</td>
+<td align="center">否</td>
+<td align="center">是</td>
+<td align="center">是</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td>访问控制</td>
+<td align="center">文件权限</td>
+<td align="center">文件权限</td>
+<td align="center">团队角色</td>
+<td align="center">RBAC</td>
+<td align="center">策略引擎</td>
+</tr>
+<tr>
+<td>审计日志</td>
+<td align="center">否</td>
+<td align="center">否</td>
+<td align="center">基础</td>
+<td align="center">完整</td>
+<td align="center">完整</td>
+</tr>
+<tr>
+<td>密钥轮换</td>
+<td align="center">手动</td>
+<td align="center">手动</td>
+<td align="center">手动</td>
+<td align="center">自动</td>
+<td align="center">自动</td>
+</tr>
+<tr>
+<td>价格</td>
+<td align="center">免费</td>
+<td align="center">免费</td>
+<td align="center">免费&#x2F;付费</td>
+<td align="center">免费&#x2F;付费</td>
+<td align="center">开源&#x2F;企业版</td>
+</tr>
+<tr>
+<td>适用场景</td>
+<td align="center">个人开发</td>
+<td align="center">多项目</td>
+<td align="center">小团队</td>
+<td align="center">中型团队</td>
+<td align="center">企业合规</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-进阶方案简介"><a href="#5-3-进阶方案简介" class="headerlink" title="5.3 进阶方案简介"></a>5.3 进阶方案简介</h3><h4 id="direnv：按目录自动加载环境变量"><a href="#direnv：按目录自动加载环境变量" class="headerlink" title="direnv：按目录自动加载环境变量"></a>direnv：按目录自动加载环境变量</h4><p>适合多项目切换的场景。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">brew install direnv</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在项目目录创建 .envrc</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;dotenv&#x27;</span> &gt; .envrc</span><br><span class="line">direnv allow</span><br><span class="line"></span><br><span class="line"><span class="comment"># 进入目录自动加载，离开自动卸载</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Doppler：云端密钥管理"><a href="#Doppler：云端密钥管理" class="headerlink" title="Doppler：云端密钥管理"></a>Doppler：云端密钥管理</h4><p>零代码侵入，自动注入环境变量。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">brew install dopplerhq/cli/doppler</span><br><span class="line"></span><br><span class="line"><span class="comment"># 登录并配置</span></span><br><span class="line">doppler login</span><br><span class="line">doppler setup</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行命令时自动注入密钥</span></span><br><span class="line">doppler run -- claude</span><br><span class="line">doppler run -- docker compose up</span><br></pre></td></tr></table></figure>
+
+<h4 id="dotenv-vault：加密同步-env"><a href="#dotenv-vault：加密同步-env" class="headerlink" title="dotenv-vault：加密同步 .env"></a>dotenv-vault：加密同步 .env</h4><p>安全同步到多台设备。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 安装</span></span><br><span class="line">npx dotenv-vault new</span><br><span class="line"></span><br><span class="line"><span class="comment"># 加密并推送</span></span><br><span class="line">npx dotenv-vault push</span><br><span class="line"></span><br><span class="line"><span class="comment"># 在其他设备拉取</span></span><br><span class="line">npx dotenv-vault pull</span><br></pre></td></tr></table></figure>
+
+<h2 id="6-故障排查"><a href="#6-故障排查" class="headerlink" title="6. 故障排查"></a>6. 故障排查</h2><h3 id="问题-1：环境变量未加载"><a href="#问题-1：环境变量未加载" class="headerlink" title="问题 1：环境变量未加载"></a>问题 1：环境变量未加载</h3><p>症状：工具报错 “API key not set” 或 <code>echo $VAR</code> 为空。</p>
+<p>排查步骤：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 检查 .env 文件是否存在</span></span><br><span class="line"><span class="built_in">ls</span> -la ~/.config/opencode/.env</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 手动加载</span></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 验证变量</span></span><br><span class="line"><span class="built_in">printenv</span> | grep -E <span class="string">&quot;CONTEXT7|ZHIPU|DEEPSEEK&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 如果仍为空，检查 .env 语法（不能有空格在等号两侧）</span></span><br><span class="line"><span class="comment"># 错误：KEY = value</span></span><br><span class="line"><span class="comment"># 正确：KEY=value</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="问题-2：Claude-Code-未使用环境变量"><a href="#问题-2：Claude-Code-未使用环境变量" class="headerlink" title="问题 2：Claude Code 未使用环境变量"></a>问题 2：Claude Code 未使用环境变量</h3><p>症状：<code>settings.glm.json</code> 中写了 <code>${VAR}</code> 但工具仍报认证失败。</p>
+<p>原因：Claude Code 的 <code>env</code> 字段中 <code>${VAR}</code> 展开依赖 shell 环境。</p>
+<p>解决方案：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 确认 Claude Code 是从终端启动的（继承了 env）</span></span><br><span class="line"><span class="comment"># 如果从 GUI 启动，环境变量可能未加载</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证：在 Claude Code 中运行</span></span><br><span class="line"><span class="comment"># /status 查看当前认证方式</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="问题-3：Docker-Compose-变量未替换"><a href="#问题-3：Docker-Compose-变量未替换" class="headerlink" title="问题 3：Docker Compose 变量未替换"></a>问题 3：Docker Compose 变量未替换</h3><p>症状：MySQL 密码为 <code>${DISPATCH_MYSQL_PASSWORD}</code> 字面量。</p>
+<p>原因：Docker Compose 在非 shell 环境下可能无法读取 zshrc 导出的变量。</p>
+<p>解决方案：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 方案 1：在项目目录放一个 .env（Docker Compose 自动读取）</span></span><br><span class="line"><span class="built_in">cp</span> ~/.config/opencode/.env .<span class="built_in">env</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 方案 2：显式传递 env_file（在 docker-compose.yml 中配置）</span></span><br><span class="line"><span class="comment"># services:</span></span><br><span class="line"><span class="comment">#   mysql:</span></span><br><span class="line"><span class="comment">#     env_file:</span></span><br><span class="line"><span class="comment">#       - ~/.config/opencode/.env</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="问题-4：Key-已提交到-Git"><a href="#问题-4：Key-已提交到-Git" class="headerlink" title="问题 4：Key 已提交到 Git"></a>问题 4：Key 已提交到 Git</h3><p>症状：发现 Git 历史中包含明文密钥。</p>
+<p>紧急处理步骤：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 立即在供应商后台轮换/撤销该 Key</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 从 Git 历史中移除（谨慎操作）</span></span><br><span class="line">git filter-branch --tree-filter <span class="string">&#x27;rm -f .env&#x27;</span> HEAD</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 强制推送（需要确认）</span></span><br><span class="line">git push --force-with-lease</span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 通知团队成员 rebase</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="7-完整实战案例"><a href="#7-完整实战案例" class="headerlink" title="7. 完整实战案例"></a>7. 完整实战案例</h2><h3 id="案例：从零配置-AI-开发环境"><a href="#案例：从零配置-AI-开发环境" class="headerlink" title="案例：从零配置 AI 开发环境"></a>案例：从零配置 AI 开发环境</h3><p>目标：配置一台新 Mac，让 Claude Code、OpenCode、Docker、MCP 全部使用统一的 <code>.env</code> 管理。</p>
+<h4 id="Step-1-创建-env-文件"><a href="#Step-1-创建-env-文件" class="headerlink" title="Step 1 - 创建 .env 文件"></a>Step 1 - 创建 .env 文件</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/.config/opencode</span><br><span class="line"><span class="built_in">cat</span> &gt; ~/.config/opencode/.env &lt;&lt; <span class="string">&#x27;EOF&#x27;</span></span><br><span class="line"><span class="comment"># AI 供应商</span></span><br><span class="line">ZHIPU_API_KEY=your-zhipu-key</span><br><span class="line">DEEPSEEK_API_KEY=your-deepseek-key</span><br><span class="line">CONTEXT7_API_KEY=your-context7-key</span><br><span class="line">GITHUB_PERSONAL_ACCESS_TOKEN=your-github-pat</span><br><span class="line"></span><br><span class="line"><span class="comment"># 基础设施</span></span><br><span class="line">DISPATCH_MYSQL_PASSWORD=your-mysql-password</span><br><span class="line">DISPATCH_REDIS_PASSWORD=your-redis-password</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">chmod</span> 600 ~/.config/opencode/.env</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-2-配置-zshrc-加载"><a href="#Step-2-配置-zshrc-加载" class="headerlink" title="Step 2 - 配置 zshrc 加载"></a>Step 2 - 配置 zshrc 加载</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cat</span> &gt;&gt; ~/.zshrc &lt;&lt; <span class="string">&#x27;ZSHRC&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ========== 统一密钥加载 ==========</span></span><br><span class="line"><span class="keyword">if</span> [[ -f ~/.config/opencode/.env ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">set</span> -a</span><br><span class="line">  <span class="built_in">source</span> ~/.config/opencode/.env</span><br><span class="line">  <span class="built_in">set</span> +a</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">ZSHRC</span><br><span class="line"></span><br><span class="line"><span class="built_in">source</span> ~/.zshrc</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-3-配置-Claude-Code"><a href="#Step-3-配置-Claude-Code" class="headerlink" title="Step 3 - 配置 Claude Code"></a>Step 3 - 配置 Claude Code</h4><p>在 <code>settings.glm.json</code> 中使用 <code>${ZHIPU_API_KEY}</code> 引用。在 <code>settings.official.json</code> 中使用 <code>${ANTHROPIC_API_KEY}</code> 引用。cc-switch 会自动根据 profile 切换。</p>
+<h4 id="Step-4-配置-MCP-Server"><a href="#Step-4-配置-MCP-Server" class="headerlink" title="Step 4 - 配置 MCP Server"></a>Step 4 - 配置 MCP Server</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ai-config/mcp/context7/server.env</span></span><br><span class="line">AUTH_SOURCE=<span class="built_in">env</span>:CONTEXT7_API_KEY</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>.mcp.json</code> 中使用：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;headers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;Authorization&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Bearer $&#123;CONTEXT7_API_KEY&#125;&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-5-启动-Docker"><a href="#Step-5-启动-Docker" class="headerlink" title="Step 5 - 启动 Docker"></a>Step 5 - 启动 Docker</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Docker Compose 自动从 shell env 读取变量</span></span><br><span class="line">docker compose up -d</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-6-验证"><a href="#Step-6-验证" class="headerlink" title="Step 6 - 验证"></a>Step 6 - 验证</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 验证所有变量已加载</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;ZHIPU: <span class="variable">$&#123;ZHIPU_API_KEY:0:10&#125;</span>...&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;CONTEXT7: <span class="variable">$&#123;CONTEXT7_API_KEY:0:10&#125;</span>...&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;MYSQL_PWD: <span class="variable">$&#123;DISPATCH_MYSQL_PASSWORD:0:5&#125;</span>...&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证 Docker</span></span><br><span class="line">docker compose <span class="built_in">exec</span> mysql mysql -u root -p<span class="variable">$DISPATCH_MYSQL_PASSWORD</span> -e <span class="string">&quot;SELECT 1&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="8-FAQ"><a href="#8-FAQ" class="headerlink" title="8. FAQ"></a>8. FAQ</h2><h3 id="Q1-为什么选-config-opencode-env-而不是-env？"><a href="#Q1-为什么选-config-opencode-env-而不是-env？" class="headerlink" title="Q1: 为什么选 ~/.config/opencode/.env 而不是 ~/.env？"></a>Q1: 为什么选 <code>~/.config/opencode/.env</code> 而不是 <code>~/.env</code>？</h3><p>遵循 XDG Base Directory 规范，将应用配置放在 <code>~/.config/</code> 下。同时 OpenCode 原生支持这个路径，减少额外配置。</p>
+<h3 id="Q2-set-a-和逐行-export-有什么区别？"><a href="#Q2-set-a-和逐行-export-有什么区别？" class="headerlink" title="Q2: set -a 和逐行 export 有什么区别？"></a>Q2: <code>set -a</code> 和逐行 <code>export</code> 有什么区别？</h3><p>功能上等价。<code>set -a</code> 的优势是：<code>.env</code> 文件无需每行写 <code>export</code>，保持与 Docker Compose、direnv 等工具兼容的标准格式。</p>
+<h3 id="Q3-多个-AI-工具会不会有环境变量冲突？"><a href="#Q3-多个-AI-工具会不会有环境变量冲突？" class="headerlink" title="Q3: 多个 AI 工具会不会有环境变量冲突？"></a>Q3: 多个 AI 工具会不会有环境变量冲突？</h3><p>会。例如 <code>ANTHROPIC_API_KEY</code> 可能被 Claude Code 和 Cursor 同时读取。解决方案有三种：</p>
+<ul>
+<li>使用供应商特定前缀（如 <code>ZHIPU_API_KEY</code>）</li>
+<li>在工具配置中显式映射（如 <code>&quot;ANTHROPIC_AUTH_TOKEN&quot;: &quot;${ZHIPU_API_KEY}&quot;</code>）</li>
+<li>用 cc-switch profiles 按场景切换</li>
+</ul>
+<h3 id="Q4-生产环境也用-env-文件吗？"><a href="#Q4-生产环境也用-env-文件吗？" class="headerlink" title="Q4: 生产环境也用 .env 文件吗？"></a>Q4: 生产环境也用 .env 文件吗？</h3><p>不建议。<code>.env</code> 适合本地开发。生产环境应使用加密的密钥管理服务：</p>
+<ul>
+<li>容器化部署：Kubernetes Secrets + RBAC</li>
+<li>云平台：AWS Secrets Manager &#x2F; Azure Key Vault &#x2F; GCP Secret Manager</li>
+<li>自建：HashiCorp Vault</li>
+</ul>
+<p>参考 <a target="_blank" rel="noopener" href="https://www.doppler.com/blog/why-syncing-env-files-doesnt-scale-for-secrets-management">Doppler 的分析</a>：<code>.env</code> 文件在跨环境同步、审计、权限控制方面存在天然局限。</p>
+<h3 id="Q5-如何安全地在多台设备间同步密钥？"><a href="#Q5-如何安全地在多台设备间同步密钥？" class="headerlink" title="Q5: 如何安全地在多台设备间同步密钥？"></a>Q5: 如何安全地在多台设备间同步密钥？</h3><p>推荐方案如下：</p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><a target="_blank" rel="noopener" href="https://github.com/dotenv-org/dotenv-vault">dotenv-vault</a></td>
+<td>加密后同步 <code>.env</code>，轻量</td>
+</tr>
+<tr>
+<td><a target="_blank" rel="noopener" href="https://www.doppler.com/">Doppler</a></td>
+<td>云端管理，CLI 注入</td>
+</tr>
+<tr>
+<td>1Password CLI (<code>op</code>)</td>
+<td>个人密码管理器集成</td>
+</tr>
+<tr>
+<td>手动 <code>scp</code> + 加密</td>
+<td>极简需求</td>
+</tr>
+</tbody></table>
+<h3 id="Q6-Key-泄露了怎么办？"><a href="#Q6-Key-泄露了怎么办？" class="headerlink" title="Q6: Key 泄露了怎么办？"></a>Q6: Key 泄露了怎么办？</h3><p>四步紧急处理流程：</p>
+<ol>
+<li>立即轮换：在供应商后台生成新 Key，撤销旧 Key</li>
+<li>清理 Git：使用 <code>git filter-branch</code> 或 <a target="_blank" rel="noopener" href="https://rtyley.github.io/bfg-repo-cleaner/">BFG Repo-Cleaner</a></li>
+<li>审计影响：检查供应商的用量日志</li>
+<li>加强防护：部署 <a target="_blank" rel="noopener" href="https://github.com/gitleaks/gitleaks">Gitleaks</a> 或 <a target="_blank" rel="noopener" href="https://github.com/trufflesecurity/trufflehog">TruffleHog</a> 扫描</li>
+</ol>
+<h3 id="Q7-cc-switch-的-profiles-和-env-是什么关系？"><a href="#Q7-cc-switch-的-profiles-和-env-是什么关系？" class="headerlink" title="Q7: cc-switch 的 profiles 和 .env 是什么关系？"></a>Q7: cc-switch 的 profiles 和 .env 是什么关系？</h3><p>分工明确：</p>
+<ul>
+<li><code>.env</code> 存储密钥（WHAT credentials）</li>
+<li><code>profiles/*.env</code> 存储行为策略（HOW to behave）——模型选择、权限级别、审批策略等</li>
+</ul>
+<p>两者通过环境变量统一注入，但关注点完全不同。</p>
+<h2 id="9-总结"><a href="#9-总结" class="headerlink" title="9. 总结"></a>9. 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li>单一密钥源：所有 API Key 只存在于 <code>~/.config/opencode/.env</code>，所有工具通过环境变量消费</li>
+<li>零侵入加载：<code>set -a; source .env; set +a</code> 三行代码实现全局注入，无需修改任何工具代码</li>
+<li>层次化防护：文件权限 (<code>chmod 600</code>) + Git 忽略 (<code>.gitignore</code>) + 提交扫描 (pre-commit hook) 三道防线</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><p>今天就可以做的：</p>
+<ul>
+<li>将散落在 <code>~/.zshrc</code> 和配置文件中的明文 Key 迁移到 <code>.env</code></li>
+<li>配置 <code>.gitignore</code> 和文件权限</li>
+</ul>
+<p>本周可以优化的：</p>
+<ul>
+<li>部署 Git pre-commit hook 扫描密钥泄露</li>
+<li>为 AI 开发环境创建 <code>.env.example</code> 模板</li>
+</ul>
+<p>长期可以改进的：</p>
+<ul>
+<li>评估 Doppler 或 dotenv-vault 实现跨设备同步</li>
+<li>生产环境迁移到 HashiCorp Vault 或云平台 Secrets Manager</li>
+<li>建立 90 天密钥轮换机制</li>
+</ul>
+<h3 id="最后的话"><a href="#最后的话" class="headerlink" title="最后的话"></a>最后的话</h3><blockquote>
+<p>密钥管理的终极目标不是复杂，而是简单——简单到所有开发者都愿意遵守，简单到不需要额外记忆任何步骤。<code>.env + source</code> 就是这样的方案：足够简单地开始，足够灵活地演进。</p>
+</blockquote>
+<hr>
+<h2 id="参考资源"><a href="#参考资源" class="headerlink" title="参考资源"></a>参考资源</h2><table>
+<thead>
+<tr>
+<th>资源</th>
+<th>链接</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenAI API Key 安全指南</td>
+<td><a target="_blank" rel="noopener" href="https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety">OpenAI Help Center</a></td>
+<td>官方安全最佳实践</td>
+</tr>
+<tr>
+<td>Claude API Key 最佳实践</td>
+<td><a target="_blank" rel="noopener" href="https://support.claude.com/en/articles/9767949-api-key-best-practices-keeping-your-keys-safe-and-secure">Claude Help Center</a></td>
+<td>Anthropic 官方建议</td>
+</tr>
+<tr>
+<td>Claude Code 环境变量管理</td>
+<td><a target="_blank" rel="noopener" href="https://support.claude.com/en/articles/12304248-managing-api-key-environment-variables-in-claude-code">Claude Help Center</a></td>
+<td>MCP 与 env 集成</td>
+</tr>
+<tr>
+<td>为什么 .env 不适合规模化</td>
+<td><a target="_blank" rel="noopener" href="https://www.doppler.com/blog/why-syncing-env-files-doesnt-scale-for-secrets-management">Doppler Blog</a></td>
+<td>.env 局限性分析</td>
+</tr>
+<tr>
+<td>dotenv-vault</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/dotenv-org/dotenv-vault">GitHub</a></td>
+<td>加密同步 .env</td>
+</tr>
+<tr>
+<td>Gitleaks</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/gitleaks/gitleaks">GitHub</a></td>
+<td>Git 密钥泄露扫描</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-04</td>
+<td>初始版本：基于实际 AI 开发环境的密钥管理实践</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 5 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/api-key/" rel="tag">api-key</a>, <a class="tag-none-link" href="/tags/claude-code/" rel="tag">claude-code</a>, <a class="tag-none-link" href="/tags/docker/" rel="tag">docker</a>, <a class="tag-none-link" href="/tags/mcp/" rel="tag">mcp</a>, <a class="tag-none-link" href="/tags/secret-management/" rel="tag">secret-management</a>, <a class="tag-none-link" href="/tags/security/" rel="tag">security</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Spring AOP 注解使用案例与场景设计" href="/2026/01/08/tech/backend/2026-01-09-spring-aop-annotation-cases/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Claude Code Skill 设计与优化实践：用多模型协作迭代 optimize-doc" href="/2026/03/05/tech/ai/2026-03-05-skill-optimization-practice/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%9E%B6%E6%9E%84"><span class="toc-number">1.1.</span> <span class="toc-text">核心架构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E9%80%9F%E6%9F%A5"><span class="toc-number">1.2.</span> <span class="toc-text">方案对比速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">1.3.</span> <span class="toc-text">决策树</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E9%97%AE%E9%A2%98%EF%BC%9AAI-%E5%B7%A5%E5%85%B7%E7%9A%84%E5%AF%86%E9%92%A5%E6%95%A3%E8%90%BD%E5%90%84%E5%A4%84"><span class="toc-number">3.</span> <span class="toc-text">1. 问题：AI 工具的密钥散落各处</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%85%B8%E5%9E%8B%E7%9A%84%E6%B7%B7%E4%B9%B1%E7%8E%B0%E7%8A%B6"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 典型的混乱现状</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%BF%99%E5%BE%88%E5%8D%B1%E9%99%A9"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 这很危险</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%88%91%E4%BB%AC%E9%9C%80%E8%A6%81%E4%BB%80%E4%B9%88"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 我们需要什么</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1%EF%BC%9A-env-source-zshrc"><span class="toc-number">4.</span> <span class="toc-text">2. 架构设计：.env + source ~&#x2F;.zshrc</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%96%87%E4%BB%B6%E5%B8%83%E5%B1%80"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 文件布局</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 加载机制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AE%9E%E6%88%98%EF%BC%9A%E5%90%84%E5%B7%A5%E5%85%B7%E5%A6%82%E4%BD%95%E6%8E%A5%E5%85%A5"><span class="toc-number">5.</span> <span class="toc-text">3. 实战：各工具如何接入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-env-%E6%96%87%E4%BB%B6%E8%A7%84%E8%8C%83"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 .env 文件规范</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-Claude-Code-cc-switch"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 Claude Code (cc-switch)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-MCP-Server"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 MCP Server</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-Docker"><span class="toc-number">5.4.</span> <span class="toc-text">3.4 Docker</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-OpenCode"><span class="toc-number">5.5.</span> <span class="toc-text">3.5 OpenCode</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%89%E5%85%A8%E5%8A%A0%E5%9B%BA"><span class="toc-number">6.</span> <span class="toc-text">4. 安全加固</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%96%87%E4%BB%B6%E6%9D%83%E9%99%90"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 文件权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Git-%E9%98%B2%E6%B3%84%E9%9C%B2"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 Git 防泄露</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%AE%9A%E6%9C%9F%E5%AE%A1%E8%AE%A1"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 定期审计</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">6.4.</span> <span class="toc-text">4.4 安全检查清单</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%85%B6%E4%BB%96%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">7.</span> <span class="toc-text">5. 其他方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E6%96%B9%E6%A1%88%E5%85%A8%E6%99%AF"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 方案全景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E8%AF%A6%E7%BB%86%E5%AF%B9%E6%AF%94"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 详细对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E8%BF%9B%E9%98%B6%E6%96%B9%E6%A1%88%E7%AE%80%E4%BB%8B"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 进阶方案简介</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#direnv%EF%BC%9A%E6%8C%89%E7%9B%AE%E5%BD%95%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">7.3.1.</span> <span class="toc-text">direnv：按目录自动加载环境变量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Doppler%EF%BC%9A%E4%BA%91%E7%AB%AF%E5%AF%86%E9%92%A5%E7%AE%A1%E7%90%86"><span class="toc-number">7.3.2.</span> <span class="toc-text">Doppler：云端密钥管理</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#dotenv-vault%EF%BC%9A%E5%8A%A0%E5%AF%86%E5%90%8C%E6%AD%A5-env"><span class="toc-number">7.3.3.</span> <span class="toc-text">dotenv-vault：加密同步 .env</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">6. 故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%EF%BC%9A%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E6%9C%AA%E5%8A%A0%E8%BD%BD"><span class="toc-number">8.1.</span> <span class="toc-text">问题 1：环境变量未加载</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%EF%BC%9AClaude-Code-%E6%9C%AA%E4%BD%BF%E7%94%A8%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F"><span class="toc-number">8.2.</span> <span class="toc-text">问题 2：Claude Code 未使用环境变量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%EF%BC%9ADocker-Compose-%E5%8F%98%E9%87%8F%E6%9C%AA%E6%9B%BF%E6%8D%A2"><span class="toc-number">8.3.</span> <span class="toc-text">问题 3：Docker Compose 变量未替换</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%EF%BC%9AKey-%E5%B7%B2%E6%8F%90%E4%BA%A4%E5%88%B0-Git"><span class="toc-number">8.4.</span> <span class="toc-text">问题 4：Key 已提交到 Git</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%AE%8C%E6%95%B4%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">7. 完整实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A1%88%E4%BE%8B%EF%BC%9A%E4%BB%8E%E9%9B%B6%E9%85%8D%E7%BD%AE-AI-%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83"><span class="toc-number">9.1.</span> <span class="toc-text">案例：从零配置 AI 开发环境</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-1-%E5%88%9B%E5%BB%BA-env-%E6%96%87%E4%BB%B6"><span class="toc-number">9.1.1.</span> <span class="toc-text">Step 1 - 创建 .env 文件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-2-%E9%85%8D%E7%BD%AE-zshrc-%E5%8A%A0%E8%BD%BD"><span class="toc-number">9.1.2.</span> <span class="toc-text">Step 2 - 配置 zshrc 加载</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-3-%E9%85%8D%E7%BD%AE-Claude-Code"><span class="toc-number">9.1.3.</span> <span class="toc-text">Step 3 - 配置 Claude Code</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-4-%E9%85%8D%E7%BD%AE-MCP-Server"><span class="toc-number">9.1.4.</span> <span class="toc-text">Step 4 - 配置 MCP Server</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-5-%E5%90%AF%E5%8A%A8-Docker"><span class="toc-number">9.1.5.</span> <span class="toc-text">Step 5 - 启动 Docker</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-6-%E9%AA%8C%E8%AF%81"><span class="toc-number">9.1.6.</span> <span class="toc-text">Step 6 - 验证</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-FAQ"><span class="toc-number">10.</span> <span class="toc-text">8. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89-config-opencode-env-%E8%80%8C%E4%B8%8D%E6%98%AF-env%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1: 为什么选 ~&#x2F;.config&#x2F;opencode&#x2F;.env 而不是 ~&#x2F;.env？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-set-a-%E5%92%8C%E9%80%90%E8%A1%8C-export-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2: set -a 和逐行 export 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A4%9A%E4%B8%AA-AI-%E5%B7%A5%E5%85%B7%E4%BC%9A%E4%B8%8D%E4%BC%9A%E6%9C%89%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F%E5%86%B2%E7%AA%81%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3: 多个 AI 工具会不会有环境变量冲突？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E4%B9%9F%E7%94%A8-env-%E6%96%87%E4%BB%B6%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4: 生产环境也用 .env 文件吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E5%A6%82%E4%BD%95%E5%AE%89%E5%85%A8%E5%9C%B0%E5%9C%A8%E5%A4%9A%E5%8F%B0%E8%AE%BE%E5%A4%87%E9%97%B4%E5%90%8C%E6%AD%A5%E5%AF%86%E9%92%A5%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5: 如何安全地在多台设备间同步密钥？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-Key-%E6%B3%84%E9%9C%B2%E4%BA%86%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">10.6.</span> <span class="toc-text">Q6: Key 泄露了怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q7-cc-switch-%E7%9A%84-profiles-%E5%92%8C-env-%E6%98%AF%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">10.7.</span> <span class="toc-text">Q7: cc-switch 的 profiles 和 .env 是什么关系？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">9. 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">11.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">11.2.</span> <span class="toc-text">行动建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%90%8E%E7%9A%84%E8%AF%9D"><span class="toc-number">11.3.</span> <span class="toc-text">最后的话</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%BA%90"><span class="toc-number">12.</span> <span class="toc-text">参考资源</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

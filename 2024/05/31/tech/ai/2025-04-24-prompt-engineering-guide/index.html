@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>AI Prompt 设计方法论 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2024/05/31/tech/ai/2025-04-24-prompt-engineering-guide/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI探索, 入门" />
+  
+  <meta name="description" content="系统化掌握 AI 提示词设计方法，从四大原则到高级技巧">
+<meta property="og:type" content="article">
+<meta property="og:title" content="AI Prompt 设计方法论">
+<meta property="og:url" content="https://leahana.github.io/2024/05/31/tech/ai/2025-04-24-prompt-engineering-guide/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="系统化掌握 AI 提示词设计方法，从四大原则到高级技巧">
+<meta property="og:locale">
+<meta property="article:published_time" content="2024-05-31T23:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI探索">
+<meta property="article:tag" content="入门">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"AI Prompt 设计方法论","description":"系统化掌握 AI 提示词设计方法，从四大原则到高级技巧","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2024-05-31T23:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2024/05/31/tech/ai/2025-04-24-prompt-engineering-guide/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2024/05/31/tech/ai/2025-04-24-prompt-engineering-guide/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">AI Prompt 设计方法论</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2024-05-31T23:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2024-06-01</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~5.37K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8F%90%E7%A4%BA%E8%AF%8D%E8%AE%BE%E8%AE%A1%E5%9B%9B%E5%A4%A7%E9%BB%84%E9%87%91%E5%8E%9F%E5%88%99"><span class="toc-number">1.</span> <span class="toc-text">一、提示词设计四大黄金原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%98%8E%E7%A1%AE%E6%80%A7%E6%B3%95%E5%88%99"><span class="toc-number">1.1.</span> <span class="toc-text">1. 明确性法则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%BB%93%E6%9E%84%E5%8C%96%E6%B3%95%E5%88%99"><span class="toc-number">1.2.</span> <span class="toc-text">2. 结构化法则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B8%90%E8%BF%9B%E6%B3%95%E5%88%99"><span class="toc-number">1.3.</span> <span class="toc-text">3. 渐进法则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%8F%8D%E9%A6%88%E4%BF%AE%E6%AD%A3%E6%B3%95%E5%88%99"><span class="toc-number">1.4.</span> <span class="toc-text">4. 反馈修正法则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%AD%E5%A4%A7%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95%E8%AE%BA"><span class="toc-number">2.</span> <span class="toc-text">二、六大核心方法论</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%A7%92%E8%89%B2%E8%AE%BE%E5%AE%9A%E6%B3%95"><span class="toc-number">2.1.</span> <span class="toc-text">1. 角色设定法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%80%9D%E7%BB%B4%E9%93%BE%EF%BC%88Chain-of-Thought%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">2. 思维链（Chain-of-Thought）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%A4%BA%E4%BE%8B%E5%BC%95%E5%AF%BC%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">3. 示例引导法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">4. 约束条件法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%AF%B9%E6%8A%97%E8%AE%AD%E7%BB%83%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">5. 对抗训练法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%85%83%E6%8F%90%E7%A4%BA%E6%B3%95"><span class="toc-number">2.6.</span> <span class="toc-text">6. 元提示法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%B7%A8%E9%A2%86%E5%9F%9F%E6%A1%88%E4%BE%8B%E5%BA%93"><span class="toc-number">3.</span> <span class="toc-text">三、跨领域案例库</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF1%EF%BC%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90"><span class="toc-number">3.1.</span> <span class="toc-text">场景1：代码生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF2%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90"><span class="toc-number">3.2.</span> <span class="toc-text">场景2：数据分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF3%EF%BC%9A%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3"><span class="toc-number">3.3.</span> <span class="toc-text">场景3：技术文档</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%8F%8A%E4%BF%AE%E6%AD%A3"><span class="toc-number">4.</span> <span class="toc-text">四、常见错误及修正</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A8%A1%E7%B3%8A%E8%AF%B7%E6%B1%82"><span class="toc-number">4.1.</span> <span class="toc-text">1. 模糊请求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%BF%87%E5%BA%A6%E5%BC%80%E6%94%BE"><span class="toc-number">4.2.</span> <span class="toc-text">2. 过度开放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BC%BA%E5%B0%91%E7%BA%A6%E6%9D%9F"><span class="toc-number">4.3.</span> <span class="toc-text">3. 缺少约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%BF%BD%E7%95%A5%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">4.4.</span> <span class="toc-text">4. 忽略上下文</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7"><span class="toc-number">5.</span> <span class="toc-text">五、进阶技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%A8%A1%E6%9D%BF%E5%8C%96"><span class="toc-number">5.1.</span> <span class="toc-text">1. 提示词模板化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%86%E5%B1%82%E6%8F%90%E7%A4%BA%E7%AD%96%E7%95%A5"><span class="toc-number">5.2.</span> <span class="toc-text">2. 分层提示策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%BF%AD%E4%BB%A3%E4%BC%98%E5%8C%96%E5%BE%AA%E7%8E%AF"><span class="toc-number">5.3.</span> <span class="toc-text">3. 迭代优化循环</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90"><span class="toc-number">6.</span> <span class="toc-text">六、工具推荐</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Prompt-%E5%B7%A5%E7%A8%8B%E5%B9%B3%E5%8F%B0"><span class="toc-number">6.1.</span> <span class="toc-text">Prompt 工程平台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7"><span class="toc-number">6.2.</span> <span class="toc-text">本地开发工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">七、最佳实践总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DO-%E5%BA%94%E8%AF%A5%E5%81%9A%E7%9A%84"><span class="toc-number">7.1.</span> <span class="toc-text">DO - 应该做的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DON%E2%80%99T-%E9%81%BF%E5%85%8D%E5%81%9A%E7%9A%84"><span class="toc-number">7.2.</span> <span class="toc-text">DON’T - 避免做的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81Vibecoding-%E6%8F%90%E7%A4%BA%E8%AF%8D%E8%BF%9B%E9%98%B6"><span class="toc-number">8.</span> <span class="toc-text">八、Vibecoding 提示词进阶</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BB%8E%E2%80%9D%E6%8F%8F%E8%BF%B0%E6%84%8F%E5%9B%BE%E2%80%9D%E8%BD%AC%E5%90%91%E2%80%9D%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E2%80%9D"><span class="toc-number">8.1.</span> <span class="toc-text">1. 从”描述意图”转向”定义状态”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B3%A8%E5%85%A5%E2%80%9D%E6%8A%80%E6%9C%AF%E4%B8%8A%E4%B8%8B%E6%96%87%E2%80%9D"><span class="toc-number">8.2.</span> <span class="toc-text">2. 注入”技术上下文”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%BB%E5%8A%A1%E6%8B%86%E8%A7%A3%EF%BC%88Atomic-Prompts%EF%BC%89"><span class="toc-number">8.3.</span> <span class="toc-text">3. 任务拆解（Atomic Prompts）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Java-%E5%BC%80%E5%8F%91%E5%9C%BA%E6%99%AF%E5%AF%B9%E6%AF%94%E7%A4%BA%E4%BE%8B"><span class="toc-number">8.4.</span> <span class="toc-text">4. Java 开发场景对比示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%B8%87%E8%83%BD%E2%80%9DVibe-%E6%A8%A1%E6%9D%BF%E2%80%9D"><span class="toc-number">8.5.</span> <span class="toc-text">5. 万能”Vibe 模板”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><h2 id="一、提示词设计四大黄金原则"><a href="#一、提示词设计四大黄金原则" class="headerlink" title="一、提示词设计四大黄金原则"></a>一、提示词设计四大黄金原则</h2><h3 id="1-明确性法则"><a href="#1-明确性法则" class="headerlink" title="1. 明确性法则"></a>1. 明确性法则</h3><p>❌ 错误示范：</p>
+<blockquote>
+<p>“写一个登录验证的代码”</p>
+</blockquote>
+<p>✅ 正确示范：</p>
+<blockquote>
+<p>“用 Python 编写 FastAPI 接口，实现 JWT 令牌校验，要求：</p>
+<ul>
+<li>使用 HS256 算法</li>
+<li>携带用户角色信息</li>
+<li>过期时间 30 分钟”</li>
+</ul>
+</blockquote>
+<h3 id="2-结构化法则"><a href="#2-结构化法则" class="headerlink" title="2. 结构化法则"></a>2. 结构化法则</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[角色] 你是一位资深系统架构师</span><br><span class="line">[任务] 设计高可用 Redis 集群方案</span><br><span class="line">[要求]</span><br><span class="line">1. 跨 3 个可用区部署</span><br><span class="line">2. 读写分离架构</span><br><span class="line">3. 内存占用率超过 70% 自动告警</span><br><span class="line">[输出格式] Markdown 列表</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-渐进法则"><a href="#3-渐进法则" class="headerlink" title="3. 渐进法则"></a>3. 渐进法则</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 分阶段提问示例</span><br><span class="line">prompt1 = &quot;解释什么是数据库连接池&quot;</span><br><span class="line">prompt2 = &quot;比较 HikariCP vs Druid 的特点&quot;</span><br><span class="line">prompt3 = &quot;给出 Spring Boot 集成 HikariCP 的配置示例，要求最大连接数 50，超时时间 5 秒&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-反馈修正法则"><a href="#4-反馈修正法则" class="headerlink" title="4. 反馈修正法则"></a>4. 反馈修正法则</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 对话式修正流程</span><br><span class="line">用户：生成的 Kafka 消费者代码无法处理反序列化异常</span><br><span class="line">AI：建议添加 try-catch 块处理 DeserializationException</span><br><span class="line">用户：请具体展示异常处理部分的代码</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>核心区别</strong>：</p>
+<ul>
+<li><strong>渐进法则</strong>：基于预设规则的分阶段递进优化（主动规划）</li>
+<li><strong>反馈修正法则</strong>：基于实时反馈的动态偏差修正（被动调整）</li>
+</ul>
+</blockquote>
+<p><strong>实战示例</strong>：需求是实现登录验证功能</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 渐进式提问</span><br><span class="line">User：描述一下登录验证的功能</span><br><span class="line">AI：[基础功能说明]</span><br><span class="line">User：描述一下登录验证流程</span><br><span class="line">AI：[流程详细说明]</span><br><span class="line">User：给出 JWT 登录验证流程的具体示例和代码</span><br><span class="line">AI：[完整代码实现]</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="二、六大核心方法论"><a href="#二、六大核心方法论" class="headerlink" title="二、六大核心方法论"></a>二、六大核心方法论</h2><h3 id="1-角色设定法"><a href="#1-角色设定法" class="headerlink" title="1. 角色设定法"></a>1. 角色设定法</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[角色] 你是有 10 年经验的 AWS 解决方案架构师</span><br><span class="line">[任务] 设计支持百万并发的视频流系统</span><br><span class="line">[约束]</span><br><span class="line">- 使用 MediaLive+MediaPackage 架构</span><br><span class="line">- CDN 成本控制在 $0.05/GB 以下</span><br><span class="line">- 支持 ABR 自适应码率</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-思维链（Chain-of-Thought）"><a href="#2-思维链（Chain-of-Thought）" class="headerlink" title="2. 思维链（Chain-of-Thought）"></a>2. 思维链（Chain-of-Thought）</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 数学问题示例</span><br><span class="line">问题：会议室有 8 排座位，前 7 排每排 12 个座位，最后一排少 3 个，总共有多少座位？</span><br><span class="line">思考过程：</span><br><span class="line">1. 计算前 7 排总数：7×12=84</span><br><span class="line">2. 最后一排座位数：12-3=9</span><br><span class="line">3. 总数相加：84+9=93</span><br><span class="line">答案：93</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-示例引导法"><a href="#3-示例引导法" class="headerlink" title="3. 示例引导法"></a>3. <strong>示例引导法</strong></h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">// 代码生成案例</span><br><span class="line">用户示例：</span><br><span class="line">输入：生成 Java 方法，计算两个 LocalDate 之间的工作日</span><br><span class="line">输出：</span><br><span class="line">public int calculateWorkDays(LocalDate start, LocalDate end) &#123;</span><br><span class="line">    // 实现逻辑（排除周末）</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">新需求：</span><br><span class="line">请增加对法定节假日的支持，传入 Set&lt;LocalDate&gt; holiday 参数</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-约束条件法"><a href="#4-约束条件法" class="headerlink" title="4. 约束条件法"></a>4. 约束条件法</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">代码要求：</span><br><span class="line">- 使用 Python 3.8+</span><br><span class="line">- 禁止使用全局变量</span><br><span class="line">- 函数参数必须类型注解</span><br><span class="line">- 包含 pytest 单元测试</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-对抗训练法"><a href="#5-对抗训练法" class="headerlink" title="5. 对抗训练法"></a>5. 对抗训练法</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">请生成 3 种不同的 SQL 注入攻击示例，然后为每种攻击编写对应的防御方案，要求：</span><br><span class="line">1. 攻击手段不同</span><br><span class="line">2. 防御措施具体到 PreparedStatement 参数设置</span><br><span class="line">3. 给出 MyBatis 中的防范配置示例</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-元提示法"><a href="#6-元提示法" class="headerlink" title="6. 元提示法"></a>6. 元提示法</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&quot;&quot;&quot;</span><br><span class="line">你是一位提示词优化专家，请帮我改进以下提示：</span><br><span class="line">原始提示：帮我写个排序算法</span><br><span class="line">优化方向：</span><br><span class="line">1. 明确排序类型（快排/归并/等）</span><br><span class="line">2. 添加边界条件处理要求</span><br><span class="line">3. 指定输出语言和性能指标</span><br><span class="line">请输出优化后的提示模板</span><br><span class="line">&quot;&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、跨领域案例库"><a href="#三、跨领域案例库" class="headerlink" title="三、跨领域案例库"></a>三、跨领域案例库</h2><h3 id="场景1：代码生成"><a href="#场景1：代码生成" class="headerlink" title="场景1：代码生成"></a>场景1：代码生成</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">// 优化前：</span><br><span class="line">&quot;写个 Rust 函数处理字符串&quot;</span><br><span class="line"></span><br><span class="line">// 优化后：</span><br><span class="line">&quot;&quot;&quot;</span><br><span class="line">作为 Rust 专家，实现一个高效反转字符串中单词顺序的函数，要求：</span><br><span class="line">1. 处理 unicode 字符</span><br><span class="line">2. 时间复杂度 O(n)</span><br><span class="line">3. 避免分配额外内存</span><br><span class="line">示例输入：&quot;hello 世界&quot; → 输出：&quot;世界 hello&quot;</span><br><span class="line">给出性能测试方案</span><br><span class="line">&quot;&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="场景2：数据分析"><a href="#场景2：数据分析" class="headerlink" title="场景2：数据分析"></a>场景2：数据分析</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">-- 优化前：</span><br><span class="line">&quot;分析销售数据&quot;</span><br><span class="line"></span><br><span class="line">-- 优化后：</span><br><span class="line">&quot;&quot;&quot;</span><br><span class="line">作为数据分析师，针对 sales 表（字段：order_id, region, product, amount, date）：</span><br><span class="line">1. 计算每个区域 Q3 的同比增长率</span><br><span class="line">2. 找出复购率最高的前 3 个产品</span><br><span class="line">3. 输出 DataFrame 包含：区域、增长率、top3 产品</span><br><span class="line">使用 PySpark 实现，并给出避免数据倾斜的优化建议</span><br><span class="line">&quot;&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="场景3：技术文档"><a href="#场景3：技术文档" class="headerlink" title="场景3：技术文档"></a>场景3：技术文档</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">优化前：</span><br><span class="line">&quot;写 Nginx 配置教程&quot;</span><br><span class="line"></span><br><span class="line">优化后：</span><br><span class="line">&quot;&quot;&quot;</span><br><span class="line">面向初级运维工程师的 Nginx 配置指南，包含：</span><br><span class="line">1. 负载均衡配置对比：轮询 vs IP 哈希</span><br><span class="line">2. 静态资源缓存策略（带 etag 配置示例）</span><br><span class="line">3. 常见错误排查清单（502/504 错误处理）</span><br><span class="line">用 Docker 环境演示，要求命令可复制</span><br><span class="line">&quot;&quot;&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="四、常见错误及修正"><a href="#四、常见错误及修正" class="headerlink" title="四、常见错误及修正"></a>四、常见错误及修正</h2><h3 id="1-模糊请求"><a href="#1-模糊请求" class="headerlink" title="1. 模糊请求"></a>1. <strong>模糊请求</strong></h3><p>🙅 “解释一下微服务”<br>🙆 “用医院科室的类比方式解释微服务架构，重点说明服务发现和熔断机制”</p>
+<h3 id="2-过度开放"><a href="#2-过度开放" class="headerlink" title="2. 过度开放"></a>2. <strong>过度开放</strong></h3><p>🙅 “给些优化建议”<br>🙆 “针对 Tps 低于 100 的 Spring Boot 应用，给出 5 个 JVM 参数调优建议，要求基于 G1 垃圾回收器”</p>
+<h3 id="3-缺少约束"><a href="#3-缺少约束" class="headerlink" title="3. 缺少约束"></a>3. <strong>缺少约束</strong></h3><p>🙅 “写个Dockerfile”<br>🙆 “编写用于 Node.js 18 应用的 Dockerfile，要求：</p>
+<ul>
+<li>使用多阶段构建</li>
+<li>处理 pm2 日志轮转</li>
+<li>镜像体积小于 200MB”</li>
+</ul>
+<h3 id="4-忽略上下文"><a href="#4-忽略上下文" class="headerlink" title="4. 忽略上下文"></a>4. <strong>忽略上下文</strong></h3><p>🙅 <strong>错误</strong>：”继续优化”（未说明优化什么）</p>
+<p>🙆 <strong>正确</strong>：”针对上一步生成的 Kafka 消费者代码，优化反序列化异常处理，要求：</p>
+<ul>
+<li>添加重试机制（最多 3 次）</li>
+<li>记录失败消息到 Dead Letter Queue</li>
+<li>给出完整的异常处理代码”</li>
+</ul>
+<hr>
+<h2 id="五、进阶技巧"><a href="#五、进阶技巧" class="headerlink" title="五、进阶技巧"></a>五、进阶技巧</h2><h3 id="1-提示词模板化"><a href="#1-提示词模板化" class="headerlink" title="1. 提示词模板化"></a>1. 提示词模板化</h3><p>将常用模式抽象为可复用模板：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"># 代码生成通用模板</span><br><span class="line">[角色] 你是 &#123;语言&#125;&#123;领域&#125; 专家</span><br><span class="line">[任务] 实现 &#123;功能描述&#125;</span><br><span class="line">[技术要求]</span><br><span class="line">- 语言版本：&#123;version&#125;</span><br><span class="line">- 核心依赖：&#123;dependencies&#125;</span><br><span class="line">- 性能要求：&#123;performance&#125;</span><br><span class="line">[输出格式]</span><br><span class="line">&#123;format_spec&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-分层提示策略"><a href="#2-分层提示策略" class="headerlink" title="2. 分层提示策略"></a>2. 分层提示策略</h3><p>对于复杂任务，采用自上而下的分层设计：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"># 第一层：架构设计</span><br><span class="line">&quot;设计一个微服务架构的电商系统，包含用户、商品、订单服务&quot;</span><br><span class="line"></span><br><span class="line"># 第二层：接口设计</span><br><span class="line">&quot;基于上述架构，设计订单服务的RESTful API&quot;</span><br><span class="line"></span><br><span class="line"># 第三层：实现细节</span><br><span class="line">&quot;实现订单创建接口，要求幂等性、分布式事务处理&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-迭代优化循环"><a href="#3-迭代优化循环" class="headerlink" title="3. 迭代优化循环"></a>3. 迭代优化循环</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">初始提示 → 评估结果 → 识别问题 → 优化提示 → 重新生成</span><br><span class="line">    ↑                                              ↓</span><br><span class="line">    └──────────────── 循环直到满意 ←─────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p><strong>优化维度检查清单</strong>：</p>
+<ul>
+<li><input disabled="" type="checkbox"> 角色定义是否恰当</li>
+<li><input disabled="" type="checkbox"> 任务描述是否具体</li>
+<li><input disabled="" type="checkbox"> 约束条件是否完整</li>
+<li><input disabled="" type="checkbox"> 输出格式是否明确</li>
+<li><input disabled="" type="checkbox"> 是否需要示例引导</li>
+<li><input disabled="" type="checkbox"> 是否考虑边界情况</li>
+</ul>
+<hr>
+<h2 id="六、工具推荐"><a href="#六、工具推荐" class="headerlink" title="六、工具推荐"></a>六、工具推荐</h2><h3 id="Prompt-工程平台"><a href="#Prompt-工程平台" class="headerlink" title="Prompt 工程平台"></a>Prompt 工程平台</h3><table>
+<thead>
+<tr>
+<th>工具</th>
+<th>特点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>LangSmith</strong></td>
+<td>提示词版本管理、A&#x2F;B测试</td>
+<td>生产环境</td>
+</tr>
+<tr>
+<td><strong>PromptLayer</strong></td>
+<td>提示词库、协作功能</td>
+<td>团队使用</td>
+</tr>
+<tr>
+<td><strong>FlowGPT</strong></td>
+<td>社区提示词分享</td>
+<td>学习参考</td>
+</tr>
+<tr>
+<td><strong>OpenAI Playground</strong></td>
+<td>快速测试调试</td>
+<td>原型验证</td>
+</tr>
+</tbody></table>
+<h3 id="本地开发工具"><a href="#本地开发工具" class="headerlink" title="本地开发工具"></a>本地开发工具</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Python - Prompt 工具库</span></span><br><span class="line">pip install promptulate  <span class="comment"># 提示词模板管理</span></span><br><span class="line">pip install guidance     <span class="comment"># 结构化生成控制</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># JavaScript - LangChain</span></span><br><span class="line">npm install @langchain/core</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="七、最佳实践总结"><a href="#七、最佳实践总结" class="headerlink" title="七、最佳实践总结"></a>七、最佳实践总结</h2><h3 id="DO-应该做的"><a href="#DO-应该做的" class="headerlink" title="DO - 应该做的"></a>DO - 应该做的</h3><p>✅ <strong>明确角色定位</strong></p>
+<ul>
+<li>设定具体的专业背景</li>
+<li>匹配任务复杂度</li>
+</ul>
+<p>✅ <strong>提供充分上下文</strong></p>
+<ul>
+<li>背景信息、技术环境、业务场景</li>
+</ul>
+<p>✅ <strong>使用结构化格式</strong></p>
+<ul>
+<li>分点列举、表格对比、代码示例</li>
+</ul>
+<p>✅ <strong>设定明确约束</strong></p>
+<ul>
+<li>技术限制、性能指标、安全要求</li>
+</ul>
+<p>✅ <strong>迭代优化</strong></p>
+<ul>
+<li>记录有效提示词</li>
+<li>建立模板库</li>
+<li>分享团队经验</li>
+</ul>
+<h3 id="DON’T-避免做的"><a href="#DON’T-避免做的" class="headerlink" title="DON’T - 避免做的"></a>DON’T - 避免做的</h3><p>❌ <strong>模糊不清</strong></p>
+<ul>
+<li>“帮我写个代码”</li>
+<li>“优化一下”</li>
+</ul>
+<p>❌ <strong>过度复杂</strong></p>
+<ul>
+<li>单次提示包含太多要求</li>
+<li>缺乏层次结构</li>
+</ul>
+<p>❌ <strong>缺少验证</strong></p>
+<ul>
+<li>不测试直接使用</li>
+<li>忽略安全性检查</li>
+</ul>
+<p>❌ <strong>重复造轮子</strong></p>
+<ul>
+<li>忽略已有模板</li>
+<li>不记录有效经验</li>
+</ul>
+<hr>
+<h2 id="八、Vibecoding-提示词进阶"><a href="#八、Vibecoding-提示词进阶" class="headerlink" title="八、Vibecoding 提示词进阶"></a>八、Vibecoding 提示词进阶</h2><p>在使用 <strong>Vibecoding</strong>（依赖自然语言直觉驱动的编程方式）时，提示词过于口语化容易让 AI 产生”理解漂移”。AI 虽然能听懂人话，但它更擅长处理<strong>结构化、有上下文边界</strong>的指令。</p>
+<p>要把”氛围感”转化为”生产力”，可以尝试以下进阶技巧：</p>
+<h3 id="1-从”描述意图”转向”定义状态”"><a href="#1-从”描述意图”转向”定义状态”" class="headerlink" title="1. 从”描述意图”转向”定义状态”"></a>1. 从”描述意图”转向”定义状态”</h3><p>口语化提示词往往只描述想<strong>做</strong>什么（Action），而优秀的提示词描述任务完成后的<strong>最终状态</strong>（State）。</p>
+<table>
+<thead>
+<tr>
+<th align="left">风格</th>
+<th align="left">提示词内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">❌ 口语化</td>
+<td align="left">“帮我写个 Redis 缓存逻辑，快一点。”</td>
+</tr>
+<tr>
+<td align="left">✅ 结构化</td>
+<td align="left">“在 <code>UserService</code> 中实现一个基于 Redis 的缓存层。要求：使用 <code>StringRedisTemplate</code>，设置 30 分钟过期时间，并在更新数据库后执行缓存双删策略。”</td>
+</tr>
+</tbody></table>
+<h3 id="2-注入”技术上下文”"><a href="#2-注入”技术上下文”" class="headerlink" title="2. 注入”技术上下文”"></a>2. 注入”技术上下文”</h3><p>Vibecoding 工具（如 Claude Code 或 Cursor）虽然能读代码，但它们不知道你的<strong>工程规范</strong>。需要把隐含的规则显性化。</p>
+<p><strong>技巧</strong>：建立 <code>.cursorrules</code> 文件或在对话开始时设定”契约”：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">接下来的代码请遵循：</span><br><span class="line">- Java 17 语法、Lombok 注解</span><br><span class="line">- ResultBody 统一返回格式</span><br><span class="line">- 禁止使用物理删除（使用 is_deleted 字段）</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-任务拆解（Atomic-Prompts）"><a href="#3-任务拆解（Atomic-Prompts）" class="headerlink" title="3. 任务拆解（Atomic Prompts）"></a>3. 任务拆解（Atomic Prompts）</h3><p>不要试图在一个提示词里解决整个功能模块。Vibecoding 的精髓在于<strong>快速反馈循环</strong>。</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">步骤 A：先帮我定义这个用户注册接口的 DTO，包含字段校验注解。</span><br><span class="line">步骤 B：根据 DTO 生成 Service 层逻辑，注意处理 MySQL 唯一索引冲突的异常。</span><br><span class="line">步骤 C：为这个 Service 编写单元测试，使用 Mockito 模拟数据库连接。</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-Java-开发场景对比示例"><a href="#4-Java-开发场景对比示例" class="headerlink" title="4. Java 开发场景对比示例"></a>4. Java 开发场景对比示例</h3><p><strong>场景一：重构代码</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">风格</th>
+<th align="left">提示词内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">❌ 口语化</td>
+<td align="left">“这段代码太乱了，帮我整理一下，看起来舒服点。”</td>
+</tr>
+<tr>
+<td align="left">✅ 专业化</td>
+<td align="left">“重构 <code>OrderService.java</code> 中的 <code>processOrder</code> 方法。目标：1. 提取冗长的 if-else 逻辑到策略模式中；2. 增加必要的日志记录；3. 确保符合开闭原则。”</td>
+</tr>
+</tbody></table>
+<p><strong>场景二：处理 Bug</strong></p>
+<table>
+<thead>
+<tr>
+<th align="left">风格</th>
+<th align="left">提示词内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">❌ 口语化</td>
+<td align="left">“我的 Redis 连接好像报错了，你看一下是怎么回事？”</td>
+</tr>
+<tr>
+<td align="left">✅ 专业化</td>
+<td align="left">“分析以下报错堆栈。当前环境是 Spring Boot + Jedis，Redis 部署在 Docker 中。请检查是否是连接池溢出或网络超时配置问题，并给出 <code>application.yml</code> 的优化建议。”</td>
+</tr>
+</tbody></table>
+<h3 id="5-万能”Vibe-模板”"><a href="#5-万能”Vibe-模板”" class="headerlink" title="5. 万能”Vibe 模板”"></a>5. 万能”Vibe 模板”</h3><p>当拿不准怎么写时，套用此公式：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[角色] 你是一个资深的 Java 架构师。</span><br><span class="line">[上下文] 我们正在处理一个基于 Spring Boot 和 MySQL 的商城系统。</span><br><span class="line">[任务] 请帮我实现 &#123;功能名称&#125;。</span><br><span class="line">[约束] 代码需要考虑高并发场景，使用 CompletableFuture 异步处理。</span><br><span class="line">[输出] 请直接给出代码实现，并简要说明设计思路。</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Vibecoding 的快乐在于”对齐”，而非单纯的”下旨”。</p>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2024-06-01</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td>2026-01-12</td>
+<td>完整重构文章，修复错误，添加进阶技巧、工具推荐和最佳实践章节</td>
+</tr>
+<tr>
+<td>v2.1</td>
+<td>2026-03-24</td>
+<td>新增第八节：Vibecoding 提示词进阶，包含状态定义、上下文注入、原子任务拆解和万能模板</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI%E6%8E%A2%E7%B4%A2/" rel="tag">AI探索</a>, <a class="tag-none-link" href="/tags/%E5%85%A5%E9%97%A8/" rel="tag">入门</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 开始使用：游戏研究" href="/2024/05/31/gaming/2024-06-01-game-research/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Obsidian 笔记工具入门指南" href="/2025/04/23/tech/tools/2025-04-24-obsidian-note-taking-guide/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%8F%90%E7%A4%BA%E8%AF%8D%E8%AE%BE%E8%AE%A1%E5%9B%9B%E5%A4%A7%E9%BB%84%E9%87%91%E5%8E%9F%E5%88%99"><span class="toc-number">1.</span> <span class="toc-text">一、提示词设计四大黄金原则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%98%8E%E7%A1%AE%E6%80%A7%E6%B3%95%E5%88%99"><span class="toc-number">1.1.</span> <span class="toc-text">1. 明确性法则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%BB%93%E6%9E%84%E5%8C%96%E6%B3%95%E5%88%99"><span class="toc-number">1.2.</span> <span class="toc-text">2. 结构化法则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B8%90%E8%BF%9B%E6%B3%95%E5%88%99"><span class="toc-number">1.3.</span> <span class="toc-text">3. 渐进法则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%8F%8D%E9%A6%88%E4%BF%AE%E6%AD%A3%E6%B3%95%E5%88%99"><span class="toc-number">1.4.</span> <span class="toc-text">4. 反馈修正法则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%85%AD%E5%A4%A7%E6%A0%B8%E5%BF%83%E6%96%B9%E6%B3%95%E8%AE%BA"><span class="toc-number">2.</span> <span class="toc-text">二、六大核心方法论</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%A7%92%E8%89%B2%E8%AE%BE%E5%AE%9A%E6%B3%95"><span class="toc-number">2.1.</span> <span class="toc-text">1. 角色设定法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%80%9D%E7%BB%B4%E9%93%BE%EF%BC%88Chain-of-Thought%EF%BC%89"><span class="toc-number">2.2.</span> <span class="toc-text">2. 思维链（Chain-of-Thought）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%A4%BA%E4%BE%8B%E5%BC%95%E5%AF%BC%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">3. 示例引导法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BA%A6%E6%9D%9F%E6%9D%A1%E4%BB%B6%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">4. 约束条件法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%AF%B9%E6%8A%97%E8%AE%AD%E7%BB%83%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">5. 对抗训练法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%85%83%E6%8F%90%E7%A4%BA%E6%B3%95"><span class="toc-number">2.6.</span> <span class="toc-text">6. 元提示法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E8%B7%A8%E9%A2%86%E5%9F%9F%E6%A1%88%E4%BE%8B%E5%BA%93"><span class="toc-number">3.</span> <span class="toc-text">三、跨领域案例库</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF1%EF%BC%9A%E4%BB%A3%E7%A0%81%E7%94%9F%E6%88%90"><span class="toc-number">3.1.</span> <span class="toc-text">场景1：代码生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF2%EF%BC%9A%E6%95%B0%E6%8D%AE%E5%88%86%E6%9E%90"><span class="toc-number">3.2.</span> <span class="toc-text">场景2：数据分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF3%EF%BC%9A%E6%8A%80%E6%9C%AF%E6%96%87%E6%A1%A3"><span class="toc-number">3.3.</span> <span class="toc-text">场景3：技术文档</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF%E5%8F%8A%E4%BF%AE%E6%AD%A3"><span class="toc-number">4.</span> <span class="toc-text">四、常见错误及修正</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A8%A1%E7%B3%8A%E8%AF%B7%E6%B1%82"><span class="toc-number">4.1.</span> <span class="toc-text">1. 模糊请求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%BF%87%E5%BA%A6%E5%BC%80%E6%94%BE"><span class="toc-number">4.2.</span> <span class="toc-text">2. 过度开放</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BC%BA%E5%B0%91%E7%BA%A6%E6%9D%9F"><span class="toc-number">4.3.</span> <span class="toc-text">3. 缺少约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%BF%BD%E7%95%A5%E4%B8%8A%E4%B8%8B%E6%96%87"><span class="toc-number">4.4.</span> <span class="toc-text">4. 忽略上下文</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E8%BF%9B%E9%98%B6%E6%8A%80%E5%B7%A7"><span class="toc-number">5.</span> <span class="toc-text">五、进阶技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%8F%90%E7%A4%BA%E8%AF%8D%E6%A8%A1%E6%9D%BF%E5%8C%96"><span class="toc-number">5.1.</span> <span class="toc-text">1. 提示词模板化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%86%E5%B1%82%E6%8F%90%E7%A4%BA%E7%AD%96%E7%95%A5"><span class="toc-number">5.2.</span> <span class="toc-text">2. 分层提示策略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E8%BF%AD%E4%BB%A3%E4%BC%98%E5%8C%96%E5%BE%AA%E7%8E%AF"><span class="toc-number">5.3.</span> <span class="toc-text">3. 迭代优化循环</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AD%E3%80%81%E5%B7%A5%E5%85%B7%E6%8E%A8%E8%8D%90"><span class="toc-number">6.</span> <span class="toc-text">六、工具推荐</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Prompt-%E5%B7%A5%E7%A8%8B%E5%B9%B3%E5%8F%B0"><span class="toc-number">6.1.</span> <span class="toc-text">Prompt 工程平台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E5%B7%A5%E5%85%B7"><span class="toc-number">6.2.</span> <span class="toc-text">本地开发工具</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%83%E3%80%81%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%80%BB%E7%BB%93"><span class="toc-number">7.</span> <span class="toc-text">七、最佳实践总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#DO-%E5%BA%94%E8%AF%A5%E5%81%9A%E7%9A%84"><span class="toc-number">7.1.</span> <span class="toc-text">DO - 应该做的</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#DON%E2%80%99T-%E9%81%BF%E5%85%8D%E5%81%9A%E7%9A%84"><span class="toc-number">7.2.</span> <span class="toc-text">DON’T - 避免做的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%85%AB%E3%80%81Vibecoding-%E6%8F%90%E7%A4%BA%E8%AF%8D%E8%BF%9B%E9%98%B6"><span class="toc-number">8.</span> <span class="toc-text">八、Vibecoding 提示词进阶</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BB%8E%E2%80%9D%E6%8F%8F%E8%BF%B0%E6%84%8F%E5%9B%BE%E2%80%9D%E8%BD%AC%E5%90%91%E2%80%9D%E5%AE%9A%E4%B9%89%E7%8A%B6%E6%80%81%E2%80%9D"><span class="toc-number">8.1.</span> <span class="toc-text">1. 从”描述意图”转向”定义状态”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B3%A8%E5%85%A5%E2%80%9D%E6%8A%80%E6%9C%AF%E4%B8%8A%E4%B8%8B%E6%96%87%E2%80%9D"><span class="toc-number">8.2.</span> <span class="toc-text">2. 注入”技术上下文”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BB%BB%E5%8A%A1%E6%8B%86%E8%A7%A3%EF%BC%88Atomic-Prompts%EF%BC%89"><span class="toc-number">8.3.</span> <span class="toc-text">3. 任务拆解（Atomic Prompts）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Java-%E5%BC%80%E5%8F%91%E5%9C%BA%E6%99%AF%E5%AF%B9%E6%AF%94%E7%A4%BA%E4%BE%8B"><span class="toc-number">8.4.</span> <span class="toc-text">4. Java 开发场景对比示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E4%B8%87%E8%83%BD%E2%80%9DVibe-%E6%A8%A1%E6%9D%BF%E2%80%9D"><span class="toc-number">8.5.</span> <span class="toc-text">5. 万能”Vibe 模板”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

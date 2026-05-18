@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>终端长任务不断线：从 Ctrl+Z、bg 到 tmux 的选择指南 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/22/tech/tools/2026-03-23-console-job-control-and-tmux/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="job-control, nohup, shell, terminal, tmux" />
+  
+  <meta name="description" content="梳理 Ctrl+Z、bg、disown、nohup 和 tmux 的区别，帮你在长任务、断线重连和终端保活场景下选对方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="终端长任务不断线：从 Ctrl+Z、bg 到 tmux 的选择指南">
+<meta property="og:url" content="https://leahana.github.io/2026/03/22/tech/tools/2026-03-23-console-job-control-and-tmux/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="梳理 Ctrl+Z、bg、disown、nohup 和 tmux 的区别，帮你在长任务、断线重连和终端保活场景下选对方案。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-23-console-job-control-and-tmux/diagram_20260417_075344_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-23-console-job-control-and-tmux/diagram_20260417_075353_01.webp">
+<meta property="article:published_time" content="2026-03-22T18:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.765Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="job-control">
+<meta property="article:tag" content="nohup">
+<meta property="article:tag" content="shell">
+<meta property="article:tag" content="terminal">
+<meta property="article:tag" content="tmux">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-23-console-job-control-and-tmux/diagram_20260417_075344_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"终端长任务不断线：从 Ctrl+Z、bg 到 tmux 的选择指南","description":"梳理 Ctrl+Z、bg、disown、nohup 和 tmux 的区别，帮你在长任务、断线重连和终端保活场景下选对方案。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-22T18:30:00.000Z","dateModified":"2026-05-18T05:47:58.765Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/22/tech/tools/2026-03-23-console-job-control-and-tmux/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/22/tech/tools/2026-03-23-console-job-control-and-tmux/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">终端长任务不断线：从 Ctrl+Z、bg 到 tmux 的选择指南</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-22T18:30:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-23</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~6.93K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E8%A1%A8%E7%9C%8B%E6%87%82%E5%B7%AE%E5%BC%82"><span class="toc-number">1.2.</span> <span class="toc-text">一张表看懂差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.3.</span> <span class="toc-text">选择建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%88%E8%AE%B0%E4%BD%8F%E8%BF%99-4-%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.4.</span> <span class="toc-text">先记住这 4 句话</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%85%88%E6%8A%8A%E5%87%A0%E4%B8%AA%E6%A6%82%E5%BF%B5%E5%88%86%E5%BC%80"><span class="toc-number">2.</span> <span class="toc-text">1. 先把几个概念分开</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%89%8D%E5%8F%B0%E3%80%81%E5%90%8E%E5%8F%B0%E3%80%81%E6%8C%82%E8%B5%B7%E3%80%81%E4%BC%9A%E8%AF%9D%E5%88%86%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 前台、后台、挂起、会话分别是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88-Ctrl-C-%E4%BC%9A%E8%AE%A9%E4%BB%BB%E5%8A%A1%E6%96%AD%E6%8E%89"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 为什么 Ctrl+C 会让任务断掉</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%BA%E4%BB%80%E4%B9%88-Ctrl-Z-%E5%8A%A0-bg-%E8%BF%98%E4%B8%8D%E5%A4%9F"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 为什么 Ctrl+Z 加 bg 还不够</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%B8%B8%E8%A7%81%E5%91%BD%E4%BB%A4%E5%88%86%E5%88%AB%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">3.</span> <span class="toc-text">2. 常见命令分别解决什么问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-jobs%E3%80%81fg%E3%80%81bg-%E7%9A%84%E5%9F%BA%E6%9C%AC%E9%85%8D%E5%90%88"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 jobs、fg、bg 的基本配合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-disown-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 disown 解决的是什么问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-nohup-%E6%9B%B4%E9%80%82%E5%90%88%E2%80%9C%E4%B8%80%E6%AC%A1%E6%80%A7%E9%95%BF%E4%BB%BB%E5%8A%A1%E2%80%9D"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 nohup 更适合“一次性长任务”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-tmux-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E2%80%9C%E4%BC%9A%E8%AF%9D%E5%88%AB%E4%B8%A2%E2%80%9D"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 tmux 解决的是“会话别丢”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%B0%E5%BA%95%E8%AF%A5%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">4.</span> <span class="toc-text">3. 到底该怎么选</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-bg%E3%80%81nohup%E3%80%81tmux-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 bg、nohup、tmux 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%80%E4%B8%AA%E5%AE%9E%E7%94%A8%E5%86%B3%E7%AD%96%E6%B3%95"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 一个实用决策法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97"><span class="toc-number">5.</span> <span class="toc-text">4. 实战指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%B7%B2%E7%BB%8F%E5%90%AF%E5%8A%A8%E4%BA%86%E4%BB%BB%E5%8A%A1%EF%BC%8C%E4%B8%B4%E6%97%B6%E6%83%B3%E6%8A%8A%E5%AE%83%E6%94%BE%E5%90%8E%E5%8F%B0"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 场景一：已经启动了任务，临时想把它放后台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E4%BB%8E%E4%B8%80%E5%BC%80%E5%A7%8B%E5%B0%B1%E7%9F%A5%E9%81%93%E4%BB%BB%E5%8A%A1%E4%BC%9A%E8%B7%91%E5%BE%88%E4%B9%85"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 场景二：从一开始就知道任务会跑很久</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%8C%E6%80%95%E6%96%AD%E7%BA%BF"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 场景三：远程登录服务器，怕断线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%AA%97%E5%8F%A3%E4%B8%8D%E5%A4%9F%E7%94%A8"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 场景四：一个窗口不够用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">5. 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%88%E5%86%B3%E5%AE%9A%E8%87%AA%E5%B7%B1%E6%98%AF%E5%9C%A8%E8%A7%A3%E5%86%B3%E5%93%AA%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 先决定自己是在解决哪类问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%95%BF%E4%BB%BB%E5%8A%A1%E5%B0%BD%E9%87%8F%E4%B8%80%E5%BC%80%E5%A7%8B%E5%B0%B1%E8%A7%84%E5%88%92%E6%97%A5%E5%BF%97"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 长任务尽量一开始就规划日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%8D%E8%A6%81%E6%8A%8A%E6%89%80%E6%9C%89%E5%91%BD%E4%BB%A4%E9%83%BD%E7%B2%97%E6%9A%B4%E5%9C%B0%E4%B8%A2%E5%88%B0%E5%90%8E%E5%8F%B0"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 不要把所有命令都粗暴地丢到后台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E5%85%BB%E6%88%90%E5%85%88%E5%BC%80-tmux-%E7%9A%84%E4%B9%A0%E6%83%AF"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 远程服务器上养成先开 tmux 的习惯</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">7.</span> <span class="toc-text">6. 常见误区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E8%AF%AF%E5%8C%BA%E4%B8%80%EF%BC%9ACtrl-Z-%E7%AD%89%E4%BA%8E%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 误区一：Ctrl+Z 等于后台运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E8%AF%AF%E5%8C%BA%E4%BA%8C%EF%BC%9Abg-%E4%B9%8B%E5%90%8E%E5%B0%B1%E8%83%BD%E6%94%BE%E5%BF%83%E5%85%B3%E7%BB%88%E7%AB%AF"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 误区二：bg 之后就能放心关终端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%AF%AF%E5%8C%BA%E4%B8%89%EF%BC%9Anohup-%E8%83%BD%E6%9B%BF%E4%BB%A3-tmux"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 误区三：nohup 能替代 tmux</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%AF%AF%E5%8C%BA%E5%9B%9B%EF%BC%9Atmux-%E5%8F%AA%E9%80%82%E5%90%88%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 误区四：tmux 只适合远程服务器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">7. 故障排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">8. 实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%BF%9C%E7%A8%8B%E8%AE%AD%E7%BB%83%E4%BB%BB%E5%8A%A1%E7%9A%84%E7%A8%B3%E5%A6%A5%E5%81%9A%E6%B3%95"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 远程训练任务的稳妥做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%B7%B2%E7%BB%8F%E5%9C%A8%E5%89%8D%E5%8F%B0%E8%B7%91%E4%BA%86%E6%89%8D%E5%8F%91%E7%8E%B0%E4%BC%9A%E5%BE%88%E4%B9%85%EF%BC%8C%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 已经在前台跑了才发现会很久，怎么办</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">10.</span> <span class="toc-text">9. 工具与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%B8%80%E4%BB%BD%E6%9C%80%E5%B0%8F%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 一份最小检查清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 最常用的命令速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-FAQ"><span class="toc-number">11.</span> <span class="toc-text">10. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-Ctrl-C-%E5%92%8C-Ctrl-Z-%E6%9C%80%E5%A4%A7%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">11.1.</span> <span class="toc-text">10.1 Ctrl+C 和 Ctrl+Z 最大区别是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-bg-%E4%B9%8B%E5%90%8E%E6%88%91%E8%83%BD%E7%9B%B4%E6%8E%A5%E5%85%B3%E7%BB%88%E7%AB%AF%E5%90%97"><span class="toc-number">11.2.</span> <span class="toc-text">10.2 bg 之后我能直接关终端吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-disown-%E5%92%8C-nohup-%E6%98%AF%E4%B8%80%E5%9B%9E%E4%BA%8B%E5%90%97"><span class="toc-number">11.3.</span> <span class="toc-text">10.3 disown 和 nohup 是一回事吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-tmux-%E5%92%8C-nohup-%E5%BA%94%E8%AF%A5%E4%BC%98%E5%85%88%E5%AD%A6%E5%93%AA%E4%B8%AA"><span class="toc-number">11.4.</span> <span class="toc-text">10.4 tmux 和 nohup 应该优先学哪个</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-%E5%B7%B2%E7%BB%8F%E5%90%AF%E5%8A%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E8%83%BD%E6%97%A0%E7%BC%9D%E5%A1%9E%E8%BF%9B-tmux-%E5%90%97"><span class="toc-number">11.5.</span> <span class="toc-text">10.5 已经启动的命令能无缝塞进 tmux 吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-6-%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E4%B9%9F%E5%80%BC%E5%BE%97%E7%94%A8-tmux-%E5%90%97"><span class="toc-number">11.6.</span> <span class="toc-text">10.6 本地开发也值得用 tmux 吗</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">11. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>一句话定位：这是一篇帮你弄清“前台、后台、挂起、脱离会话”区别的终端任务管理笔记。</p>
+</blockquote>
+<blockquote>
+<p>核心理念：<code>Ctrl+Z</code> 和 <code>bg</code> 管的是当前 shell 里的作业，<code>tmux</code> 管的是整段终端会话能不能断开后再接回来。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary><strong>点击展开核心概念</strong></summary>
+
+<h3 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h3><pre class="mermaid">graph TD
+    A[前台运行 command] --> B{你怎么处理}
+    B -->|Ctrl+C| C[终止进程]
+    B -->|Ctrl+Z| D[挂起进程]
+    D --> E[bg 后台继续]
+    E --> F[仍绑定当前 shell]
+    B -->|tmux| G[会话可分离]
+    G --> H[断线后仍可重连]</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-23-console-job-control-and-tmux/diagram_20260417_075344_00.webp" alt="核心概念图解：前台运行 command、终止进程、挂起进程"></p>
+</details>
+
+<p><code>Ctrl+C</code> 的目标是停掉任务，<code>Ctrl+Z</code> 的目标是先暂停任务，<code>bg</code> 的目标是让已暂停任务在后台继续跑。真正解决“关掉终端后还能继续”的，通常不是 <code>bg</code>，而是 <code>nohup</code>、<code>disown</code> 或 <code>tmux</code>。</p>
+<h3 id="一张表看懂差异"><a href="#一张表看懂差异" class="headerlink" title="一张表看懂差异"></a>一张表看懂差异</h3><table>
+<thead>
+<tr>
+<th>操作</th>
+<th>它做了什么</th>
+<th>任务是否继续运行</th>
+<th>关闭终端后是否稳妥</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Ctrl+C</code></td>
+<td>向前台进程发中断信号</td>
+<td>通常不会</td>
+<td>不适用</td>
+<td>明确要停止任务</td>
+</tr>
+<tr>
+<td><code>Ctrl+Z</code></td>
+<td>挂起前台进程</td>
+<td>不会，先暂停</td>
+<td>不稳妥</td>
+<td>先停住再决定</td>
+</tr>
+<tr>
+<td><code>bg</code></td>
+<td>让挂起作业转后台</td>
+<td>会</td>
+<td>不稳妥</td>
+<td>临时让出终端</td>
+</tr>
+<tr>
+<td><code>disown</code></td>
+<td>让 shell 忘记这个作业</td>
+<td>可能会</td>
+<td>比 <code>bg</code> 稳</td>
+<td>已启动任务的补救</td>
+</tr>
+<tr>
+<td><code>nohup command &amp;</code></td>
+<td>后台运行并忽略挂断</td>
+<td>会</td>
+<td>较稳</td>
+<td>一次性长任务</td>
+</tr>
+<tr>
+<td><code>tmux</code></td>
+<td>保住整段终端会话</td>
+<td>会</td>
+<td>很稳</td>
+<td>长任务、多窗口、远程登录</td>
+</tr>
+</tbody></table>
+<h3 id="选择建议"><a href="#选择建议" class="headerlink" title="选择建议"></a>选择建议</h3><pre class="mermaid">graph TD
+    A[命令要跑很久] --> B{还需要交互吗}
+    B -->|需要| C[优先用 tmux]
+    B -->|不需要| D{只是一次性任务吗}
+    D -->|是| E[nohup command &]
+    D -->|否| F[tmux 或服务管理器]</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-03-23-console-job-control-and-tmux/diagram_20260417_075353_01.webp" alt="选择建议对比图：命令要跑很久、优先用 tmux、nohup command &amp;"></p>
+</details>
+
+<h3 id="先记住这-4-句话"><a href="#先记住这-4-句话" class="headerlink" title="先记住这 4 句话"></a>先记住这 4 句话</h3><ul>
+<li><code>Ctrl+C</code> 是结束任务，不是放后台。</li>
+<li><code>Ctrl+Z</code> 是挂起，不是“已经安全后台化”。</li>
+<li><code>bg</code> 只是让作业在当前 shell 背后继续跑，不等于脱离当前终端。</li>
+<li><code>tmux</code> 适合需要断线重连、切换窗口、长期维护的命令行工作。</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="1-先把几个概念分开"><a href="#1-先把几个概念分开" class="headerlink" title="1. 先把几个概念分开"></a>1. 先把几个概念分开</h2><h3 id="1-1-前台、后台、挂起、会话分别是什么"><a href="#1-1-前台、后台、挂起、会话分别是什么" class="headerlink" title="1.1 前台、后台、挂起、会话分别是什么"></a>1.1 前台、后台、挂起、会话分别是什么</h3><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>含义</th>
+<th>你需要记住的点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>前台任务</td>
+<td>当前终端正在直接交互的进程</td>
+<td>会接收键盘输入</td>
+</tr>
+<tr>
+<td>后台任务</td>
+<td>在当前 shell 中继续跑，但不占前台的作业</td>
+<td>不代表已经脱离终端</td>
+</tr>
+<tr>
+<td>挂起</td>
+<td>进程被暂停，暂时不继续执行</td>
+<td><code>Ctrl+Z</code> 默认就是这个效果</td>
+</tr>
+<tr>
+<td>shell 会话</td>
+<td>你这次打开的终端和它启动的 shell 环境</td>
+<td>关掉会话时，很多作业会受影响</td>
+</tr>
+<tr>
+<td>终端复用器</td>
+<td>像 <code>tmux</code> 这样能托管整段会话的工具</td>
+<td>会话可断开后再接回</td>
+</tr>
+</tbody></table>
+<p>很多人第一次混淆，正是因为“后台运行”和“脱离当前终端”不是同一件事。<code>bg</code> 解决的是前台占用问题，<code>tmux</code> 解决的是会话存活问题。</p>
+<h3 id="1-2-为什么-Ctrl-C-会让任务断掉"><a href="#1-2-为什么-Ctrl-C-会让任务断掉" class="headerlink" title="1.2 为什么 Ctrl+C 会让任务断掉"></a>1.2 为什么 <code>Ctrl+C</code> 会让任务断掉</h3><p>在大多数 shell 里，<code>Ctrl+C</code> 会给当前前台进程发送 <code>SIGINT</code>。很多命令收到这个信号后会直接退出，所以你看到的效果就是“任务断了”。</p>
+<p>常见场景包括：</p>
+<ul>
+<li>运行 <code>python long_task.py</code> 时按了 <code>Ctrl+C</code></li>
+<li>运行 <code>npm run build</code> 时按了 <code>Ctrl+C</code></li>
+<li>运行 <code>rsync</code>、<code>ffmpeg</code>、<code>ping</code> 之类命令时按了 <code>Ctrl+C</code></li>
+</ul>
+<p>这不是“暂时离开一下”，而是“告诉它现在就停”。</p>
+<h3 id="1-3-为什么-Ctrl-Z-加-bg-还不够"><a href="#1-3-为什么-Ctrl-Z-加-bg-还不够" class="headerlink" title="1.3 为什么 Ctrl+Z 加 bg 还不够"></a>1.3 为什么 <code>Ctrl+Z</code> 加 <code>bg</code> 还不够</h3><p><code>Ctrl+Z</code> 会发送 <code>SIGTSTP</code>，让前台进程先进入暂停状态。你随后执行 <code>bg</code>，是让这个暂停的作业在后台继续跑。</p>
+<p>问题在于：这个作业通常还挂在当前 shell 下面。</p>
+<p>这带来两个后果：</p>
+<ul>
+<li>你关闭终端或断开 SSH 后，它可能随着会话结束而收到挂断信号</li>
+<li>有些程序仍然依赖终端输入输出，放到后台后也可能异常</li>
+</ul>
+<p>所以 <code>Ctrl+Z</code> 加 <code>bg</code> 很适合“我先把终端让出来”，但不天然等于“我现在可以安心关窗口走人”。</p>
+<hr>
+<h2 id="2-常见命令分别解决什么问题"><a href="#2-常见命令分别解决什么问题" class="headerlink" title="2. 常见命令分别解决什么问题"></a>2. 常见命令分别解决什么问题</h2><h3 id="2-1-jobs、fg、bg-的基本配合"><a href="#2-1-jobs、fg、bg-的基本配合" class="headerlink" title="2.1 jobs、fg、bg 的基本配合"></a>2.1 <code>jobs</code>、<code>fg</code>、<code>bg</code> 的基本配合</h3><p>如果你已经启动了一个前台任务，可以这样操作：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python long_task.py</span><br></pre></td></tr></table></figure>
+
+<p>按下 <code>Ctrl+Z</code> 后，任务会被挂起。然后查看作业列表：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">jobs</span></span><br></pre></td></tr></table></figure>
+
+<p>你可能会看到类似输出：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[1]  + suspended  python long_task.py</span><br></pre></td></tr></table></figure>
+
+<p>把 1 号作业放到后台继续跑：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">bg</span> %1</span><br></pre></td></tr></table></figure>
+
+<p>如果之后又想切回前台：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">fg</span> %1</span><br></pre></td></tr></table></figure>
+
+<p>这套命令的价值是“在当前 shell 里调度作业”，不是“让它彻底独立于当前会话”。</p>
+<h3 id="2-2-disown-解决的是什么问题"><a href="#2-2-disown-解决的是什么问题" class="headerlink" title="2.2 disown 解决的是什么问题"></a>2.2 <code>disown</code> 解决的是什么问题</h3><p>如果一个作业已经在当前 shell 后台运行了，你可以考虑让 shell 不再跟踪它：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">jobs</span></span><br><span class="line"><span class="built_in">disown</span> %1</span><br></pre></td></tr></table></figure>
+
+<p><code>disown</code> 常用于补救场景：</p>
+<ul>
+<li>任务已经开跑了</li>
+<li>你临时发现它会跑很久</li>
+<li>你不想这个作业继续和当前 shell 绑定得太紧</li>
+</ul>
+<p>但它不是万能保险。某些命令本身仍然依赖终端输入输出，这时就算 <code>disown</code> 了，也不一定表现稳定。</p>
+<h3 id="2-3-nohup-更适合“一次性长任务”"><a href="#2-3-nohup-更适合“一次性长任务”" class="headerlink" title="2.3 nohup 更适合“一次性长任务”"></a>2.3 <code>nohup</code> 更适合“一次性长任务”</h3><p>如果你从一开始就知道命令会跑很久，而且不需要你持续交互，更常见的做法是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">nohup</span> python long_task.py &gt; long_task.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+
+<p>这个写法做了 3 件事：</p>
+<ol>
+<li><code>nohup</code> 让进程忽略挂断信号</li>
+<li><code>&gt; long_task.log 2&gt;&amp;1</code> 把标准输出和标准错误都写进日志</li>
+<li><code>&amp;</code> 让命令直接在后台启动</li>
+</ol>
+<p>常用配套命令：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">tail</span> -f long_task.log</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ps aux | rg long_task.py</span><br></pre></td></tr></table></figure>
+
+<p>如果只是跑一个批处理、导出任务、备份任务，<code>nohup</code> 往往已经够用。</p>
+<h3 id="2-4-tmux-解决的是“会话别丢”"><a href="#2-4-tmux-解决的是“会话别丢”" class="headerlink" title="2.4 tmux 解决的是“会话别丢”"></a>2.4 <code>tmux</code> 解决的是“会话别丢”</h3><p><code>tmux</code> 不是单纯把一个命令丢到后台，而是创建一整段可分离、可恢复的终端会话。</p>
+<p>最常见用法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux new -s work</span><br></pre></td></tr></table></figure>
+
+<p>在会话里运行长任务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python long_task.py</span><br></pre></td></tr></table></figure>
+
+<p>按下 <code>Ctrl+B</code>，再按 <code>D</code>，就会从当前 <code>tmux</code> 会话中脱离，但会话和任务还在。</p>
+<p>之后可以查看已有会话：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux <span class="built_in">ls</span></span><br></pre></td></tr></table></figure>
+
+<p>重新接回：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux attach -t work</span><br></pre></td></tr></table></figure>
+
+<p>如果任务跑完了，会话不用了：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux kill-session -t work</span><br></pre></td></tr></table></figure>
+
+<p><code>tmux</code> 适合这几类场景：</p>
+<ul>
+<li>远程服务器上的长任务</li>
+<li>需要多个窗口同时观察日志、代码、命令输出</li>
+<li>你会频繁断开网络或关闭本地终端</li>
+<li>你想把工作现场原样保留，稍后接着干</li>
+</ul>
+<hr>
+<h2 id="3-到底该怎么选"><a href="#3-到底该怎么选" class="headerlink" title="3. 到底该怎么选"></a>3. 到底该怎么选</h2><h3 id="3-1-bg、nohup、tmux-的区别"><a href="#3-1-bg、nohup、tmux-的区别" class="headerlink" title="3.1 bg、nohup、tmux 的区别"></a>3.1 <code>bg</code>、<code>nohup</code>、<code>tmux</code> 的区别</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th><code>bg</code></th>
+<th><code>nohup command &amp;</code></th>
+<th><code>tmux</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>核心目标</td>
+<td>释放当前前台</td>
+<td>让单个命令更稳地后台跑</td>
+<td>保住整段会话</td>
+</tr>
+<tr>
+<td>是否适合已启动任务</td>
+<td>是</td>
+<td>通常否，最好启动前用</td>
+<td>是，最好启动前进会话</td>
+</tr>
+<tr>
+<td>是否适合交互式程序</td>
+<td>一般</td>
+<td>不适合</td>
+<td>适合</td>
+</tr>
+<tr>
+<td>关闭终端后是否可靠</td>
+<td>低</td>
+<td>中高</td>
+<td>高</td>
+</tr>
+<tr>
+<td>是否适合多窗口协作</td>
+<td>否</td>
+<td>否</td>
+<td>是</td>
+</tr>
+<tr>
+<td>学习成本</td>
+<td>低</td>
+<td>低</td>
+<td>中</td>
+</tr>
+</tbody></table>
+<p>一句话总结：</p>
+<ul>
+<li>只想临时让出终端，用 <code>Ctrl+Z</code> 加 <code>bg</code></li>
+<li>只想让一个不需要交互的长任务稳一点，用 <code>nohup command &amp;</code></li>
+<li>想把命令行工作环境整个保住，用 <code>tmux</code></li>
+</ul>
+<h3 id="3-2-一个实用决策法"><a href="#3-2-一个实用决策法" class="headerlink" title="3.2 一个实用决策法"></a>3.2 一个实用决策法</h3><p>如果你面对的是“命令可能要跑几个小时”的情况，可以直接按下面判断：</p>
+<ul>
+<li>命令已经跑起来了，只是暂时想把终端还回来：<code>Ctrl+Z</code> -&gt; <code>bg</code></li>
+<li>命令已经跑起来了，而且你马上要断开会话：<code>Ctrl+Z</code> -&gt; <code>bg</code> -&gt; <code>disown</code>，但这是补救，不如一开始就规划好</li>
+<li>命令还没启动，而且它不需要你交互：直接 <code>nohup command &gt; app.log 2&gt;&amp;1 &amp;</code></li>
+<li>命令要跑很久，而且你还要看输出、反复操作、开多个窗口：先进 <code>tmux</code></li>
+<li>命令需要长期托管、重启自启、稳定运维：考虑服务管理器，不要只靠手动后台</li>
+</ul>
+<hr>
+<h2 id="4-实战指南"><a href="#4-实战指南" class="headerlink" title="4. 实战指南"></a>4. 实战指南</h2><h3 id="4-1-场景一：已经启动了任务，临时想把它放后台"><a href="#4-1-场景一：已经启动了任务，临时想把它放后台" class="headerlink" title="4.1 场景一：已经启动了任务，临时想把它放后台"></a>4.1 场景一：已经启动了任务，临时想把它放后台</h3><p>场景示例：你已经在前台启动了一个数据处理脚本，但现在还想继续敲别的命令。</p>
+<p>操作步骤：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python batch_job.py</span><br></pre></td></tr></table></figure>
+
+<p>按 <code>Ctrl+Z</code> 挂起后：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">jobs</span></span><br><span class="line"><span class="built_in">bg</span> %1</span><br></pre></td></tr></table></figure>
+
+<p>如果之后想再看它：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">fg</span> %1</span><br></pre></td></tr></table></figure>
+
+<p>适用前提：</p>
+<ul>
+<li>你还会保留这个终端</li>
+<li>程序不强依赖实时键盘输入</li>
+<li>你只是想暂时切出，不是马上断线走人</li>
+</ul>
+<h3 id="4-2-场景二：从一开始就知道任务会跑很久"><a href="#4-2-场景二：从一开始就知道任务会跑很久" class="headerlink" title="4.2 场景二：从一开始就知道任务会跑很久"></a>4.2 场景二：从一开始就知道任务会跑很久</h3><p>场景示例：你要导出一大批文件，或者跑一个长时间脚本，不需要中途交互。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">nohup</span> python export_reports.py &gt; export.log 2&gt;&amp;1 &amp;</span><br><span class="line"><span class="built_in">echo</span> $!</span><br></pre></td></tr></table></figure>
+
+<p>这里的 <code>echo $!</code> 会打印刚启动的后台进程 PID，方便你后续排查或结束。</p>
+<p>查看日志：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">tail</span> -f export.log</span><br></pre></td></tr></table></figure>
+
+<p>结束任务：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">kill</span> &lt;PID&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-场景三：远程登录服务器，怕断线"><a href="#4-3-场景三：远程登录服务器，怕断线" class="headerlink" title="4.3 场景三：远程登录服务器，怕断线"></a>4.3 场景三：远程登录服务器，怕断线</h3><p>这是 <code>tmux</code> 最典型的场景。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tmux new -s train</span><br><span class="line">python train_model.py</span><br></pre></td></tr></table></figure>
+
+<p>暂时离开：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Ctrl+B，然后按 D</span><br></pre></td></tr></table></figure>
+
+<p>重新连接服务器后接回：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux attach -t train</span><br></pre></td></tr></table></figure>
+
+<p>这个方案的关键优势不是“让某个进程后台跑”，而是“保住你当时的整个工作现场”。</p>
+<h3 id="4-4-场景四：一个窗口不够用"><a href="#4-4-场景四：一个窗口不够用" class="headerlink" title="4.4 场景四：一个窗口不够用"></a>4.4 场景四：一个窗口不够用</h3><p><code>tmux</code> 还有一个很实用的点：你可以在同一个会话里开多个窗口。</p>
+<p>一种常见工作流是：</p>
+<ul>
+<li>窗口 1 跑主任务</li>
+<li>窗口 2 <code>tail -f</code> 日志</li>
+<li>窗口 3 临时执行检查命令</li>
+</ul>
+<p>这正是它比 <code>nohup</code> 更像“工作环境工具”而不是“单命令保活工具”的原因。</p>
+<hr>
+<h2 id="5-最佳实践"><a href="#5-最佳实践" class="headerlink" title="5. 最佳实践"></a>5. 最佳实践</h2><h3 id="5-1-先决定自己是在解决哪类问题"><a href="#5-1-先决定自己是在解决哪类问题" class="headerlink" title="5.1 先决定自己是在解决哪类问题"></a>5.1 先决定自己是在解决哪类问题</h3><p>很多误操作都来自于目标没分清：</p>
+<ul>
+<li>想停止任务，用 <code>Ctrl+C</code></li>
+<li>想暂停任务，稍后再决定，用 <code>Ctrl+Z</code></li>
+<li>想临时把作业放后台，用 <code>bg</code></li>
+<li>想让一次性长任务更稳，用 <code>nohup</code></li>
+<li>想断线重连并保留工作现场，用 <code>tmux</code></li>
+</ul>
+<h3 id="5-2-长任务尽量一开始就规划日志"><a href="#5-2-长任务尽量一开始就规划日志" class="headerlink" title="5.2 长任务尽量一开始就规划日志"></a>5.2 长任务尽量一开始就规划日志</h3><p>推荐这样启动：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">nohup</span> python long_task.py &gt; long_task.log 2&gt;&amp;1 &amp;</span><br></pre></td></tr></table></figure>
+
+<p>或者在 <code>tmux</code> 里运行后另开窗口看日志：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">tail</span> -f long_task.log</span><br></pre></td></tr></table></figure>
+
+<p>别等任务已经跑了半小时，才发现输出没有保存。</p>
+<h3 id="5-3-不要把所有命令都粗暴地丢到后台"><a href="#5-3-不要把所有命令都粗暴地丢到后台" class="headerlink" title="5.3 不要把所有命令都粗暴地丢到后台"></a>5.3 不要把所有命令都粗暴地丢到后台</h3><p>这些情况更适合 <code>tmux</code>：</p>
+<ul>
+<li>程序需要你后续继续输入命令</li>
+<li>程序会持续刷新界面</li>
+<li>你需要边看输出边操作</li>
+<li>你希望稍后恢复当时的上下文</li>
+</ul>
+<p>纯后台更适合“我只关心它最终跑完”。</p>
+<h3 id="5-4-远程服务器上养成先开-tmux-的习惯"><a href="#5-4-远程服务器上养成先开-tmux-的习惯" class="headerlink" title="5.4 远程服务器上养成先开 tmux 的习惯"></a>5.4 远程服务器上养成先开 <code>tmux</code> 的习惯</h3><p>如果你经常 SSH 到远程机器，最省心的做法通常是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tmux new -s main</span><br></pre></td></tr></table></figure>
+
+<p>然后再开始跑真正的任务。这样比“跑起来之后才想办法补救”稳定很多。</p>
+<hr>
+<h2 id="6-常见误区"><a href="#6-常见误区" class="headerlink" title="6. 常见误区"></a>6. 常见误区</h2><h3 id="6-1-误区一：Ctrl-Z-等于后台运行"><a href="#6-1-误区一：Ctrl-Z-等于后台运行" class="headerlink" title="6.1 误区一：Ctrl+Z 等于后台运行"></a>6.1 误区一：<code>Ctrl+Z</code> 等于后台运行</h3><p>不对。<code>Ctrl+Z</code> 的第一步效果是挂起，不是继续运行。只有再执行 <code>bg</code>，它才会在后台继续。</p>
+<h3 id="6-2-误区二：bg-之后就能放心关终端"><a href="#6-2-误区二：bg-之后就能放心关终端" class="headerlink" title="6.2 误区二：bg 之后就能放心关终端"></a>6.2 误区二：<code>bg</code> 之后就能放心关终端</h3><p>也不对。<code>bg</code> 只是让作业在当前 shell 背后继续，不代表它已经和当前终端会话彻底解绑。</p>
+<h3 id="6-3-误区三：nohup-能替代-tmux"><a href="#6-3-误区三：nohup-能替代-tmux" class="headerlink" title="6.3 误区三：nohup 能替代 tmux"></a>6.3 误区三：<code>nohup</code> 能替代 <code>tmux</code></h3><p>不完全能。<code>nohup</code> 很适合单个非交互命令，但它不会帮你保留多个窗口、命令历史和当时的操作现场。</p>
+<h3 id="6-4-误区四：tmux-只适合远程服务器"><a href="#6-4-误区四：tmux-只适合远程服务器" class="headerlink" title="6.4 误区四：tmux 只适合远程服务器"></a>6.4 误区四：<code>tmux</code> 只适合远程服务器</h3><p>本地机器同样适用。只要你经常开多个终端窗口、处理长任务、怕误关窗口，<code>tmux</code> 都能提升稳定性。</p>
+<hr>
+<h2 id="7-故障排查"><a href="#7-故障排查" class="headerlink" title="7. 故障排查"></a>7. 故障排查</h2><table>
+<thead>
+<tr>
+<th>症状</th>
+<th>常见原因</th>
+<th>解决方案</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>bg</code> 之后一关终端任务就没了</td>
+<td>作业仍绑定当前 shell，会话结束后被影响</td>
+<td>改用 <code>nohup</code>、<code>disown</code> 或 <code>tmux</code></td>
+</tr>
+<tr>
+<td>后台任务看起来没输出</td>
+<td>输出被重定向到日志文件，或程序缓冲了输出</td>
+<td>检查日志文件，必要时调整程序刷新策略</td>
+</tr>
+<tr>
+<td><code>nohup</code> 启动后找不到输出</td>
+<td>没指定日志文件，输出去了默认位置</td>
+<td>明确写 <code>&gt; app.log 2&gt;&amp;1</code></td>
+</tr>
+<tr>
+<td><code>tmux attach</code> 提示没有会话</td>
+<td>会话未创建，或任务已结束导致会话退出</td>
+<td>先执行 <code>tmux ls</code> 检查现有会话</td>
+</tr>
+<tr>
+<td>程序放后台后行为异常</td>
+<td>程序仍然依赖终端输入或交互界面</td>
+<td>不要强行后台化，改在 <code>tmux</code> 里运行</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-实战案例"><a href="#8-实战案例" class="headerlink" title="8. 实战案例"></a>8. 实战案例</h2><h3 id="8-1-远程训练任务的稳妥做法"><a href="#8-1-远程训练任务的稳妥做法" class="headerlink" title="8.1 远程训练任务的稳妥做法"></a>8.1 远程训练任务的稳妥做法</h3><p>假设你要在远程机器上跑一个需要几个小时的训练任务。</p>
+<p>错误但常见的做法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ssh user@server</span><br><span class="line">python train.py</span><br></pre></td></tr></table></figure>
+
+<p>如果中途网络断了，任务很可能跟着受影响。</p>
+<p>更稳妥的做法：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh user@server</span><br><span class="line">tmux new -s train</span><br><span class="line">python train.py</span><br></pre></td></tr></table></figure>
+
+<p>临时离开时从会话中脱离，之后重新登录再接回。这样你不但保住了任务，也保住了日志现场、命令上下文和排查窗口。</p>
+<h3 id="8-2-已经在前台跑了才发现会很久，怎么办"><a href="#8-2-已经在前台跑了才发现会很久，怎么办" class="headerlink" title="8.2 已经在前台跑了才发现会很久，怎么办"></a>8.2 已经在前台跑了才发现会很久，怎么办</h3><p>如果你已经启动了命令，又不方便重来，可以这样补救：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Ctrl+Z</span><br><span class="line"><span class="built_in">bg</span> %1</span><br><span class="line"><span class="built_in">disown</span> %1</span><br></pre></td></tr></table></figure>
+
+<p>这能帮你把当前作业尽量从 shell 里摘出去，但它依然不是所有程序都适用。遇到依赖交互的任务，通常还是重启并放进 <code>tmux</code> 更稳。</p>
+<hr>
+<h2 id="9-工具与资源"><a href="#9-工具与资源" class="headerlink" title="9. 工具与资源"></a>9. 工具与资源</h2><h3 id="9-1-一份最小检查清单"><a href="#9-1-一份最小检查清单" class="headerlink" title="9.1 一份最小检查清单"></a>9.1 一份最小检查清单</h3><ul>
+<li><input disabled="" type="checkbox"> 先判断任务是否需要交互</li>
+<li><input disabled="" type="checkbox"> 先判断自己会不会关终端或断开 SSH</li>
+<li><input disabled="" type="checkbox"> 长任务要提前规划日志输出</li>
+<li><input disabled="" type="checkbox"> 远程机器优先先开 <code>tmux</code></li>
+<li><input disabled="" type="checkbox"> 不确定时，优先选更稳的方案，而不是事后补救</li>
+</ul>
+<h3 id="9-2-最常用的命令速查"><a href="#9-2-最常用的命令速查" class="headerlink" title="9.2 最常用的命令速查"></a>9.2 最常用的命令速查</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 查看 shell 当前作业</span></span><br><span class="line"><span class="built_in">jobs</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 挂起当前前台任务</span></span><br><span class="line"><span class="comment"># 键盘按 Ctrl+Z</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 让挂起任务转后台继续</span></span><br><span class="line"><span class="built_in">bg</span> %1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 把后台任务切回前台</span></span><br><span class="line"><span class="built_in">fg</span> %1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 让 shell 不再跟踪某个作业</span></span><br><span class="line"><span class="built_in">disown</span> %1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 一次性长任务后台运行</span></span><br><span class="line"><span class="built_in">nohup</span> <span class="built_in">command</span> &gt; app.log 2&gt;&amp;1 &amp;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 新建 tmux 会话</span></span><br><span class="line">tmux new -s work</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 tmux 会话</span></span><br><span class="line">tmux <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 接回 tmux 会话</span></span><br><span class="line">tmux attach -t work</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="10-FAQ"><a href="#10-FAQ" class="headerlink" title="10. FAQ"></a>10. FAQ</h2><h3 id="10-1-Ctrl-C-和-Ctrl-Z-最大区别是什么"><a href="#10-1-Ctrl-C-和-Ctrl-Z-最大区别是什么" class="headerlink" title="10.1 Ctrl+C 和 Ctrl+Z 最大区别是什么"></a>10.1 <code>Ctrl+C</code> 和 <code>Ctrl+Z</code> 最大区别是什么</h3><p><code>Ctrl+C</code> 通常是中断并结束当前前台进程，<code>Ctrl+Z</code> 通常是暂停当前前台进程。一个偏“停掉”，一个偏“先挂起”。</p>
+<h3 id="10-2-bg-之后我能直接关终端吗"><a href="#10-2-bg-之后我能直接关终端吗" class="headerlink" title="10.2 bg 之后我能直接关终端吗"></a>10.2 <code>bg</code> 之后我能直接关终端吗</h3><p>不建议默认这样理解。<code>bg</code> 只是后台继续，不保证它已经安全脱离当前会话。要看具体 shell、程序行为和终端关闭方式。</p>
+<h3 id="10-3-disown-和-nohup-是一回事吗"><a href="#10-3-disown-和-nohup-是一回事吗" class="headerlink" title="10.3 disown 和 nohup 是一回事吗"></a>10.3 <code>disown</code> 和 <code>nohup</code> 是一回事吗</h3><p>不是。<code>disown</code> 更像让 shell 忘掉这个作业，常用于已经启动后的补救；<code>nohup</code> 更像启动前就告诉命令忽略挂断信号。</p>
+<h3 id="10-4-tmux-和-nohup-应该优先学哪个"><a href="#10-4-tmux-和-nohup-应该优先学哪个" class="headerlink" title="10.4 tmux 和 nohup 应该优先学哪个"></a>10.4 <code>tmux</code> 和 <code>nohup</code> 应该优先学哪个</h3><p>如果你经常远程登录、经常看日志、经常开多个任务窗口，优先学 <code>tmux</code>。如果你只是偶尔跑一个不需要交互的长脚本，先掌握 <code>nohup</code> 也够用。</p>
+<h3 id="10-5-已经启动的命令能无缝塞进-tmux-吗"><a href="#10-5-已经启动的命令能无缝塞进-tmux-吗" class="headerlink" title="10.5 已经启动的命令能无缝塞进 tmux 吗"></a>10.5 已经启动的命令能无缝塞进 <code>tmux</code> 吗</h3><p>通常不能把一个已经跑起来的前台进程无损搬进 <code>tmux</code>。大多数时候，更现实的做法是临时用 <code>Ctrl+Z</code>、<code>bg</code>、<code>disown</code> 补救，或者直接重启任务并从一开始就在 <code>tmux</code> 里运行。</p>
+<h3 id="10-6-本地开发也值得用-tmux-吗"><a href="#10-6-本地开发也值得用-tmux-吗" class="headerlink" title="10.6 本地开发也值得用 tmux 吗"></a>10.6 本地开发也值得用 <code>tmux</code> 吗</h3><p>值得。只要你有多窗口、多任务、长日志、怕误关终端这些需求，<code>tmux</code> 在本地一样有价值。</p>
+<hr>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>真正该记住的不是某一条命令，而是一条判断主线：</p>
+<ul>
+<li>你是在停止任务，还是暂停任务</li>
+<li>你是在把作业放后台，还是让它脱离当前会话</li>
+<li>你是在保住一个命令，还是保住整段工作环境</li>
+</ul>
+<p>把这条线想清楚之后，选择就很自然了：</p>
+<ul>
+<li>临时让出终端，用 <code>Ctrl+Z</code> 加 <code>bg</code></li>
+<li>一次性长任务，用 <code>nohup command &amp;</code></li>
+<li>长期、多窗口、怕断线，用 <code>tmux</code></li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-23</td>
+<td>初版，整理 <code>Ctrl+C</code>、<code>Ctrl+Z</code>、<code>bg</code>、<code>nohup</code>、<code>disown</code> 和 <code>tmux</code> 的选择逻辑</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 2 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/job-control/" rel="tag">job-control</a>, <a class="tag-none-link" href="/tags/nohup/" rel="tag">nohup</a>, <a class="tag-none-link" href="/tags/shell/" rel="tag">shell</a>, <a class="tag-none-link" href="/tags/terminal/" rel="tag">terminal</a>, <a class="tag-none-link" href="/tags/tmux/" rel="tag">tmux</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.765Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 数据库迁移实战：Oracle → MySQL → 国产化数据库完整方案" href="/2026/03/22/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Redis ZSet 实现延时告警重推：从需求出发的架构选型思考" href="/2026/03/22/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">1.1.</span> <span class="toc-text">核心概念</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E8%A1%A8%E7%9C%8B%E6%87%82%E5%B7%AE%E5%BC%82"><span class="toc-number">1.2.</span> <span class="toc-text">一张表看懂差异</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.3.</span> <span class="toc-text">选择建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%88%E8%AE%B0%E4%BD%8F%E8%BF%99-4-%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.4.</span> <span class="toc-text">先记住这 4 句话</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%85%88%E6%8A%8A%E5%87%A0%E4%B8%AA%E6%A6%82%E5%BF%B5%E5%88%86%E5%BC%80"><span class="toc-number">2.</span> <span class="toc-text">1. 先把几个概念分开</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%89%8D%E5%8F%B0%E3%80%81%E5%90%8E%E5%8F%B0%E3%80%81%E6%8C%82%E8%B5%B7%E3%80%81%E4%BC%9A%E8%AF%9D%E5%88%86%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 前台、后台、挂起、会话分别是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88-Ctrl-C-%E4%BC%9A%E8%AE%A9%E4%BB%BB%E5%8A%A1%E6%96%AD%E6%8E%89"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 为什么 Ctrl+C 会让任务断掉</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E4%B8%BA%E4%BB%80%E4%B9%88-Ctrl-Z-%E5%8A%A0-bg-%E8%BF%98%E4%B8%8D%E5%A4%9F"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 为什么 Ctrl+Z 加 bg 还不够</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%B8%B8%E8%A7%81%E5%91%BD%E4%BB%A4%E5%88%86%E5%88%AB%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">3.</span> <span class="toc-text">2. 常见命令分别解决什么问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-jobs%E3%80%81fg%E3%80%81bg-%E7%9A%84%E5%9F%BA%E6%9C%AC%E9%85%8D%E5%90%88"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 jobs、fg、bg 的基本配合</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-disown-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 disown 解决的是什么问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-nohup-%E6%9B%B4%E9%80%82%E5%90%88%E2%80%9C%E4%B8%80%E6%AC%A1%E6%80%A7%E9%95%BF%E4%BB%BB%E5%8A%A1%E2%80%9D"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 nohup 更适合“一次性长任务”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-tmux-%E8%A7%A3%E5%86%B3%E7%9A%84%E6%98%AF%E2%80%9C%E4%BC%9A%E8%AF%9D%E5%88%AB%E4%B8%A2%E2%80%9D"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 tmux 解决的是“会话别丢”</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%B0%E5%BA%95%E8%AF%A5%E6%80%8E%E4%B9%88%E9%80%89"><span class="toc-number">4.</span> <span class="toc-text">3. 到底该怎么选</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-bg%E3%80%81nohup%E3%80%81tmux-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 bg、nohup、tmux 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%80%E4%B8%AA%E5%AE%9E%E7%94%A8%E5%86%B3%E7%AD%96%E6%B3%95"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 一个实用决策法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%9E%E6%88%98%E6%8C%87%E5%8D%97"><span class="toc-number">5.</span> <span class="toc-text">4. 实战指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%B7%B2%E7%BB%8F%E5%90%AF%E5%8A%A8%E4%BA%86%E4%BB%BB%E5%8A%A1%EF%BC%8C%E4%B8%B4%E6%97%B6%E6%83%B3%E6%8A%8A%E5%AE%83%E6%94%BE%E5%90%8E%E5%8F%B0"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 场景一：已经启动了任务，临时想把它放后台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E4%BB%8E%E4%B8%80%E5%BC%80%E5%A7%8B%E5%B0%B1%E7%9F%A5%E9%81%93%E4%BB%BB%E5%8A%A1%E4%BC%9A%E8%B7%91%E5%BE%88%E4%B9%85"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 场景二：从一开始就知道任务会跑很久</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E8%BF%9C%E7%A8%8B%E7%99%BB%E5%BD%95%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%8C%E6%80%95%E6%96%AD%E7%BA%BF"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 场景三：远程登录服务器，怕断线</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E5%9C%BA%E6%99%AF%E5%9B%9B%EF%BC%9A%E4%B8%80%E4%B8%AA%E7%AA%97%E5%8F%A3%E4%B8%8D%E5%A4%9F%E7%94%A8"><span class="toc-number">5.4.</span> <span class="toc-text">4.4 场景四：一个窗口不够用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">5. 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%88%E5%86%B3%E5%AE%9A%E8%87%AA%E5%B7%B1%E6%98%AF%E5%9C%A8%E8%A7%A3%E5%86%B3%E5%93%AA%E7%B1%BB%E9%97%AE%E9%A2%98"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 先决定自己是在解决哪类问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E9%95%BF%E4%BB%BB%E5%8A%A1%E5%B0%BD%E9%87%8F%E4%B8%80%E5%BC%80%E5%A7%8B%E5%B0%B1%E8%A7%84%E5%88%92%E6%97%A5%E5%BF%97"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 长任务尽量一开始就规划日志</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%B8%8D%E8%A6%81%E6%8A%8A%E6%89%80%E6%9C%89%E5%91%BD%E4%BB%A4%E9%83%BD%E7%B2%97%E6%9A%B4%E5%9C%B0%E4%B8%A2%E5%88%B0%E5%90%8E%E5%8F%B0"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 不要把所有命令都粗暴地丢到后台</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E5%85%BB%E6%88%90%E5%85%88%E5%BC%80-tmux-%E7%9A%84%E4%B9%A0%E6%83%AF"><span class="toc-number">6.4.</span> <span class="toc-text">5.4 远程服务器上养成先开 tmux 的习惯</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">7.</span> <span class="toc-text">6. 常见误区</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E8%AF%AF%E5%8C%BA%E4%B8%80%EF%BC%9ACtrl-Z-%E7%AD%89%E4%BA%8E%E5%90%8E%E5%8F%B0%E8%BF%90%E8%A1%8C"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 误区一：Ctrl+Z 等于后台运行</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E8%AF%AF%E5%8C%BA%E4%BA%8C%EF%BC%9Abg-%E4%B9%8B%E5%90%8E%E5%B0%B1%E8%83%BD%E6%94%BE%E5%BF%83%E5%85%B3%E7%BB%88%E7%AB%AF"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 误区二：bg 之后就能放心关终端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E8%AF%AF%E5%8C%BA%E4%B8%89%EF%BC%9Anohup-%E8%83%BD%E6%9B%BF%E4%BB%A3-tmux"><span class="toc-number">7.3.</span> <span class="toc-text">6.3 误区三：nohup 能替代 tmux</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E8%AF%AF%E5%8C%BA%E5%9B%9B%EF%BC%9Atmux-%E5%8F%AA%E9%80%82%E5%90%88%E8%BF%9C%E7%A8%8B%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">7.4.</span> <span class="toc-text">6.4 误区四：tmux 只适合远程服务器</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">8.</span> <span class="toc-text">7. 故障排查</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">8. 实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%BF%9C%E7%A8%8B%E8%AE%AD%E7%BB%83%E4%BB%BB%E5%8A%A1%E7%9A%84%E7%A8%B3%E5%A6%A5%E5%81%9A%E6%B3%95"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 远程训练任务的稳妥做法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E5%B7%B2%E7%BB%8F%E5%9C%A8%E5%89%8D%E5%8F%B0%E8%B7%91%E4%BA%86%E6%89%8D%E5%8F%91%E7%8E%B0%E4%BC%9A%E5%BE%88%E4%B9%85%EF%BC%8C%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 已经在前台跑了才发现会很久，怎么办</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">10.</span> <span class="toc-text">9. 工具与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E4%B8%80%E4%BB%BD%E6%9C%80%E5%B0%8F%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 一份最小检查清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E9%80%9F%E6%9F%A5"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 最常用的命令速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-FAQ"><span class="toc-number">11.</span> <span class="toc-text">10. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-Ctrl-C-%E5%92%8C-Ctrl-Z-%E6%9C%80%E5%A4%A7%E5%8C%BA%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">11.1.</span> <span class="toc-text">10.1 Ctrl+C 和 Ctrl+Z 最大区别是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-bg-%E4%B9%8B%E5%90%8E%E6%88%91%E8%83%BD%E7%9B%B4%E6%8E%A5%E5%85%B3%E7%BB%88%E7%AB%AF%E5%90%97"><span class="toc-number">11.2.</span> <span class="toc-text">10.2 bg 之后我能直接关终端吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-disown-%E5%92%8C-nohup-%E6%98%AF%E4%B8%80%E5%9B%9E%E4%BA%8B%E5%90%97"><span class="toc-number">11.3.</span> <span class="toc-text">10.3 disown 和 nohup 是一回事吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-tmux-%E5%92%8C-nohup-%E5%BA%94%E8%AF%A5%E4%BC%98%E5%85%88%E5%AD%A6%E5%93%AA%E4%B8%AA"><span class="toc-number">11.4.</span> <span class="toc-text">10.4 tmux 和 nohup 应该优先学哪个</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-5-%E5%B7%B2%E7%BB%8F%E5%90%AF%E5%8A%A8%E7%9A%84%E5%91%BD%E4%BB%A4%E8%83%BD%E6%97%A0%E7%BC%9D%E5%A1%9E%E8%BF%9B-tmux-%E5%90%97"><span class="toc-number">11.5.</span> <span class="toc-text">10.5 已经启动的命令能无缝塞进 tmux 吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-6-%E6%9C%AC%E5%9C%B0%E5%BC%80%E5%8F%91%E4%B9%9F%E5%80%BC%E5%BE%97%E7%94%A8-tmux-%E5%90%97"><span class="toc-number">11.6.</span> <span class="toc-text">10.6 本地开发也值得用 tmux 吗</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">11. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

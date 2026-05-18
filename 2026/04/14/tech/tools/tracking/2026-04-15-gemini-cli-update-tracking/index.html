@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Google Gemini CLI 更新追踪 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CLI, gemini-cli, google, 更新追踪" />
+  
+  <meta name="description" content="持续追踪 Google Gemini CLI 的版本更新，记录新特性用法与关键修复。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Google Gemini CLI 更新追踪">
+<meta property="og:url" content="https://leahana.github.io/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="持续追踪 Google Gemini CLI 的版本更新，记录新特性用法与关键修复。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-04-14T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.768Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CLI">
+<meta property="article:tag" content="gemini-cli">
+<meta property="article:tag" content="google">
+<meta property="article:tag" content="更新追踪">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Google Gemini CLI 更新追踪","description":"持续追踪 Google Gemini CLI 的版本更新，记录新特性用法与关键修复。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-14T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.768Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Google Gemini CLI 更新追踪</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-14T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-15</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~3.17K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v0-37-0-v0-37-1"><span class="toc-number">1.1.1.</span> <span class="toc-text">2026-04 | v0.37.0 ~ v0.37.1</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v0-38-0-v0-38-2%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.2.</span> <span class="toc-text">2026-04 | v0.38.0 ~ v0.38.2（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v0-40-0-nightly-20260424%EF%BC%88Nightly%EF%BC%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">2026-04 | v0.40.0-nightly.20260424（Nightly）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-05-v0-39-0-v0-42-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.4.</span> <span class="toc-text">2026-04 ~ 05 | v0.39.0 ~ v0.42.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">2.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>持续追加型文档，每次工具更新后由 AI 代理追加新批次。<br>主文章参见：<a href="/2026/04/01/tech/tools/2026-04-02-gemini-cli-sandbox-and-ghostty-isolation/" title="AI 时代的安全边界：Gemini CLI Sandbox vs. Ghostty Sandbox 深度解析">Gemini CLI Sandbox vs. Ghostty</a></p>
+</blockquote>
+<hr>
+<h2 id="2026-年"><a href="#2026-年" class="headerlink" title="2026 年"></a>2026 年</h2><h3 id="Q2（2026-04-06）"><a href="#Q2（2026-04-06）" class="headerlink" title="Q2（2026-04 ~ 06）"></a>Q2（2026-04 ~ 06）</h3><h4 id="2026-04-v0-37-0-v0-37-1"><a href="#2026-04-v0-37-0-v0-37-1" class="headerlink" title="2026-04 | v0.37.0 ~ v0.37.1"></a>2026-04 | v0.37.0 ~ v0.37.1</h4><p><strong>信息截止</strong>：2026-04-15 | <strong>最新 Release</strong>：v0.37.1</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v0.37.1</code></td>
+<td>2026-04-09</td>
+<td>动态沙箱扩展、Chapters 叙事流、浏览器 Agent 增强</td>
+</tr>
+<tr>
+<td><code>v0.37.0</code></td>
+<td>2026-04-08</td>
+<td>初始 v0.37 特性集发布，上下文压缩与后台内存服务</td>
+</tr>
+<tr>
+<td><code>v0.38.0-p0</code></td>
+<td>2026-04-08</td>
+<td>(Preview) 上下文压缩、后台任务监控、计划模式安全增强</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法"><a href="#新特性用法" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>动态沙箱扩展 (Dynamic Sandbox Expansion)</strong>：<br>在 Linux 和 Windows 上实现了动态沙箱扩展和 Git worktree 支持，增强了在受限&#x2F;隔离环境中的开发灵活性。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 开启沙箱并结合 Git Worktree 进行大规模重构</span></span><br><span class="line">gemini -s -w <span class="string">&quot;Refactor legacy modules with isolation&quot;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>章节式叙事流 (Chapters Narrative Flow)</strong>：<br>引入了基于工具的主题分组（“Chapters”），将 Agent 的交互按意图和工具使用进行逻辑分组，长会话结构更清晰。</p>
+</li>
+<li><p><strong>增强型浏览器 Agent</strong>：<br>新增了持久化会话管理和动态只读工具发现，支持沙箱感知的初始化。</p>
+</li>
+<li><p><strong>上下文压缩服务 (Context Compression Service)</strong>：<br>自动优化长对话中的 Token 使用，并落地了后台内存服务，用于自动提取和管理 Skill。</p>
+</li>
+</ul>
+<h5 id="关键-fix"><a href="#关键-fix" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>计划模式 (Plan Mode) 安全硬化</strong>：Plan Mode 现在默认开启，并在调用 <code>activate_skill</code> 或 <code>web_fetch</code> 等敏感工具时强制要求用户确认。</li>
+<li><strong>Linux 沙箱崩溃修复</strong>：修复了因 <code>ARG_MAX</code> 限制导致的崩溃问题。</li>
+<li><strong>Windows 安全修复</strong>：解决了 Windows 下的符号链接绕过漏洞。</li>
+<li><strong>交互优化</strong>：支持 Windows 终端 Ctrl+Backspace 删除单词，改进工具确认界面的选择布局。</li>
+</ul>
+<h4 id="2026-04-v0-38-0-v0-38-2（CLI-Stable）"><a href="#2026-04-v0-38-0-v0-38-2（CLI-Stable）" class="headerlink" title="2026-04 | v0.38.0 ~ v0.38.2（CLI Stable）"></a>2026-04 | v0.38.0 ~ v0.38.2（CLI Stable）</h4><p><strong>信息截止</strong>：2026-04-21 | <strong>最新 Release</strong>：v0.38.2</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v0.38.2</code></td>
+<td>2026-04-21</td>
+<td>进程清理加固与 SSL 错误重试优化</td>
+</tr>
+<tr>
+<td><code>v0.38.1</code></td>
+<td>2026-04-17</td>
+<td>修复 <code>/skills reload</code> 后的斜杠命令显示问题</td>
+</tr>
+<tr>
+<td><code>v0.38.0</code></td>
+<td>2026-04-15</td>
+<td>稳定版发布：持久审批策略、后台进程监控、终端缓冲区模式</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-1"><a href="#新特性用法-1" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>上下文感知持久审批 (Context-Aware Policy Approval)</strong>：支持在特定上下文（如特定目录或任务）下授予工具持久审批权限，大幅减少重复确认。</li>
+<li><strong>后台进程监控 (Background Process Monitoring)</strong>：新增工具集用于检查、监控和管理后台运行的异步 Shell 进程。</li>
+<li><strong>终端缓冲区模式 (Terminal Buffer Mode)</strong>：可选的渲染模式，解决部分终端下的界面闪烁问题。</li>
+<li><strong><code>/memory</code> 审查命令</strong>：新增收件箱式命令，用于统一审查和管理 Agent 自动提取的技能。</li>
+</ul>
+<h5 id="关键-fix-1"><a href="#关键-fix-1" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><strong>SSL 状态机加固</strong>：优化了流式传输期间针对 OpenSSL 3.x 异常错误的重试逻辑。</li>
+<li><strong>沙箱清理优化</strong>：确保在所有异常退出路径下都能强制清理沙箱进程。</li>
+<li><strong>YOLO 模式保护</strong>：修复了在特定配置合并时导致 YOLO 模式被降级为普通模式的漏洞。</li>
+</ul>
+<hr>
+<h4 id="2026-04-v0-40-0-nightly-20260424（Nightly）"><a href="#2026-04-v0-40-0-nightly-20260424（Nightly）" class="headerlink" title="2026-04 | v0.40.0-nightly.20260424（Nightly）"></a>2026-04 | v0.40.0-nightly.20260424（Nightly）</h4><p><strong>信息截止</strong>：2026-04-24 | <strong>最新 Release</strong>：v0.40.0-nightly.20260424（预发布，不建议生产使用）</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v0.40.0-nightly.20260424</code></td>
+<td>2026-04-24</td>
+<td>离线搜索支持（内建 ripgrep）、技能提取证据要求</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-2"><a href="#新特性用法-2" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>离线搜索增强</strong>：SEA（单可执行应用）现在捆绑了 <code>ripgrep</code> 二进制文件，支持在无网络环境下执行高性能搜索。</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># nightly 安装（不建议生产环境使用）</span></span><br><span class="line">npm install -g @google/gemini-cli@0.40.0-nightly.20260424</span><br></pre></td></tr></table></figure>
+
+<h5 id="关键-fix-2"><a href="#关键-fix-2" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>本批次无已公开 fix 列表（预发布观察）。</li>
+</ul>
+<h4 id="2026-04-05-v0-39-0-v0-42-0（CLI-Stable）"><a href="#2026-04-05-v0-39-0-v0-42-0（CLI-Stable）" class="headerlink" title="2026-04 ~ 05 | v0.39.0 ~ v0.42.0（CLI Stable）"></a>2026-04 ~ 05 | v0.39.0 ~ v0.42.0（CLI Stable）</h4><p><strong>信息截止</strong>：2026-05-12 | <strong>最新 Release</strong>：v0.42.0</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>v0.42.0</code></td>
+<td>2026-05-12</td>
+<td>内置 agent skills 正式进入发布流，技能反馈更透明，忽略规则缓存与重试机制继续补强</td>
+</tr>
+<tr>
+<td><code>v0.40.0</code></td>
+<td>2026-04-28</td>
+<td>内置 ripgrep 提供离线搜索；引入 GitHub 风格色弱主题；MCP resource tools 与四层 memory 管理一起落地</td>
+</tr>
+<tr>
+<td><code>v0.39.0</code></td>
+<td>2026-04-23</td>
+<td>新增 <code>/memory</code> inbox 命令；Plan Mode 对技能激活改为显式确认；ContextManager 解耦并修复内存泄漏&#x2F;PTy 耗尽</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-3"><a href="#新特性用法-3" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong><code>/memory</code> 收口技能记忆</strong>：<code>v0.39.0</code> 后可以直接在会话里打开<br><code>/memory</code>，查看本轮抽取出的 skill 片段并做补丁式修正，减少技能越用越飘。</p>
+</li>
+<li><p><strong>离线搜索 + MCP 资源组合</strong>：<code>v0.40.0</code> 把内置 <code>rg</code> 和 MCP resource<br>tools 一起补上后，本地代码搜索和外部资源查询不再完全依赖联网环境。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">gemini</span><br><span class="line"><span class="comment"># 会话内先用 rg 找本地代码，再调用 MCP resource tool 取补充上下文</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>内置 agent skills</strong>：<code>v0.42.0</code> 开始，内置技能进入主发布流，适合把常见<br>拆解动作直接交给 CLI，而不是每次重复手写长提示词。</p>
+</li>
+</ul>
+<h5 id="关键-fix-3"><a href="#关键-fix-3" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li><code>v0.39.0</code> 修复了 ContextManager 相关的内存泄漏和 PTY 耗尽问题。</li>
+<li><code>v0.40.0</code> 把忽略规则缓存与重试机制继续补强，减少离线搜索和上下文抽取<br>的抖动。</li>
+<li><code>v0.42.0</code> 继续修复 subagent delegation、Unicode 字符崩溃与 sticky<br>header 回归。</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-15</td>
+<td>初始版本，记录 2026-04 核心更新内容</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-15</td>
+<td>修复主文章 <code>post_link</code> 链接解析失败问题</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-24</td>
+<td>增加 v0.38.x 稳定版及后续更新，补充持久审批与进程监控特性</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-29</td>
+<td>回填漏写的更新记录行（补记 v1.2 条目中含 v0.40.0-nightly 内容）</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-05-06</td>
+<td>全量结构对齐：channel 拆批（CLI Stable &#x2F; Nightly）、tags 标准化、date 统一 12:00:00、表头分隔符规范化</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-05-18</td>
+<td>追加 v0.39.0~v0.42.0 稳定版更新；修正 frontmatter tags</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CLI/" rel="tag">CLI</a>, <a class="tag-none-link" href="/tags/gemini-cli/" rel="tag">gemini-cli</a>, <a class="tag-none-link" href="/tags/google/" rel="tag">google</a>, <a class="tag-none-link" href="/tags/%E6%9B%B4%E6%96%B0%E8%BF%BD%E8%B8%AA/" rel="tag">更新追踪</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.768Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Claude Code 更新追踪" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 多主 Agent 架构：避免巨型项目的上下文灾难" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v0-37-0-v0-37-1"><span class="toc-number">1.1.1.</span> <span class="toc-text">2026-04 | v0.37.0 ~ v0.37.1</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v0-38-0-v0-38-2%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.2.</span> <span class="toc-text">2026-04 | v0.38.0 ~ v0.38.2（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v0-40-0-nightly-20260424%EF%BC%88Nightly%EF%BC%89"><span class="toc-number">1.1.3.</span> <span class="toc-text">2026-04 | v0.40.0-nightly.20260424（Nightly）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-05-v0-39-0-v0-42-0%EF%BC%88CLI-Stable%EF%BC%89"><span class="toc-number">1.1.4.</span> <span class="toc-text">2026-04 ~ 05 | v0.39.0 ~ v0.42.0（CLI Stable）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">1.1.4.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">1.1.4.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">2.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

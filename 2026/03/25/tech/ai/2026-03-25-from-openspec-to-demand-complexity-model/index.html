@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/25/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI 编程, Claude Code, OpenCode, OpenSpec, 需求复杂度, 项目管理" />
+  
+  <meta name="description" content="把 OpenSpec、规则分层、项目管理经验与交付风险治理串起来，帮助团队判断需求该直接做、补验收，还是先走 OpenSpec。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型">
+<meta property="og:url" content="https://leahana.github.io/2026/03/25/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="把 OpenSpec、规则分层、项目管理经验与交付风险治理串起来，帮助团队判断需求该直接做、补验收，还是先走 OpenSpec。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035038_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035041_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035127_02.webp">
+<meta property="article:published_time" content="2026-03-25T05:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI 编程">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="OpenCode">
+<meta property="article:tag" content="OpenSpec">
+<meta property="article:tag" content="需求复杂度">
+<meta property="article:tag" content="项目管理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035038_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型","description":"把 OpenSpec、规则分层、项目管理经验与交付风险治理串起来，帮助团队判断需求该直接做、补验收，还是先走 OpenSpec。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-25T05:30:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/25/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/25/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-25T05:30:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-25</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~11.57K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSpec-%E5%9C%A8%E6%95%B4%E4%B8%AA%E4%BD%93%E7%B3%BB%E9%87%8C%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.1.</span> <span class="toc-text">OpenSpec 在整个体系里的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E8%A1%A8%E7%9C%8B%E6%87%82%E4%B8%89%E7%A7%8D%E5%B1%82%E7%BA%A7"><span class="toc-number">1.2.</span> <span class="toc-text">一张表看懂三种层级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E4%B8%8A-OpenSpec"><span class="toc-number">1.3.</span> <span class="toc-text">什么时候该上 OpenSpec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E5%A4%8D%E6%9D%82%E5%BA%A6%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.4.</span> <span class="toc-text">需求复杂度模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BE%88%E5%A4%9A%E5%9B%A2%E9%98%9F%E6%98%8E%E6%98%8E%E6%9C%89-rules%EF%BC%8CAI-%E8%BF%98%E6%98%AF%E8%B6%8A%E5%86%99%E8%B6%8A%E9%A3%98"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么很多团队明明有 rules，AI 还是越写越飘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%8A%8A-OpenSpec-%E6%94%BE%E5%88%B0%E6%AD%A3%E7%A1%AE%E4%BD%8D%E7%BD%AE%EF%BC%9A%E5%AE%83%E4%B8%8D%E6%98%AF%E6%9B%BF%E4%BB%A3-rules%EF%BC%8C%E8%80%8C%E6%98%AF%E8%A1%A5%E4%B8%8A%E2%80%9C%E5%8F%98%E6%9B%B4%E7%AE%A1%E7%90%86%E5%B1%82%E2%80%9D"><span class="toc-number">3.</span> <span class="toc-text">2. 把 OpenSpec 放到正确位置：它不是替代 rules，而是补上“变更管理层”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86%E7%9C%9F%E6%AD%A3%E8%A1%A5%E4%B8%8A%E7%9A%84%EF%BC%8C%E4%B8%8D%E6%98%AF%E6%B5%81%E7%A8%8B%E6%84%9F%EF%BC%8C%E8%80%8C%E6%98%AF%E5%A4%8D%E6%9D%82%E5%BA%A6%E4%B8%8E%E9%A3%8E%E9%99%A9%E7%9A%84%E5%88%86%E7%A6%BB"><span class="toc-number">4.</span> <span class="toc-text">3. 项目管理真正补上的，不是流程感，而是复杂度与风险的分离</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BA%A4%E4%BB%98%E9%A3%8E%E9%99%A9%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8D%95%E7%8B%AC%E8%AF%84%E4%BC%B0%EF%BC%9ASRE%E3%80%81DORA-%E5%92%8C%E6%B5%8B%E8%AF%95%E5%AE%9E%E8%B7%B5%E7%BB%99%E5%87%BA%E7%9A%84%E8%A1%A5%E5%85%85"><span class="toc-number">5.</span> <span class="toc-text">4. 交付风险为什么要单独评估：SRE、DORA 和测试实践给出的补充</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%80%E5%A5%97%E5%8F%AF%E8%90%BD%E5%9C%B0%E7%9A%84%E9%9C%80%E6%B1%82%E5%A4%8D%E6%9D%82%E5%BA%A6%E8%AF%84%E4%BC%B0%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">5. 一套可落地的需求复杂度评估模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%AD%E4%B8%AA%E6%A0%B8%E5%BF%83%E7%BB%B4%E5%BA%A6"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 六个核心维度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%89%E4%B8%AA%E9%97%B8%E9%97%A8%E9%A1%B9"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 三个闸门项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%A6%82%E4%BD%95%E5%88%A4%E7%BA%A7"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 如何判级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%BF%99%E5%A5%97%E6%A8%A1%E5%9E%8B%E5%A6%82%E4%BD%95%E5%92%8C-OpenSpec-%E8%81%94%E5%8A%A8"><span class="toc-number">7.</span> <span class="toc-text">6. 这套模型如何和 OpenSpec 联动</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%8E%A8%E8%8D%90%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 推荐映射关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E5%AE%9E%E7%94%A8%E7%9A%84%E8%A7%A6%E5%8F%91%E8%A7%84%E5%88%99"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 一个非常实用的触发规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-OpenCode-%E4%B8%8E-Claude-Code-%E4%B8%A4%E7%A7%8D%E8%90%BD%E5%9C%B0%E7%89%88%E6%9C%AC"><span class="toc-number">8.</span> <span class="toc-text">7. OpenCode 与 Claude Code 两种落地版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-Claude-Code-%E7%89%88%E6%9C%AC"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 Claude Code 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-OpenCode-%E7%89%88%E6%9C%AC"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 OpenCode 版本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E6%A1%88%E4%BE%8B%EF%BC%9A%E5%A6%82%E4%BD%95%E7%BB%99%E2%80%9C%E5%8A%A0%E7%AD%9B%E9%80%89%E6%9D%A1%E4%BB%B6%E2%80%9D%E8%BF%99%E7%B1%BB%E9%9C%80%E6%B1%82%E5%AE%9A%E7%BA%A7"><span class="toc-number">9.</span> <span class="toc-text">8. 一个完整案例：如何给“加筛选条件”这类需求定级</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%83%8C%E6%99%AF"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%AF%84%E5%88%86"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 评分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%8E%A8%E8%8D%90%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 推荐处理方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E4%B8%80%E4%B8%AA%E5%8F%AF%E7%9B%B4%E6%8E%A5%E5%A4%8D%E7%94%A8%E7%9A%84%E8%AF%84%E4%BC%B0%E5%8D%A1"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 一个可直接复用的评估卡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%9B%A2%E9%98%9F%E7%9C%9F%E6%AD%A3%E8%A6%81%E6%B2%89%E6%B7%80%E7%9A%84%EF%BC%8C%E4%B8%8D%E6%98%AF%E2%80%9C%E7%BB%8F%E9%AA%8C%E4%B9%8B%E8%B0%88%E2%80%9D%EF%BC%8C%E8%80%8C%E6%98%AF%E5%8F%AF%E9%87%8D%E5%A4%8D%E6%89%A7%E8%A1%8C%E7%9A%84%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.</span> <span class="toc-text">9. 团队真正要沉淀的，不是“经验之谈”，而是可重复执行的模板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E9%9C%80%E6%B1%82%E5%85%A5%E5%8F%A3%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 需求入口模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-OpenSpec-%E8%A7%A6%E5%8F%91%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 OpenSpec 触发模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%BA%8B%E5%90%8E%E5%A4%8D%E7%9B%98%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.3.</span> <span class="toc-text">9.3 事后复盘模板</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">11.</span> <span class="toc-text">10. 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%85%88%E6%8A%8A%E8%A7%84%E5%88%99%E5%92%8C%E5%8F%98%E6%9B%B4%E5%88%86%E5%BC%80"><span class="toc-number">11.1.</span> <span class="toc-text">10.1 先把规则和变更分开</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E4%B8%8D%E8%A6%81%E6%8A%8A%E8%AF%84%E5%88%86%E5%81%9A%E6%88%90%E5%BD%A2%E5%BC%8F%E4%B8%BB%E4%B9%89"><span class="toc-number">11.2.</span> <span class="toc-text">10.2 不要把评分做成形式主义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%AF%B9%E9%AB%98%E9%A3%8E%E9%99%A9%E9%9C%80%E6%B1%82%EF%BC%8C%E5%85%88%E6%83%B3%E5%9B%9E%E6%BB%9A%EF%BC%8C%E5%86%8D%E6%83%B3%E5%AE%9E%E7%8E%B0"><span class="toc-number">11.3.</span> <span class="toc-text">10.3 对高风险需求，先想回滚，再想实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E5%AF%B9%E5%A4%A7%E9%9C%80%E6%B1%82%EF%BC%8C%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95%E6%AF%94%E4%BB%A3%E7%A0%81%E6%9B%B4%E5%85%88%E5%80%BC%E9%92%B1"><span class="toc-number">11.4.</span> <span class="toc-text">10.4 对大需求，设计记录比代码更先值钱</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E6%8E%92%E6%9F%A5"><span class="toc-number">12.</span> <span class="toc-text">11. 常见误区与排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E7%97%87%E7%8A%B6%EF%BC%9A%E5%9B%A2%E9%98%9F%E8%A7%89%E5%BE%97%E2%80%9C%E6%89%80%E6%9C%89%E9%9C%80%E6%B1%82%E9%83%BD%E5%BE%88%E5%A4%A7%E2%80%9D"><span class="toc-number">12.1.</span> <span class="toc-text">11.1 症状：团队觉得“所有需求都很大”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E7%97%87%E7%8A%B6%EF%BC%9A%E6%98%8E%E6%98%8E%E6%89%93%E6%88%90%E4%B8%AD%E9%9C%80%E6%B1%82%EF%BC%8C%E7%BB%93%E6%9E%9C%E8%BF%98%E6%98%AF%E4%B8%80%E8%B7%AF%E8%86%A8%E8%83%80"><span class="toc-number">12.2.</span> <span class="toc-text">11.2 症状：明明打成中需求，结果还是一路膨胀</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E7%97%87%E7%8A%B6%EF%BC%9ACLAUDE-md-%E6%88%96-AGENTS-md-%E8%B6%8A%E6%9D%A5%E8%B6%8A%E9%95%BF"><span class="toc-number">12.3.</span> <span class="toc-text">11.3 症状：CLAUDE.md 或 AGENTS.md 越来越长</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E7%97%87%E7%8A%B6%EF%BC%9AAI-%E5%BE%88%E5%90%AC%E8%AF%9D%EF%BC%8C%E4%BD%86%E5%81%9A%E5%87%BA%E6%9D%A5%E7%9A%84%E4%B8%9C%E8%A5%BF%E4%BB%8D%E7%84%B6%E4%B8%8D%E5%AF%B9"><span class="toc-number">12.4.</span> <span class="toc-text">11.4 症状：AI 很听话，但做出来的东西仍然不对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-5-%E7%97%87%E7%8A%B6%EF%BC%9A%E5%9B%A2%E9%98%9F%E8%A7%89%E5%BE%97%E6%A8%A1%E5%9E%8B%E5%A4%AA%E7%90%86%E8%AE%BA%EF%BC%8C%E8%90%BD%E4%B8%8D%E4%BA%86%E5%9C%B0"><span class="toc-number">12.5.</span> <span class="toc-text">11.5 症状：团队觉得模型太理论，落不了地</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-FAQ"><span class="toc-number">13.</span> <span class="toc-text">12. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E8%BF%99%E5%A5%97%E6%A8%A1%E5%9E%8B%E5%92%8C-story-points-%E6%98%AF%E6%9B%BF%E4%BB%A3%E5%85%B3%E7%B3%BB%E5%90%97"><span class="toc-number">13.1.</span> <span class="toc-text">12.1 这套模型和 story points 是替代关系吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E6%98%AF%E4%B8%8D%E6%98%AF%E6%89%80%E6%9C%89%E4%B8%AD%E9%9C%80%E6%B1%82%E9%83%BD%E5%BF%85%E9%A1%BB%E7%94%A8-OpenSpec"><span class="toc-number">13.2.</span> <span class="toc-text">12.2 是不是所有中需求都必须用 OpenSpec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%8A%8A%E2%80%9C%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E2%80%9D%E5%8D%95%E7%8B%AC%E6%8B%8E%E5%87%BA%E6%9D%A5"><span class="toc-number">13.3.</span> <span class="toc-text">12.3 为什么要把“可观测性”单独拎出来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E4%B8%80%E4%B8%AA%E9%9C%80%E6%B1%82%E5%88%B0%E5%BA%95%E5%BA%94%E8%AF%A5%E8%B0%81%E6%9D%A5%E8%AF%84%E5%88%86"><span class="toc-number">13.4.</span> <span class="toc-text">12.4 一个需求到底应该谁来评分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E5%A6%82%E6%9E%9C%E9%9C%80%E6%B1%82%E8%BF%98%E5%9C%A8%E6%8E%A2%E7%B4%A2%E9%98%B6%E6%AE%B5%EF%BC%8C%E8%AF%84%E5%88%86%E4%BC%9A%E4%B8%8D%E4%BC%9A%E6%B2%A1%E6%9C%89%E6%84%8F%E4%B9%89"><span class="toc-number">13.5.</span> <span class="toc-text">12.5 如果需求还在探索阶段，评分会不会没有意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E5%A4%9A%E4%B9%85%E9%9C%80%E8%A6%81%E6%A0%A1%E5%87%86%E4%B8%80%E6%AC%A1%E6%A8%A1%E5%9E%8B"><span class="toc-number">13.6.</span> <span class="toc-text">12.6 多久需要校准一次模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">16.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>一句话定位：这是一篇把 OpenSpec、规则分层、项目管理经验和交付风险治理串成一套实战方法的文章。</p>
+</blockquote>
+<blockquote>
+<p>核心理念：复杂需求真正难的不是写代码，而是先把意图、边界、风险、验证和协作方式定义清楚。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary><strong>点击展开核心概念</strong></summary>
+
+<h3 id="OpenSpec-在整个体系里的位置"><a href="#OpenSpec-在整个体系里的位置" class="headerlink" title="OpenSpec 在整个体系里的位置"></a>OpenSpec 在整个体系里的位置</h3><pre class="mermaid">graph TD
+    A["长期规则<br/>CLAUDE.md / AGENTS.md"] --> B["局部上下文<br/>目录级规则"]
+    B --> C["变更规格<br/>OpenSpec proposal / tasks / design"]
+    C --> D["交付治理<br/>风险、验证、回滚、协作"]
+
+    style A fill:#bbdefb,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#ffccbc,stroke:#333,color:#000
+    style D fill:#fff9c4,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035038_00.webp" alt="OpenSpec 在整个体系里的位置"></p>
+</details>
+
+<p>最容易混淆的一点是：<code>CLAUDE.md</code> 或 <code>AGENTS.md</code><br>解决的是“长期应该怎么做”，而 OpenSpec<br>解决的是“这次具体要改什么、为什么改、怎么验收、做完后如何沉淀”。</p>
+<h3 id="一张表看懂三种层级"><a href="#一张表看懂三种层级" class="headerlink" title="一张表看懂三种层级"></a>一张表看懂三种层级</h3><table>
+<thead>
+<tr>
+<th>层级</th>
+<th>典型载体</th>
+<th>负责什么</th>
+<th>适合什么</th>
+<th>不适合什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>长期规则层</td>
+<td><code>CLAUDE.md</code>、<code>AGENTS.md</code></td>
+<td>团队约定、命名规范、测试门槛、常用命令</td>
+<td>稳定不常变的规则</td>
+<td>一次性需求和临时验收标准</td>
+</tr>
+<tr>
+<td>局部上下文层</td>
+<td>子目录规则文件</td>
+<td>某个模块的边界、目录职责、局部禁忌</td>
+<td>容易被 AI 改错的复杂子树</td>
+<td>记录跨模块变更方案</td>
+</tr>
+<tr>
+<td>变更规格层</td>
+<td><code>openspec/changes/*</code></td>
+<td>Proposal、design、tasks、归档</td>
+<td>中大需求、跨模块需求、高风险需求</td>
+<td>简单修字、局部小修</td>
+</tr>
+</tbody></table>
+<h3 id="什么时候该上-OpenSpec"><a href="#什么时候该上-OpenSpec" class="headerlink" title="什么时候该上 OpenSpec"></a>什么时候该上 OpenSpec</h3><pre class="mermaid">graph TD
+    A["收到一个需求"] --> B{"跨模块或跨服务吗"}
+    B -->|是| C["优先走 OpenSpec"]
+    B -->|否| D{"边界、验收或异常流程模糊吗"}
+    D -->|是| C
+    D -->|否| E{"回滚难、影响大、联调多吗"}
+    E -->|是| C
+    E -->|否| F["先按小需求处理"]
+
+    style C fill:#ffccbc,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035041_01.webp" alt="什么时候该上 OpenSpec"></p>
+</details>
+
+<p>一句话判断法：如果你已经需要同时思考“改哪几层、边界是什么、怎么验证、失败怎么办”，那它大概率已经不是小需求了。</p>
+<h3 id="需求复杂度模型"><a href="#需求复杂度模型" class="headerlink" title="需求复杂度模型"></a>需求复杂度模型</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>你真正要问的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>影响范围</td>
+<td>牵动多少模块、接口、用户和数据域</td>
+</tr>
+<tr>
+<td>需求清晰度</td>
+<td>验收标准和异常流程是否足够明确</td>
+</tr>
+<tr>
+<td>业务风险</td>
+<td>出错后影响是体验问题还是核心业务问题</td>
+</tr>
+<tr>
+<td>系统耦合</td>
+<td>是否涉及共享状态、契约、迁移和上下游</td>
+</tr>
+<tr>
+<td>验证成本</td>
+<td>要不要联调、回归、灰度和数据核对</td>
+</tr>
+<tr>
+<td>协作成本</td>
+<td>需要多少角色和团队一起对齐</td>
+</tr>
+</tbody></table>
+<p>再加 3 个闸门项：可回滚性、可观测性、技术成熟度。它们不一定计分，但足以把一个中需求升级为大需求。</p>
+</details>
+
+<hr>
+<h2 id="1-为什么很多团队明明有-rules，AI-还是越写越飘"><a href="#1-为什么很多团队明明有-rules，AI-还是越写越飘" class="headerlink" title="1. 为什么很多团队明明有 rules，AI 还是越写越飘"></a>1. 为什么很多团队明明有 rules，AI 还是越写越飘</h2><p>过去一年里，大家已经逐渐从“模型越强越好”转向“上下文管理才是真瓶颈”。</p>
+<p>这并不是一句口号，而是很多团队在实践里反复踩出来的结论：</p>
+<ul>
+<li>模型能写代码，不代表它总能理解这次改动的真实意图。</li>
+<li>需求、边界和例外只存在聊天记录里时，AI 很容易在长会话里发生上下文漂移。</li>
+<li>当团队把所有问题都塞进一份越来越长的 <code>CLAUDE.md</code> 或<br><code>AGENTS.md</code> 时，长期规则和一次性需求会互相污染。</li>
+</ul>
+<p>得物技术那篇《Claude Code + OpenSpec 正在加速 AICoding<br>落地：从模型博弈到工程化的范式转移》把这个问题讲得很清楚：AI<br>编码的真正瓶颈不是模型本身，而是上下文管理和开发意图表达。</p>
+<p>这个判断和 OpenSpec 官方的设计目标是一致的。OpenSpec 的核心不是“再加一份更详细的 rules”，而是把一次变更从聊天里提出来，落成结构化的<br>proposal、tasks、spec delta 和 archive。这样做的好处不是形式感，而是让团队先对齐，再编码，再归档。</p>
+<p>换句话说：</p>
+<ul>
+<li>rules 解决的是“平时怎么做”</li>
+<li>OpenSpec 解决的是“这次要做什么”</li>
+</ul>
+<p>如果把这两件事混在一起，结果通常会是：</p>
+<ul>
+<li>规则文件越来越长，但真正关键的变更信息仍然散落在聊天里。</li>
+<li>团队以为已经“沉淀经验”，实际上沉淀的是大量只适用于某一次需求的噪音。</li>
+<li>AI 读取上下文时，长期约束和短期任务优先级混乱，输出会越来越不稳定。</li>
+</ul>
+<hr>
+<h2 id="2-把-OpenSpec-放到正确位置：它不是替代-rules，而是补上“变更管理层”"><a href="#2-把-OpenSpec-放到正确位置：它不是替代-rules，而是补上“变更管理层”" class="headerlink" title="2. 把 OpenSpec 放到正确位置：它不是替代 rules，而是补上“变更管理层”"></a>2. 把 OpenSpec 放到正确位置：它不是替代 rules，而是补上“变更管理层”</h2><p>我更推荐把整个 AI 编码体系理解成四层：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>目标</th>
+<th>典型文件</th>
+<th>生命周期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>全局或组织规则</td>
+<td>统一长期原则</td>
+<td>全局 <code>CLAUDE.md</code>、全局 <code>AGENTS.md</code></td>
+<td>长期稳定</td>
+</tr>
+<tr>
+<td>项目规则</td>
+<td>统一项目约束</td>
+<td>根目录 <code>CLAUDE.md</code>、根目录 <code>AGENTS.md</code></td>
+<td>长期稳定</td>
+</tr>
+<tr>
+<td>模块上下文</td>
+<td>限定局部边界</td>
+<td>子目录规则文件</td>
+<td>中长期稳定</td>
+</tr>
+<tr>
+<td>变更规格</td>
+<td>定义一次改动</td>
+<td><code>openspec/changes/*</code></td>
+<td>随变更流转</td>
+</tr>
+</tbody></table>
+<p>这个分层和 Claude Code、OpenCode 的官方机制其实是吻合的。</p>
+<p>Claude Code 的官方文档明确把 <code>./CLAUDE.md</code> 和<br><code>./.claude/CLAUDE.md</code> 视为项目记忆，并支持目录递归查找和 <code>@path</code><br>导入。这意味着它天然适合承载“团队共享的长期规则”和“分层上下文”。</p>
+<p>OpenCode 的官方文档则把 <code>AGENTS.md</code> 定义为项目规则入口，并支持：</p>
+<ul>
+<li>根目录 <code>AGENTS.md</code></li>
+<li>全局 <code>~/.config/opencode/AGENTS.md</code></li>
+<li><code>opencode.json</code> 的 <code>instructions</code> 字段</li>
+<li>对 Claude Code 规则文件的兼容回退</li>
+</ul>
+<p>所以如果你同时使用 Claude Code 和 OpenCode，最稳的做法不是维护两套完全不同的内容，而是：</p>
+<ol>
+<li>把真正的规则内容拆到共享文档里。</li>
+<li>让 <code>CLAUDE.md</code> 和 <code>AGENTS.md</code> 只做入口和装配层。</li>
+<li>把一次性变更需求从规则层剥离，交给 OpenSpec。</li>
+</ol>
+<p>这个思路也解释了为什么 OpenSpec 和 <code>deepinit</code> 或目录级<br><code>agent.md</code> 不是替代关系。</p>
+<p>它们分别解决不同问题：</p>
+<ul>
+<li>目录级规则：这个目录应该怎么改，哪些边界不能碰。</li>
+<li>OpenSpec：这次变更为什么做、具体改什么、验收标准是什么。</li>
+</ul>
+<p>如果你习惯了 <code>deepinit</code><br>或“每个复杂目录放一份规则文件”的工作流，那么最自然的接法就是：</p>
+<ul>
+<li>长期共识进根规则</li>
+<li>模块边界进子目录规则</li>
+<li>跨模块需求进 OpenSpec</li>
+</ul>
+<hr>
+<h2 id="3-项目管理真正补上的，不是流程感，而是复杂度与风险的分离"><a href="#3-项目管理真正补上的，不是流程感，而是复杂度与风险的分离" class="headerlink" title="3. 项目管理真正补上的，不是流程感，而是复杂度与风险的分离"></a>3. 项目管理真正补上的，不是流程感，而是复杂度与风险的分离</h2><p>很多工程团队谈需求大小时，实际在混用三种完全不同的概念：</p>
+<ul>
+<li>工作量有多大</li>
+<li>事情有多复杂</li>
+<li>出错后代价有多高</li>
+</ul>
+<p>如果这三件事不拆开，评估就会越来越玄学。</p>
+<p>Atlassian<br>在估算相关文档里就把 story points<br>解释成复杂度、工作量和风险或不确定性的综合表达。换句话说，成熟团队从来不只看“要写多少代码”。</p>
+<p>PMI 对复杂度的定义也很有启发。它把复杂度拆成三大类：</p>
+<table>
+<thead>
+<tr>
+<th>PMI 视角</th>
+<th>含义</th>
+<th>对应到研发现场</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Human Behavior</td>
+<td>人和群体之间的行为互动</td>
+<td>干系人多、意见不一致、协作链长</td>
+</tr>
+<tr>
+<td>System Behavior</td>
+<td>系统之间的联动和依赖</td>
+<td>上下游多、契约多、状态流复杂</td>
+</tr>
+<tr>
+<td>Ambiguity</td>
+<td>对现状和未来缺乏清晰理解</td>
+<td>需求不明确、例外流程不明确、方案不收敛</td>
+</tr>
+</tbody></table>
+<p>这三类复杂度，几乎可以完整映射到 AI 编码时代最常见的翻车来源：</p>
+<ul>
+<li>需求没有说清楚，AI 只能猜。</li>
+<li>上下游耦合没讲清楚，AI 只改了局部。</li>
+<li>需要多人确认，但团队误以为“让 agent 一把梭”就够了。</li>
+</ul>
+<p>项目管理视角的价值在这里非常明显：它提醒我们，复杂度不是纯技术问题，很多时候是“人、系统、歧义”叠加起来的结果。</p>
+<hr>
+<h2 id="4-交付风险为什么要单独评估：SRE、DORA-和测试实践给出的补充"><a href="#4-交付风险为什么要单独评估：SRE、DORA-和测试实践给出的补充" class="headerlink" title="4. 交付风险为什么要单独评估：SRE、DORA 和测试实践给出的补充"></a>4. 交付风险为什么要单独评估：SRE、DORA 和测试实践给出的补充</h2><p>只看复杂度还不够，因为有些需求并不复杂，但仍然非常危险。</p>
+<p>Google SRE 的发布实践和错误预算思想，给了一个很关键的提醒：变更本身就是不稳定的主要来源。SRE 特别强调几个关键词：</p>
+<ul>
+<li>blast radius，也就是影响半径</li>
+<li>canary，也就是逐步暴露真实流量</li>
+<li>rollback，也就是能不能快速回退</li>
+<li>observability，也就是出问题后能不能及时发现</li>
+</ul>
+<p>DORA 的新五项指标也把这个问题说得更明确。它现在不只看吞吐，也专门看不稳定性，尤其是：</p>
+<ul>
+<li><code>change fail rate</code></li>
+<li><code>deployment rework rate</code></li>
+</ul>
+<p>这两个指标的含义很直接：一次改动上线后，到底有多大概率变成回滚、热修或者额外返工。</p>
+<p>这对需求评估的启发非常实用：</p>
+<ul>
+<li>复杂度回答的是“这事难不难做”</li>
+<li>风险回答的是“这事出错会不会出大事”</li>
+<li>交付负担回答的是“为了把它安全交出去，我们还要额外付出多少验证和协调成本”</li>
+</ul>
+<p>测试领域的 risk-based testing<br>也长期在用类似原则：优先把测试资源投向高业务影响和高失败概率的区域，而不是平均用力。</p>
+<p>所以一套真正能落地的需求评估模型，至少要同时覆盖三件事：</p>
+<ol>
+<li>复杂度</li>
+<li>风险</li>
+<li>交付负担</li>
+</ol>
+<hr>
+<h2 id="5-一套可落地的需求复杂度评估模型"><a href="#5-一套可落地的需求复杂度评估模型" class="headerlink" title="5. 一套可落地的需求复杂度评估模型"></a>5. 一套可落地的需求复杂度评估模型</h2><p>我建议把模型拆成两部分：</p>
+<ul>
+<li>6 个核心打分维度</li>
+<li>3 个闸门项</li>
+</ul>
+<p>前者帮助你形成统一语言，后者帮助你避免低估风险。</p>
+<h3 id="5-1-六个核心维度"><a href="#5-1-六个核心维度" class="headerlink" title="5.1 六个核心维度"></a>5.1 六个核心维度</h3><p>每个维度按 <code>0-2</code> 分打分。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>0 分</th>
+<th>1 分</th>
+<th>2 分</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>影响范围</td>
+<td>只改一个局部点位</td>
+<td>一个模块内多点修改</td>
+<td>跨模块、跨服务、跨端或跨数据域</td>
+</tr>
+<tr>
+<td>需求清晰度</td>
+<td>验收标准明确</td>
+<td>仍需补边界或异常流程</td>
+<td>目标、边界、验收都还模糊</td>
+</tr>
+<tr>
+<td>业务风险</td>
+<td>出错影响小</td>
+<td>影响某条业务路径</td>
+<td>涉及核心链路、权限、金额、数据正确性</td>
+</tr>
+<tr>
+<td>系统耦合</td>
+<td>基本独立</td>
+<td>有明显上下游依赖</td>
+<td>牵涉契约、状态、迁移、缓存或异步链路</td>
+</tr>
+<tr>
+<td>验证成本</td>
+<td>本地很容易验证</td>
+<td>需要多场景或联调验证</td>
+<td>需要灰度、回归、数据核对或线上观测</td>
+</tr>
+<tr>
+<td>协作成本</td>
+<td>一个人可以闭环</td>
+<td>需要和 1 到 2 个角色确认</td>
+<td>需要跨团队协作、审批或发布窗口协调</td>
+</tr>
+</tbody></table>
+<h3 id="5-2-三个闸门项"><a href="#5-2-三个闸门项" class="headerlink" title="5.2 三个闸门项"></a>5.2 三个闸门项</h3><p>这三个项可以不计入总分，但任意一个为高，都应提高警惕。</p>
+<table>
+<thead>
+<tr>
+<th>闸门项</th>
+<th>要问的问题</th>
+<th>为什么重要</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可回滚性</td>
+<td>如果失败，能否在低成本下快速回退</td>
+<td>不可逆变更会显著放大上线风险</td>
+</tr>
+<tr>
+<td>可观测性</td>
+<td>上线后能否快速知道问题是否出现</td>
+<td>没有观测闭环，验证其实并未完成</td>
+</tr>
+<tr>
+<td>技术成熟度</td>
+<td>是否引入新技术、新模式或低成熟组件</td>
+<td>低成熟度会放大不确定性和试错成本</td>
+</tr>
+</tbody></table>
+<h3 id="5-3-如何判级"><a href="#5-3-如何判级" class="headerlink" title="5.3 如何判级"></a>5.3 如何判级</h3><pre class="mermaid">graph TD
+    A["收到需求"] --> B["按 6 个维度打分"]
+    B --> C{"闸门项是否有高风险"}
+    C -->|是| D["至少提升半级，必要时按大需求处理"]
+    C -->|否| E{"总分在哪个区间"}
+    E -->|0 到 3| F["小需求"]
+    E -->|4 到 7| G["中需求"]
+    E -->|8 到 12| H["大需求"]
+    F --> I["直接做，规则层足够"]
+    G --> J["先补验收点、测试点、回滚方案"]
+    H --> K["先走 OpenSpec，必要时补 design 或 ADR"]
+
+    style D fill:#ffccbc,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000
+    style G fill:#fff9c4,stroke:#333,color:#000
+    style H fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/diagram_20260417_035127_02.webp" alt="需求复杂度模型判级流程"></p>
+</details>
+
+<p>具体建议如下：</p>
+<ul>
+<li><code>0-3 分</code>：小需求，直接做</li>
+<li><code>4-7 分</code>：中需求，先补验收、测试和回滚，再做</li>
+<li><code>8-12 分</code>：大需求，默认先写 OpenSpec proposal，再实现</li>
+</ul>
+<p>再加几条硬规则：</p>
+<ul>
+<li>涉及支付、权限、合规、主数据迁移的需求，默认不低于中需求。</li>
+<li>“跨团队协作 + 难回滚”同时出现时，默认按大需求处理。</li>
+<li>线上验证必须依赖真实流量且缺少观测手段时，按高风险处理。</li>
+</ul>
+<hr>
+<h2 id="6-这套模型如何和-OpenSpec-联动"><a href="#6-这套模型如何和-OpenSpec-联动" class="headerlink" title="6. 这套模型如何和 OpenSpec 联动"></a>6. 这套模型如何和 OpenSpec 联动</h2><p>最实用的做法不是“所有需求都上 OpenSpec”，而是让评估模型决定<br>workflow。</p>
+<h3 id="6-1-推荐映射关系"><a href="#6-1-推荐映射关系" class="headerlink" title="6.1 推荐映射关系"></a>6.1 推荐映射关系</h3><table>
+<thead>
+<tr>
+<th>需求等级</th>
+<th>推荐做法</th>
+<th>OpenSpec 建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>小需求</td>
+<td>直接实现</td>
+<td>不强制使用</td>
+</tr>
+<tr>
+<td>中需求</td>
+<td>先补验收和测试点</td>
+<td>简版 proposal 或 checklist</td>
+</tr>
+<tr>
+<td>大需求</td>
+<td>先对齐再编码</td>
+<td><code>proposal + tasks</code> 起步，必要时加 <code>design</code></td>
+</tr>
+</tbody></table>
+<h3 id="6-2-一个非常实用的触发规则"><a href="#6-2-一个非常实用的触发规则" class="headerlink" title="6.2 一个非常实用的触发规则"></a>6.2 一个非常实用的触发规则</h3><p>只要命中下面任意一条，就建议走 OpenSpec：</p>
+<ul>
+<li>跨两个以上模块</li>
+<li>需要明确异常流程</li>
+<li>涉及接口契约、数据库或状态机变化</li>
+<li>无法快速回滚</li>
+<li>需要多人协作对齐</li>
+</ul>
+<p>这也是为什么 OpenSpec 特别适合 brownfield 场景。它把：</p>
+<ul>
+<li><code>openspec/specs/</code> 当作当前真相</li>
+<li><code>openspec/changes/</code> 当作未来变化</li>
+</ul>
+<p>这样做的价值是，团队讨论的不是抽象愿景，而是“当前是什么”和“将来要变成什么”之间的明确差异。</p>
+<hr>
+<h2 id="7-OpenCode-与-Claude-Code-两种落地版本"><a href="#7-OpenCode-与-Claude-Code-两种落地版本" class="headerlink" title="7. OpenCode 与 Claude Code 两种落地版本"></a>7. OpenCode 与 Claude Code 两种落地版本</h2><p>如果你的团队同时使用 OpenCode 和 Claude Code，建议把“规则内容”做成一份，把“入口文件”做成两份。</p>
+<h3 id="7-1-Claude-Code-版本"><a href="#7-1-Claude-Code-版本" class="headerlink" title="7.1 Claude Code 版本"></a>7.1 Claude Code 版本</h3><p>适合承载：</p>
+<ul>
+<li>项目共享约束</li>
+<li>常用命令</li>
+<li>架构原则</li>
+<li>何时必须走 OpenSpec</li>
+</ul>
+<p>一个更稳的 <code>CLAUDE.md</code> 片段可以像这样：</p>
+<figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">See @README for project overview and @package.json for common commands.</span><br><span class="line"></span><br><span class="line"><span class="section"># Change Workflow</span></span><br><span class="line"><span class="bullet">-</span> Small changes can be implemented directly.</span><br><span class="line"><span class="bullet">-</span> Medium changes must list acceptance criteria, test points, and rollback notes before coding.</span><br><span class="line"><span class="bullet">-</span> Large changes must start with OpenSpec.</span><br><span class="line"><span class="bullet">-</span> Any cross-module API change, data migration, permission change, or hard-to-roll-back change must use OpenSpec.</span><br><span class="line"></span><br><span class="line"><span class="section"># Project Rules</span></span><br><span class="line"><span class="bullet">-</span> Prefer minimal diffs.</span><br><span class="line"><span class="bullet">-</span> Keep public contracts backward compatible unless explicitly approved.</span><br><span class="line"><span class="bullet">-</span> Update tests and docs when behavior changes.</span><br></pre></td></tr></table></figure>
+
+<p>这段内容的重点不是“告诉 AI 这次具体要做什么”，而是把<br>workflow 判断逻辑固化进去。</p>
+<h3 id="7-2-OpenCode-版本"><a href="#7-2-OpenCode-版本" class="headerlink" title="7.2 OpenCode 版本"></a>7.2 OpenCode 版本</h3><p>OpenCode 里更推荐：</p>
+<ul>
+<li>根目录 <code>AGENTS.md</code> 放总规则</li>
+<li><code>opencode.json</code> 做外部规则拼装</li>
+<li>复杂子树按需补局部 <code>AGENTS.md</code></li>
+</ul>
+<p>一个更稳的组合可以像这样：</p>
+<figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># Project Workflow</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Small changes can be implemented directly.</span><br><span class="line"><span class="bullet">-</span> Medium changes require explicit acceptance criteria, test notes, and rollback notes.</span><br><span class="line"><span class="bullet">-</span> Large or risky changes must use OpenSpec before implementation.</span><br><span class="line"><span class="bullet">-</span> Treat any cross-module, data-affecting, or permission-related change as at least medium.</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;$schema&quot;</span><span class="punctuation">:</span> <span class="string">&quot;https://opencode.ai/config.json&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;instructions&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="string">&quot;docs/development-standards.md&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;docs/testing-guidelines.md&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="string">&quot;packages/*/AGENTS.md&quot;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>它的好处是：</p>
+<ul>
+<li>根规则保持短小</li>
+<li>细则可拆分到共享文档</li>
+<li>OpenCode 和 Claude Code 可以复用同一套知识源</li>
+</ul>
+<hr>
+<h2 id="8-一个完整案例：如何给“加筛选条件”这类需求定级"><a href="#8-一个完整案例：如何给“加筛选条件”这类需求定级" class="headerlink" title="8. 一个完整案例：如何给“加筛选条件”这类需求定级"></a>8. 一个完整案例：如何给“加筛选条件”这类需求定级</h2><p>OpenSpec 官方文档里用过一个很典型的例子：给 profile search 增加按 role 和<br>team<br>的筛选条件。这个例子很适合作为需求评估练习，因为它看起来不大，但已经带有典型的中需求特征。</p>
+<h3 id="8-1-背景"><a href="#8-1-背景" class="headerlink" title="8.1 背景"></a>8.1 背景</h3><p>需求描述：</p>
+<ul>
+<li>在成员目录中增加“按角色筛选”和“按团队筛选”</li>
+<li>前端需要更新筛选 UI</li>
+<li>后端需要支持新的查询参数</li>
+<li>需要补验收标准，说明多筛选条件组合时的行为</li>
+</ul>
+<h3 id="8-2-评分"><a href="#8-2-评分" class="headerlink" title="8.2 评分"></a>8.2 评分</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>评分</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>影响范围</td>
+<td>1</td>
+<td>同时影响前后端，但还在同一条业务链路内</td>
+</tr>
+<tr>
+<td>需求清晰度</td>
+<td>1</td>
+<td>基本目标明确，但组合筛选和空值行为需要补充</td>
+</tr>
+<tr>
+<td>业务风险</td>
+<td>1</td>
+<td>搜索体验受影响，但不是支付级风险</td>
+</tr>
+<tr>
+<td>系统耦合</td>
+<td>2</td>
+<td>牵涉接口契约和查询逻辑</td>
+</tr>
+<tr>
+<td>验证成本</td>
+<td>1</td>
+<td>需要联调和多场景验证</td>
+</tr>
+<tr>
+<td>协作成本</td>
+<td>1</td>
+<td>需要产品、前端、后端至少简单对齐</td>
+</tr>
+</tbody></table>
+<p>总分为 <code>7</code>，已经落在中需求上沿。</p>
+<h3 id="8-3-推荐处理方式"><a href="#8-3-推荐处理方式" class="headerlink" title="8.3 推荐处理方式"></a>8.3 推荐处理方式</h3><ul>
+<li>先写 OpenSpec proposal</li>
+<li>在 proposal 里补 acceptance criteria</li>
+<li>生成 tasks 之后再进入实现</li>
+<li>如果只是简单加筛选参数，不一定需要单独 design</li>
+<li>如果涉及搜索架构、权限过滤或缓存策略调整，则补 design 或 ADR</li>
+</ul>
+<h3 id="8-4-一个可直接复用的评估卡"><a href="#8-4-一个可直接复用的评估卡" class="headerlink" title="8.4 一个可直接复用的评估卡"></a>8.4 一个可直接复用的评估卡</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">request:</span> <span class="string">&quot;为成员目录增加角色与团队筛选&quot;</span></span><br><span class="line"><span class="attr">score:</span></span><br><span class="line">  <span class="attr">impact_scope:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">requirement_clarity:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">business_risk:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">system_coupling:</span> <span class="number">2</span></span><br><span class="line">  <span class="attr">verification_cost:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">coordination_cost:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">gates:</span></span><br><span class="line">  <span class="attr">rollback:</span> <span class="string">low</span></span><br><span class="line">  <span class="attr">observability:</span> <span class="string">medium</span></span><br><span class="line">  <span class="attr">technical_maturity:</span> <span class="string">low</span></span><br><span class="line"><span class="attr">decision:</span></span><br><span class="line">  <span class="attr">level:</span> <span class="string">medium</span></span><br><span class="line">  <span class="attr">workflow:</span> <span class="string">&quot;OpenSpec proposal + tasks&quot;</span></span><br><span class="line">  <span class="attr">need_design:</span> <span class="literal">false</span></span><br><span class="line">  <span class="attr">notes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&quot;补组合筛选的验收标准&quot;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&quot;联调前后端查询参数&quot;</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">&quot;补空结果与默认排序测试&quot;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="9-团队真正要沉淀的，不是“经验之谈”，而是可重复执行的模板"><a href="#9-团队真正要沉淀的，不是“经验之谈”，而是可重复执行的模板" class="headerlink" title="9. 团队真正要沉淀的，不是“经验之谈”，而是可重复执行的模板"></a>9. 团队真正要沉淀的，不是“经验之谈”，而是可重复执行的模板</h2><p>如果你希望这套方法在团队里真正活下来，而不是只在某次分享会上看起来很合理，我建议最少沉淀三类模板。</p>
+<h3 id="9-1-需求入口模板"><a href="#9-1-需求入口模板" class="headerlink" title="9.1 需求入口模板"></a>9.1 需求入口模板</h3><figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## 需求摘要</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> 目标：</span><br><span class="line"><span class="bullet">-</span> 不做什么：</span><br><span class="line"><span class="bullet">-</span> 受影响模块：</span><br><span class="line"><span class="bullet">-</span> 关键用户路径：</span><br><span class="line"><span class="bullet">-</span> 验收标准：</span><br><span class="line"><span class="bullet">-</span> 异常流程：</span><br><span class="line"><span class="bullet">-</span> 风险点：</span><br><span class="line"><span class="bullet">-</span> 回滚方式：</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-2-OpenSpec-触发模板"><a href="#9-2-OpenSpec-触发模板" class="headerlink" title="9.2 OpenSpec 触发模板"></a>9.2 OpenSpec 触发模板</h3><figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## OpenSpec Trigger Rules</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Cross-module changes must start with OpenSpec.</span><br><span class="line"><span class="bullet">-</span> Any data migration or contract change must start with OpenSpec.</span><br><span class="line"><span class="bullet">-</span> Any change with unclear acceptance criteria must clarify spec before coding.</span><br><span class="line"><span class="bullet">-</span> Any hard-to-roll-back change must include rollback and validation notes.</span><br></pre></td></tr></table></figure>
+
+<h3 id="9-3-事后复盘模板"><a href="#9-3-事后复盘模板" class="headerlink" title="9.3 事后复盘模板"></a>9.3 事后复盘模板</h3><figure class="highlight md"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## Post-change Review</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> Original level: small / medium / large</span><br><span class="line"><span class="bullet">-</span> Actual rework needed:</span><br><span class="line"><span class="bullet">-</span> Was rollback needed:</span><br><span class="line"><span class="bullet">-</span> Were observability signals sufficient:</span><br><span class="line"><span class="bullet">-</span> Which dimension was underestimated:</span><br><span class="line"><span class="bullet">-</span> Should trigger rules be adjusted:</span><br></pre></td></tr></table></figure>
+
+<p>有了这三类模板，你的团队就能把“主观经验”慢慢变成“组织能力”。</p>
+<hr>
+<h2 id="10-最佳实践"><a href="#10-最佳实践" class="headerlink" title="10. 最佳实践"></a>10. 最佳实践</h2><h3 id="10-1-先把规则和变更分开"><a href="#10-1-先把规则和变更分开" class="headerlink" title="10.1 先把规则和变更分开"></a>10.1 先把规则和变更分开</h3><ul>
+<li>长期规则写进 <code>CLAUDE.md</code> 或 <code>AGENTS.md</code></li>
+<li>局部边界写进子目录规则文件</li>
+<li>一次性需求写进 OpenSpec</li>
+</ul>
+<h3 id="10-2-不要把评分做成形式主义"><a href="#10-2-不要把评分做成形式主义" class="headerlink" title="10.2 不要把评分做成形式主义"></a>10.2 不要把评分做成形式主义</h3><ul>
+<li>先用轻量 <code>0-2</code> 评分即可</li>
+<li>每个维度只追求可讨论，不追求数学精确</li>
+<li>复盘时重点看“哪一维最常被低估”</li>
+</ul>
+<h3 id="10-3-对高风险需求，先想回滚，再想实现"><a href="#10-3-对高风险需求，先想回滚，再想实现" class="headerlink" title="10.3 对高风险需求，先想回滚，再想实现"></a>10.3 对高风险需求，先想回滚，再想实现</h3><ul>
+<li>有没有 feature flag</li>
+<li>有没有 canary 或灰度</li>
+<li>有没有关键监控和报警</li>
+<li>失败后 10 分钟内能否恢复</li>
+</ul>
+<h3 id="10-4-对大需求，设计记录比代码更先值钱"><a href="#10-4-对大需求，设计记录比代码更先值钱" class="headerlink" title="10.4 对大需求，设计记录比代码更先值钱"></a>10.4 对大需求，设计记录比代码更先值钱</h3><p>Google Cloud 的 ADR 指南很值得借鉴。只要你遇到：</p>
+<ul>
+<li>两个以上工程方案可选</li>
+<li>需要记录“为什么选这个、不选那个”</li>
+<li>未来很可能有人接手这块逻辑</li>
+</ul>
+<p>就该留下 design 或 ADR，而不是只把结论藏在聊天里。</p>
+<hr>
+<h2 id="11-常见误区与排查"><a href="#11-常见误区与排查" class="headerlink" title="11. 常见误区与排查"></a>11. 常见误区与排查</h2><h3 id="11-1-症状：团队觉得“所有需求都很大”"><a href="#11-1-症状：团队觉得“所有需求都很大”" class="headerlink" title="11.1 症状：团队觉得“所有需求都很大”"></a>11.1 症状：团队觉得“所有需求都很大”</h3><p>原因通常是把“代码量”误当复杂度，或者把每个风险都直接打到最高。</p>
+<p>解决方法：</p>
+<ul>
+<li>先明确影响范围而不是文件数</li>
+<li>把复杂度和业务风险分开打</li>
+<li>用事后复盘校准评分尺度</li>
+</ul>
+<h3 id="11-2-症状：明明打成中需求，结果还是一路膨胀"><a href="#11-2-症状：明明打成中需求，结果还是一路膨胀" class="headerlink" title="11.2 症状：明明打成中需求，结果还是一路膨胀"></a>11.2 症状：明明打成中需求，结果还是一路膨胀</h3><p>常见原因是忽略了闸门项，尤其是可回滚性和可观测性。</p>
+<p>解决方法：</p>
+<ul>
+<li>在评审时单独问“失败后怎么退”</li>
+<li>单独问“上线后靠什么知道它坏了”</li>
+<li>闸门项高时，直接升级 workflow</li>
+</ul>
+<h3 id="11-3-症状：CLAUDE-md-或-AGENTS-md-越来越长"><a href="#11-3-症状：CLAUDE-md-或-AGENTS-md-越来越长" class="headerlink" title="11.3 症状：CLAUDE.md 或 AGENTS.md 越来越长"></a>11.3 症状：<code>CLAUDE.md</code> 或 <code>AGENTS.md</code> 越来越长</h3><p>原因通常是把临时需求、会议纪要和局部异常都塞进了根规则。</p>
+<p>解决方法：</p>
+<ul>
+<li>根规则只保留长期有效信息</li>
+<li>局部差异下沉到子目录规则</li>
+<li>一次性变更统一走 OpenSpec</li>
+</ul>
+<h3 id="11-4-症状：AI-很听话，但做出来的东西仍然不对"><a href="#11-4-症状：AI-很听话，但做出来的东西仍然不对" class="headerlink" title="11.4 症状：AI 很听话，但做出来的东西仍然不对"></a>11.4 症状：AI 很听话，但做出来的东西仍然不对</h3><p>原因往往不是规则不够多，而是需求本身没有被结构化。</p>
+<p>解决方法：</p>
+<ul>
+<li>先写验收标准</li>
+<li>先写边界条件</li>
+<li>中大需求先 proposal 再 apply</li>
+</ul>
+<h3 id="11-5-症状：团队觉得模型太理论，落不了地"><a href="#11-5-症状：团队觉得模型太理论，落不了地" class="headerlink" title="11.5 症状：团队觉得模型太理论，落不了地"></a>11.5 症状：团队觉得模型太理论，落不了地</h3><p>原因一般是没有把它和真实工作流绑定起来。</p>
+<p>解决方法：</p>
+<ul>
+<li>把评分结果直接映射到 workflow</li>
+<li>把 OpenSpec 触发条件写进规则文件</li>
+<li>用季度回顾不断修正分级标准</li>
+</ul>
+<hr>
+<h2 id="12-FAQ"><a href="#12-FAQ" class="headerlink" title="12. FAQ"></a>12. FAQ</h2><h3 id="12-1-这套模型和-story-points-是替代关系吗"><a href="#12-1-这套模型和-story-points-是替代关系吗" class="headerlink" title="12.1 这套模型和 story points 是替代关系吗"></a>12.1 这套模型和 story points 是替代关系吗</h3><p>不是。story points<br>更像规划和粗估工具，这套模型更偏需求分级和 workflow<br>选择工具。你完全可以在同一个团队里同时使用两者。</p>
+<h3 id="12-2-是不是所有中需求都必须用-OpenSpec"><a href="#12-2-是不是所有中需求都必须用-OpenSpec" class="headerlink" title="12.2 是不是所有中需求都必须用 OpenSpec"></a>12.2 是不是所有中需求都必须用 OpenSpec</h3><p>不一定。中需求至少要补验收、测试和回滚信息。如果它跨模块、边界模糊或风险较高，就建议走 OpenSpec；如果只是一个模块内的明确需求，简版<br>checklist 也可能足够。</p>
+<h3 id="12-3-为什么要把“可观测性”单独拎出来"><a href="#12-3-为什么要把“可观测性”单独拎出来" class="headerlink" title="12.3 为什么要把“可观测性”单独拎出来"></a>12.3 为什么要把“可观测性”单独拎出来</h3><p>因为很多需求不是做不出来，而是上线后无法快速判断是否出问题。没有观测闭环，团队会把“实现完成”误认为“交付完成”。</p>
+<h3 id="12-4-一个需求到底应该谁来评分"><a href="#12-4-一个需求到底应该谁来评分" class="headerlink" title="12.4 一个需求到底应该谁来评分"></a>12.4 一个需求到底应该谁来评分</h3><p>最理想的是由最靠近交付的一线协作者共同评分，通常是开发、测试、产品或技术负责人一起完成。重点不是谁最权威，而是让不同视角都被显式说出来。</p>
+<h3 id="12-5-如果需求还在探索阶段，评分会不会没有意义"><a href="#12-5-如果需求还在探索阶段，评分会不会没有意义" class="headerlink" title="12.5 如果需求还在探索阶段，评分会不会没有意义"></a>12.5 如果需求还在探索阶段，评分会不会没有意义</h3><p>探索阶段更需要评分，因为“需求清晰度”本来就是评分维度之一。需求模糊本身就是复杂度来源，不应该被隐藏。</p>
+<h3 id="12-6-多久需要校准一次模型"><a href="#12-6-多久需要校准一次模型" class="headerlink" title="12.6 多久需要校准一次模型"></a>12.6 多久需要校准一次模型</h3><p>建议至少每个迭代或每个月回看一次，把返工、热修、回滚和延期较多的需求拉出来复盘，看看是哪个维度经常被低估。</p>
+<hr>
+<h2 id="13-总结"><a href="#13-总结" class="headerlink" title="13. 总结"></a>13. 总结</h2><p>如果只用一句话收束全文，我会这样说：</p>
+<p>OpenSpec 的真正价值，不是让团队多写几份文档，而是让“这次变更到底要做什么”从聊天记录中被提纯出来；项目管理的真正价值，也不是让研发流程变重，而是帮助团队区分复杂度、风险和交付负担，避免把所有需求都用同一种方式处理。</p>
+<p>所以一套更稳的 AI 编码实践应该是：</p>
+<ul>
+<li>用 <code>CLAUDE.md</code> 或 <code>AGENTS.md</code> 管长期规则</li>
+<li>用目录级规则管局部上下文</li>
+<li>用 OpenSpec 管中大需求</li>
+<li>用复杂度评估模型决定应该走哪种 workflow</li>
+<li>用复盘把经验变成团队能力</li>
+</ul>
+<p>当你把这些环节串起来，AI 编码才会真正从“模型博弈”进入“工程化交付”。</p>
+<hr>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>得物技术：《Claude Code + OpenSpec 正在加速 AICoding 落地：从模型博弈到工程化的范式转移》</li>
+<li>OpenSpec 官方仓库：<a target="_blank" rel="noopener" href="https://github.com/Fission-AI/OpenSpec">Fission-AI&#x2F;OpenSpec</a></li>
+<li>GitHub Blog：<a target="_blank" rel="noopener" href="https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/">Spec-driven development with AI: Get started with a new open source toolkit</a></li>
+<li>Claude Code 官方文档：<a target="_blank" rel="noopener" href="https://docs.claude.com/en/docs/claude-code/memory">Manage Claude’s memory</a></li>
+<li>OpenCode 官方文档：<a target="_blank" rel="noopener" href="https://opencode.ai/docs/rules">Rules</a></li>
+<li>Atlassian 官方文档：<a target="_blank" rel="noopener" href="https://www.atlassian.com/agile/project-management/estimation">Estimation in agile teams</a></li>
+<li>PMI 文章：<a target="_blank" rel="noopener" href="https://www.pmi.org/learning/library/managing-organizational-complexity-11139">Managing Organizational Complexity</a></li>
+<li>PMI 文章：<a target="_blank" rel="noopener" href="https://www.pmi.org/learning/library/complexity-and-change-11127">Complexity and Change</a></li>
+<li>Google SRE Workbook：<a target="_blank" rel="noopener" href="https://sre.google/workbook/canarying-releases/">Canarying Releases</a></li>
+<li>Google SRE Workbook：<a target="_blank" rel="noopener" href="https://sre.google/workbook/error-budget-policy/">Example Error Budget Policy</a></li>
+<li>DORA 指标指南：<a target="_blank" rel="noopener" href="https://dora.dev/guides/dora-metrics/">DORA’s software delivery performance metrics</a></li>
+<li>Google Cloud 文档：<a target="_blank" rel="noopener" href="https://docs.cloud.google.com/architecture/architecture-decision-records">Architecture decision records overview</a></li>
+<li>ISTQB Glossary：<a target="_blank" rel="noopener" href="https://istqb-glossary.page/risk-based-testing/">Risk-Based Testing</a></li>
+</ol>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-25</td>
+<td>初版成稿，完成从 OpenSpec、规则分层到需求复杂度评估模型的整合</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI-%E7%BC%96%E7%A8%8B/" rel="tag">AI 编程</a>, <a class="tag-none-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a>, <a class="tag-none-link" href="/tags/OpenCode/" rel="tag">OpenCode</a>, <a class="tag-none-link" href="/tags/OpenSpec/" rel="tag">OpenSpec</a>, <a class="tag-none-link" href="/tags/%E9%9C%80%E6%B1%82%E5%A4%8D%E6%9D%82%E5%BA%A6/" rel="tag">需求复杂度</a>, <a class="tag-none-link" href="/tags/%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86/" rel="tag">项目管理</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 博得之门 3 骰子机制解析：用 Python 模拟 DnD 攻击命中与豁免概率" href="/2026/03/23/gaming/2026-03-24-bg3-dnd-dice-probability-simulation/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 电梯底层代码如何判断该停哪一层：从请求表到方向切换的思考" href="/2026/03/25/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSpec-%E5%9C%A8%E6%95%B4%E4%B8%AA%E4%BD%93%E7%B3%BB%E9%87%8C%E7%9A%84%E4%BD%8D%E7%BD%AE"><span class="toc-number">1.1.</span> <span class="toc-text">OpenSpec 在整个体系里的位置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E5%BC%A0%E8%A1%A8%E7%9C%8B%E6%87%82%E4%B8%89%E7%A7%8D%E5%B1%82%E7%BA%A7"><span class="toc-number">1.2.</span> <span class="toc-text">一张表看懂三种层级</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E4%B8%8A-OpenSpec"><span class="toc-number">1.3.</span> <span class="toc-text">什么时候该上 OpenSpec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E5%A4%8D%E6%9D%82%E5%BA%A6%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.4.</span> <span class="toc-text">需求复杂度模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BE%88%E5%A4%9A%E5%9B%A2%E9%98%9F%E6%98%8E%E6%98%8E%E6%9C%89-rules%EF%BC%8CAI-%E8%BF%98%E6%98%AF%E8%B6%8A%E5%86%99%E8%B6%8A%E9%A3%98"><span class="toc-number">2.</span> <span class="toc-text">1. 为什么很多团队明明有 rules，AI 还是越写越飘</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%8A%8A-OpenSpec-%E6%94%BE%E5%88%B0%E6%AD%A3%E7%A1%AE%E4%BD%8D%E7%BD%AE%EF%BC%9A%E5%AE%83%E4%B8%8D%E6%98%AF%E6%9B%BF%E4%BB%A3-rules%EF%BC%8C%E8%80%8C%E6%98%AF%E8%A1%A5%E4%B8%8A%E2%80%9C%E5%8F%98%E6%9B%B4%E7%AE%A1%E7%90%86%E5%B1%82%E2%80%9D"><span class="toc-number">3.</span> <span class="toc-text">2. 把 OpenSpec 放到正确位置：它不是替代 rules，而是补上“变更管理层”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E9%A1%B9%E7%9B%AE%E7%AE%A1%E7%90%86%E7%9C%9F%E6%AD%A3%E8%A1%A5%E4%B8%8A%E7%9A%84%EF%BC%8C%E4%B8%8D%E6%98%AF%E6%B5%81%E7%A8%8B%E6%84%9F%EF%BC%8C%E8%80%8C%E6%98%AF%E5%A4%8D%E6%9D%82%E5%BA%A6%E4%B8%8E%E9%A3%8E%E9%99%A9%E7%9A%84%E5%88%86%E7%A6%BB"><span class="toc-number">4.</span> <span class="toc-text">3. 项目管理真正补上的，不是流程感，而是复杂度与风险的分离</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%BA%A4%E4%BB%98%E9%A3%8E%E9%99%A9%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8D%95%E7%8B%AC%E8%AF%84%E4%BC%B0%EF%BC%9ASRE%E3%80%81DORA-%E5%92%8C%E6%B5%8B%E8%AF%95%E5%AE%9E%E8%B7%B5%E7%BB%99%E5%87%BA%E7%9A%84%E8%A1%A5%E5%85%85"><span class="toc-number">5.</span> <span class="toc-text">4. 交付风险为什么要单独评估：SRE、DORA 和测试实践给出的补充</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%80%E5%A5%97%E5%8F%AF%E8%90%BD%E5%9C%B0%E7%9A%84%E9%9C%80%E6%B1%82%E5%A4%8D%E6%9D%82%E5%BA%A6%E8%AF%84%E4%BC%B0%E6%A8%A1%E5%9E%8B"><span class="toc-number">6.</span> <span class="toc-text">5. 一套可落地的需求复杂度评估模型</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%85%AD%E4%B8%AA%E6%A0%B8%E5%BF%83%E7%BB%B4%E5%BA%A6"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 六个核心维度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E4%B8%89%E4%B8%AA%E9%97%B8%E9%97%A8%E9%A1%B9"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 三个闸门项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%A6%82%E4%BD%95%E5%88%A4%E7%BA%A7"><span class="toc-number">6.3.</span> <span class="toc-text">5.3 如何判级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%BF%99%E5%A5%97%E6%A8%A1%E5%9E%8B%E5%A6%82%E4%BD%95%E5%92%8C-OpenSpec-%E8%81%94%E5%8A%A8"><span class="toc-number">7.</span> <span class="toc-text">6. 这套模型如何和 OpenSpec 联动</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E6%8E%A8%E8%8D%90%E6%98%A0%E5%B0%84%E5%85%B3%E7%B3%BB"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 推荐映射关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E5%AE%9E%E7%94%A8%E7%9A%84%E8%A7%A6%E5%8F%91%E8%A7%84%E5%88%99"><span class="toc-number">7.2.</span> <span class="toc-text">6.2 一个非常实用的触发规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-OpenCode-%E4%B8%8E-Claude-Code-%E4%B8%A4%E7%A7%8D%E8%90%BD%E5%9C%B0%E7%89%88%E6%9C%AC"><span class="toc-number">8.</span> <span class="toc-text">7. OpenCode 与 Claude Code 两种落地版本</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-Claude-Code-%E7%89%88%E6%9C%AC"><span class="toc-number">8.1.</span> <span class="toc-text">7.1 Claude Code 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-OpenCode-%E7%89%88%E6%9C%AC"><span class="toc-number">8.2.</span> <span class="toc-text">7.2 OpenCode 版本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E6%A1%88%E4%BE%8B%EF%BC%9A%E5%A6%82%E4%BD%95%E7%BB%99%E2%80%9C%E5%8A%A0%E7%AD%9B%E9%80%89%E6%9D%A1%E4%BB%B6%E2%80%9D%E8%BF%99%E7%B1%BB%E9%9C%80%E6%B1%82%E5%AE%9A%E7%BA%A7"><span class="toc-number">9.</span> <span class="toc-text">8. 一个完整案例：如何给“加筛选条件”这类需求定级</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%83%8C%E6%99%AF"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E8%AF%84%E5%88%86"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 评分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%8E%A8%E8%8D%90%E5%A4%84%E7%90%86%E6%96%B9%E5%BC%8F"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 推荐处理方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E4%B8%80%E4%B8%AA%E5%8F%AF%E7%9B%B4%E6%8E%A5%E5%A4%8D%E7%94%A8%E7%9A%84%E8%AF%84%E4%BC%B0%E5%8D%A1"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 一个可直接复用的评估卡</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E5%9B%A2%E9%98%9F%E7%9C%9F%E6%AD%A3%E8%A6%81%E6%B2%89%E6%B7%80%E7%9A%84%EF%BC%8C%E4%B8%8D%E6%98%AF%E2%80%9C%E7%BB%8F%E9%AA%8C%E4%B9%8B%E8%B0%88%E2%80%9D%EF%BC%8C%E8%80%8C%E6%98%AF%E5%8F%AF%E9%87%8D%E5%A4%8D%E6%89%A7%E8%A1%8C%E7%9A%84%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.</span> <span class="toc-text">9. 团队真正要沉淀的，不是“经验之谈”，而是可重复执行的模板</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#9-1-%E9%9C%80%E6%B1%82%E5%85%A5%E5%8F%A3%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.1.</span> <span class="toc-text">9.1 需求入口模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-2-OpenSpec-%E8%A7%A6%E5%8F%91%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.2.</span> <span class="toc-text">9.2 OpenSpec 触发模板</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-3-%E4%BA%8B%E5%90%8E%E5%A4%8D%E7%9B%98%E6%A8%A1%E6%9D%BF"><span class="toc-number">10.3.</span> <span class="toc-text">9.3 事后复盘模板</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#10-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">11.</span> <span class="toc-text">10. 最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#10-1-%E5%85%88%E6%8A%8A%E8%A7%84%E5%88%99%E5%92%8C%E5%8F%98%E6%9B%B4%E5%88%86%E5%BC%80"><span class="toc-number">11.1.</span> <span class="toc-text">10.1 先把规则和变更分开</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-2-%E4%B8%8D%E8%A6%81%E6%8A%8A%E8%AF%84%E5%88%86%E5%81%9A%E6%88%90%E5%BD%A2%E5%BC%8F%E4%B8%BB%E4%B9%89"><span class="toc-number">11.2.</span> <span class="toc-text">10.2 不要把评分做成形式主义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-3-%E5%AF%B9%E9%AB%98%E9%A3%8E%E9%99%A9%E9%9C%80%E6%B1%82%EF%BC%8C%E5%85%88%E6%83%B3%E5%9B%9E%E6%BB%9A%EF%BC%8C%E5%86%8D%E6%83%B3%E5%AE%9E%E7%8E%B0"><span class="toc-number">11.3.</span> <span class="toc-text">10.3 对高风险需求，先想回滚，再想实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-4-%E5%AF%B9%E5%A4%A7%E9%9C%80%E6%B1%82%EF%BC%8C%E8%AE%BE%E8%AE%A1%E8%AE%B0%E5%BD%95%E6%AF%94%E4%BB%A3%E7%A0%81%E6%9B%B4%E5%85%88%E5%80%BC%E9%92%B1"><span class="toc-number">11.4.</span> <span class="toc-text">10.4 对大需求，设计记录比代码更先值钱</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#11-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E6%8E%92%E6%9F%A5"><span class="toc-number">12.</span> <span class="toc-text">11. 常见误区与排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#11-1-%E7%97%87%E7%8A%B6%EF%BC%9A%E5%9B%A2%E9%98%9F%E8%A7%89%E5%BE%97%E2%80%9C%E6%89%80%E6%9C%89%E9%9C%80%E6%B1%82%E9%83%BD%E5%BE%88%E5%A4%A7%E2%80%9D"><span class="toc-number">12.1.</span> <span class="toc-text">11.1 症状：团队觉得“所有需求都很大”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-2-%E7%97%87%E7%8A%B6%EF%BC%9A%E6%98%8E%E6%98%8E%E6%89%93%E6%88%90%E4%B8%AD%E9%9C%80%E6%B1%82%EF%BC%8C%E7%BB%93%E6%9E%9C%E8%BF%98%E6%98%AF%E4%B8%80%E8%B7%AF%E8%86%A8%E8%83%80"><span class="toc-number">12.2.</span> <span class="toc-text">11.2 症状：明明打成中需求，结果还是一路膨胀</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-3-%E7%97%87%E7%8A%B6%EF%BC%9ACLAUDE-md-%E6%88%96-AGENTS-md-%E8%B6%8A%E6%9D%A5%E8%B6%8A%E9%95%BF"><span class="toc-number">12.3.</span> <span class="toc-text">11.3 症状：CLAUDE.md 或 AGENTS.md 越来越长</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-4-%E7%97%87%E7%8A%B6%EF%BC%9AAI-%E5%BE%88%E5%90%AC%E8%AF%9D%EF%BC%8C%E4%BD%86%E5%81%9A%E5%87%BA%E6%9D%A5%E7%9A%84%E4%B8%9C%E8%A5%BF%E4%BB%8D%E7%84%B6%E4%B8%8D%E5%AF%B9"><span class="toc-number">12.4.</span> <span class="toc-text">11.4 症状：AI 很听话，但做出来的东西仍然不对</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#11-5-%E7%97%87%E7%8A%B6%EF%BC%9A%E5%9B%A2%E9%98%9F%E8%A7%89%E5%BE%97%E6%A8%A1%E5%9E%8B%E5%A4%AA%E7%90%86%E8%AE%BA%EF%BC%8C%E8%90%BD%E4%B8%8D%E4%BA%86%E5%9C%B0"><span class="toc-number">12.5.</span> <span class="toc-text">11.5 症状：团队觉得模型太理论，落不了地</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12-FAQ"><span class="toc-number">13.</span> <span class="toc-text">12. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#12-1-%E8%BF%99%E5%A5%97%E6%A8%A1%E5%9E%8B%E5%92%8C-story-points-%E6%98%AF%E6%9B%BF%E4%BB%A3%E5%85%B3%E7%B3%BB%E5%90%97"><span class="toc-number">13.1.</span> <span class="toc-text">12.1 这套模型和 story points 是替代关系吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-2-%E6%98%AF%E4%B8%8D%E6%98%AF%E6%89%80%E6%9C%89%E4%B8%AD%E9%9C%80%E6%B1%82%E9%83%BD%E5%BF%85%E9%A1%BB%E7%94%A8-OpenSpec"><span class="toc-number">13.2.</span> <span class="toc-text">12.2 是不是所有中需求都必须用 OpenSpec</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%8A%8A%E2%80%9C%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7%E2%80%9D%E5%8D%95%E7%8B%AC%E6%8B%8E%E5%87%BA%E6%9D%A5"><span class="toc-number">13.3.</span> <span class="toc-text">12.3 为什么要把“可观测性”单独拎出来</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-4-%E4%B8%80%E4%B8%AA%E9%9C%80%E6%B1%82%E5%88%B0%E5%BA%95%E5%BA%94%E8%AF%A5%E8%B0%81%E6%9D%A5%E8%AF%84%E5%88%86"><span class="toc-number">13.4.</span> <span class="toc-text">12.4 一个需求到底应该谁来评分</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-5-%E5%A6%82%E6%9E%9C%E9%9C%80%E6%B1%82%E8%BF%98%E5%9C%A8%E6%8E%A2%E7%B4%A2%E9%98%B6%E6%AE%B5%EF%BC%8C%E8%AF%84%E5%88%86%E4%BC%9A%E4%B8%8D%E4%BC%9A%E6%B2%A1%E6%9C%89%E6%84%8F%E4%B9%89"><span class="toc-number">13.5.</span> <span class="toc-text">12.5 如果需求还在探索阶段，评分会不会没有意义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#12-6-%E5%A4%9A%E4%B9%85%E9%9C%80%E8%A6%81%E6%A0%A1%E5%87%86%E4%B8%80%E6%AC%A1%E6%A8%A1%E5%9E%8B"><span class="toc-number">13.6.</span> <span class="toc-text">12.6 多久需要校准一次模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#13-%E6%80%BB%E7%BB%93"><span class="toc-number">14.</span> <span class="toc-text">13. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">15.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">16.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

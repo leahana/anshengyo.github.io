@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Redis ZSet 实现延时告警重推：从需求出发的架构选型思考 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="rabbitmq, redis, zset, 告警系统, 延时队列, 架构设计, 队列" />
+  
+  <meta name="description" content="从一个真实需求出发——告警消息未确认需在指定时间后重新推送。对比代码内存队列、Redis ZSet 延时队列、RabbitMQ 死信队列三种方案，围绕「不引入新中间件」的原则做出架构决策。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis ZSet 实现延时告警重推：从需求出发的架构选型思考">
+<meta property="og:url" content="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="从一个真实需求出发——告警消息未确认需在指定时间后重新推送。对比代码内存队列、Redis ZSet 延时队列、RabbitMQ 死信队列三种方案，围绕「不引入新中间件」的原则做出架构决策。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/diagram_20260417_092702_00.webp">
+<meta property="article:published_time" content="2026-03-22T18:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.764Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="rabbitmq">
+<meta property="article:tag" content="redis">
+<meta property="article:tag" content="zset">
+<meta property="article:tag" content="告警系统">
+<meta property="article:tag" content="延时队列">
+<meta property="article:tag" content="架构设计">
+<meta property="article:tag" content="队列">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/diagram_20260417_092702_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Redis ZSet 实现延时告警重推：从需求出发的架构选型思考","description":"从一个真实需求出发——告警消息未确认需在指定时间后重新推送。对比代码内存队列、Redis ZSet 延时队列、RabbitMQ 死信队列三种方案，围绕「不引入新中间件」的原则做出架构决策。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-22T18:30:00.000Z","dateModified":"2026-05-18T05:47:58.764Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Redis ZSet 实现延时告警重推：从需求出发的架构选型思考</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-22T18:30:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-23</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~22.36K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E4%B8%89%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 三方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%86%B3%E7%AD%96%E7%BB%93%E8%AE%BA"><span class="toc-number">1.2.</span> <span class="toc-text">🎯 决策结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%9A%E5%8A%A1%E8%83%8C%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">1. 业务背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E9%9C%80%E6%B1%82%E6%8F%8F%E8%BF%B0"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 需求描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%8A%80%E6%9C%AF%E7%BA%A6%E6%9D%9F"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 技术约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 核心问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%86%85%E5%AD%98%E9%98%9F%E5%88%97"><span class="toc-number">4.</span> <span class="toc-text">2. 方案一：代码内存队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 实现原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 代码实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BC%98%E7%BC%BA%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 优缺点分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9ARedis-ZSet-%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><span class="toc-number">5.</span> <span class="toc-text">3. 方案二：Redis ZSet 延时队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 核心原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 完整实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E5%85%A5%E9%98%9F"><span class="toc-number">5.2.1.</span> <span class="toc-text">任务入队</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E6%97%B6%E6%B6%88%E8%B4%B9%EF%BC%88Lua-%E5%8E%9F%E5%AD%90%E8%84%9A%E6%9C%AC%EF%BC%89"><span class="toc-number">5.2.2.</span> <span class="toc-text">定时消费（Lua 原子脚本）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E7%B1%BB%E9%85%8D%E7%BD%AE"><span class="toc-number">5.2.3.</span> <span class="toc-text">启动类配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 可靠性分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%91%8A%E8%AD%A6%E5%BD%92%E5%B9%B6%E5%B9%B6%E5%8F%91%E5%9D%91%EF%BC%9A%E5%85%88%E5%A4%84%E7%90%86%E5%90%8E%E5%88%A0%E9%99%A4%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E8%AF%AF%E5%88%A0%E6%96%B0%E4%BB%BB%E5%8A%A1"><span class="toc-number">5.4.</span> <span class="toc-text">3.4 告警归并并发坑：先处理后删除为什么会误删新任务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%9B%9B%E7%A7%8D%E4%BF%AE%E5%A4%8D%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">5.5.</span> <span class="toc-text">3.5 四种修复方式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E6%9C%80%E5%B0%8F%E6%94%B9%E5%8A%A8%E6%96%B9%E6%A1%88%EF%BC%9Ascore-version-%E6%9D%A1%E4%BB%B6%E5%88%A0%E9%99%A4"><span class="toc-number">5.6.</span> <span class="toc-text">3.6 最小改动方案：score&#x2F;version 条件删除</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%A5%E9%98%9F%EF%BC%9A%E5%85%88%E8%90%BD%E5%BA%93%EF%BC%8C%E5%86%8D%E5%8E%9F%E5%AD%90%E6%9B%B4%E6%96%B0%E7%89%88%E6%9C%AC%E5%92%8C-score"><span class="toc-number">5.6.1.</span> <span class="toc-text">入队：先落库，再原子更新版本和 score</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%AB%E6%8F%8F%EF%BC%9A%E5%8F%96%E5%88%B0%E6%9C%9F%E4%BB%BB%E5%8A%A1%E6%97%B6%E5%B8%A6%E4%B8%8A-score-version-%E5%BF%AB%E7%85%A7"><span class="toc-number">5.6.2.</span> <span class="toc-text">扫描：取到期任务时带上 score&#x2F;version 快照</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%EF%BC%9A%E5%BD%92%E5%B9%B6%E5%BF%85%E9%A1%BB%E6%8C%89-mergeKey-%E5%B9%82%E7%AD%89"><span class="toc-number">5.6.3.</span> <span class="toc-text">处理：归并必须按 mergeKey 幂等</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%88%90%E5%8A%9F%EF%BC%9A%E5%8F%AA%E5%88%A0%E9%99%A4%E4%BB%8D%E7%84%B6%E7%AD%89%E4%BA%8E%E5%BF%AB%E7%85%A7%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="toc-number">5.6.4.</span> <span class="toc-text">成功：只删除仍然等于快照的任务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%B1%E8%B4%A5%EF%BC%9A%E5%8F%AA%E9%87%8D%E8%AF%95%E4%BB%8D%E7%84%B6%E7%AD%89%E4%BA%8E%E5%BF%AB%E7%85%A7%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="toc-number">5.6.5.</span> <span class="toc-text">失败：只重试仍然等于快照的任务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9ARabbitMQ-%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97"><span class="toc-number">6.</span> <span class="toc-text">4. 方案三：RabbitMQ 死信队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 实现原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%85%8D%E7%BD%AE%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 配置示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%BC%95%E5%85%A5-MQ-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 引入 MQ 的代价</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96"><span class="toc-number">7.</span> <span class="toc-text">5. 架构选型决策</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%86%B3%E7%AD%96%E6%A0%B8%E5%BF%83%EF%BC%9A%E4%BB%8E%E9%9C%80%E6%B1%82%E5%87%BA%E5%8F%91"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 决策核心：从需求出发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%86%B3%E7%AD%96%E7%9F%A9%E9%98%B5"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 决策矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%9E%B6%E6%9E%84%E5%93%B2%E5%AD%A6%EF%BC%9A%E5%8F%AA%E6%9C%89%E6%9C%80%E9%80%82%E5%90%88%E7%9A%84%EF%BC%8C%E6%B2%A1%E6%9C%89%E6%9C%80%E5%A5%BD%E7%9A%84"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 架构哲学：只有最适合的，没有最好的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E7%94%9F%E4%BA%A7%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">8.</span> <span class="toc-text">6. 生产注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E8%BD%AE%E8%AF%A2%E9%97%B4%E9%9A%94%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 轮询间隔的选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-ZSet-Key-%E7%9A%84%E7%AE%A1%E7%90%86"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 ZSet Key 的管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Redis-%E5%AE%95%E6%9C%BA%E9%99%8D%E7%BA%A7%E7%AD%96%E7%95%A5"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 Redis 宕机降级策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-ZSet-%E5%92%8C-Redisson-%E7%9A%84-RDelayedQueue-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: ZSet 和 Redisson 的 RDelayedQueue 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81-ZSet-%E6%B6%88%E8%B4%B9%E7%9A%84%E5%B9%82%E7%AD%89%E6%80%A7%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: 如何保证 ZSet 消费的幂等性？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A4%9A%E8%8A%82%E7%82%B9%E9%83%A8%E7%BD%B2%E6%97%B6%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%8E%A8%E9%80%81%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: 多节点部署时如何避免重复推送？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A6%82%E6%9E%9C-Redis-%E5%AE%95%E6%9C%BA%EF%BC%8C%E5%91%8A%E8%AD%A6%E4%BB%BB%E5%8A%A1%E4%BC%9A%E4%B8%A2%E5%A4%B1%E5%90%97%EF%BC%9F"><span class="toc-number">9.4.</span> <span class="toc-text">Q4: 如果 Redis 宕机，告警任务会丢失吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E5%BA%94%E8%AF%A5%E5%8D%87%E7%BA%A7%E5%88%B0-RabbitMQ%EF%BC%9F"><span class="toc-number">9.5.</span> <span class="toc-text">Q5: 什么情况下应该升级到 RabbitMQ？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%9B%B4%E6%8E%A5%E5%85%88%E5%88%A0%E5%86%8D%E5%A4%84%E7%90%86%EF%BC%9F"><span class="toc-number">9.6.</span> <span class="toc-text">Q6: 为什么不直接先删再处理？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q7-%E5%8F%AA%E6%AF%94%E8%BE%83-score-%E5%A4%9F%E4%B8%8D%E5%A4%9F%EF%BC%9F"><span class="toc-number">9.7.</span> <span class="toc-text">Q7: 只比较 score 够不够？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q8-%E6%96%B0%E5%91%8A%E8%AD%A6%E5%92%8C%E5%AE%9A%E6%97%B6%E5%BD%92%E5%B9%B6%E5%90%8C%E6%97%B6%E5%8F%91%E7%94%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">9.8.</span> <span class="toc-text">Q8: 新告警和定时归并同时发生怎么办？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：一个告警重推需求，三种方案对比，一次关于「只有最适合的架构，没有最好的架构」的实战思考。</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>核心理念</strong>：架构设计不是秀技术栈，而是在约束条件下找到最小复杂度的解决方案。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开架构选型决策树</strong></summary>
+
+<h3 id="🔌-三方案对比"><a href="#🔌-三方案对比" class="headerlink" title="🔌 三方案对比"></a>🔌 三方案对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>代码内存队列</th>
+<th>Redis ZSet</th>
+<th>RabbitMQ 死信队列</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>实现复杂度</td>
+<td>⭐ 低</td>
+<td>⭐⭐ 中</td>
+<td>⭐⭐⭐ 高</td>
+</tr>
+<tr>
+<td>可靠性</td>
+<td>❌ 进程重启丢失</td>
+<td>✅ 持久化保障</td>
+<td>✅ 消息确认机制</td>
+</tr>
+<tr>
+<td>额外依赖</td>
+<td>无</td>
+<td>Redis（已有）</td>
+<td><strong>需新引入 MQ</strong></td>
+</tr>
+<tr>
+<td>集群支持</td>
+<td>❌ 多节点重复推送</td>
+<td>✅ 分布式锁</td>
+<td>✅ 原生支持</td>
+</tr>
+<tr>
+<td>适用规模</td>
+<td>单机&#x2F;开发环境</td>
+<td>中小型生产环境</td>
+<td>大型&#x2F;高可靠场景</td>
+</tr>
+<tr>
+<td>运维成本</td>
+<td>无</td>
+<td>低（复用已有 Redis）</td>
+<td>高（MQ 集群运维）</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-决策结论"><a href="#🎯-决策结论" class="headerlink" title="🎯 决策结论"></a>🎯 决策结论</h3><pre class="mermaid">graph TD
+    A[告警重推需求] --> B{系统已有 Redis?}
+    B -->|是| C{并发量 > 10K/s?}
+    B -->|否| D{允许引入新中间件?}
+    C -->|是| E[RabbitMQ 死信队列]
+    C -->|否| F[Redis ZSet ✅ 推荐]
+    D -->|是| E
+    D -->|否| G[代码内存队列]
+
+    style F fill:#c8e6c9,stroke:#333,color:#000
+    style E fill:#bbdefb,stroke:#333,color:#000
+    style G fill:#fff9c4,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-redis-zset-alert-queue-architecture-design/diagram_20260417_092702_00.webp" alt="决策结论图解：告警重推需求、RabbitMQ 死信队列"></p>
+</details>
+
+<p><strong>本文结论</strong>：系统已有 Redis、并发量中等、不希望引入新中间件 → <strong>Redis ZSet 是最优解</strong>。</p>
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-业务背景"><a href="#1-业务背景" class="headerlink" title="1. 业务背景"></a>1. 业务背景</h2><h3 id="1-1-需求描述"><a href="#1-1-需求描述" class="headerlink" title="1.1 需求描述"></a>1.1 需求描述</h3><p>告警系统的核心流程：</p>
+<ol>
+<li>系统检测到异常，发出告警通知（短信&#x2F;邮件&#x2F;钉钉）</li>
+<li>运维人员在告警面板上<strong>确认</strong>告警</li>
+<li>如果 <strong>N 分钟后仍未确认</strong>，告警自动<strong>重新推送</strong></li>
+<li>重推可能有多档：5 分钟、30 分钟、2 小时</li>
+<li>超过最大重试次数后升级告警（如通知上级）</li>
+</ol>
+<h3 id="1-2-技术约束"><a href="#1-2-技术约束" class="headerlink" title="1.2 技术约束"></a>1.2 技术约束</h3><ul>
+<li><strong>当前技术栈</strong>：Spring Boot + MySQL + Redis（Lettuce）</li>
+<li><strong>未引入 MQ</strong>：项目中没有 RabbitMQ&#x2F;Kafka&#x2F;RocketMQ</li>
+<li><strong>并发量</strong>：中小型系统，告警量 &lt; 1000 条&#x2F;天，峰值 QPS &lt; 100</li>
+<li><strong>可靠性要求</strong>：告警不能丢失，但允许偶尔延迟（秒级精度即可）</li>
+</ul>
+<h3 id="1-3-核心问题"><a href="#1-3-核心问题" class="headerlink" title="1.3 核心问题"></a>1.3 核心问题</h3><blockquote>
+<p>如何实现「到达指定时间后自动触发某个操作」？</p>
+</blockquote>
+<p>这本质上是一个 <strong>延时任务调度</strong> 问题。</p>
+<hr>
+<h2 id="2-方案一：代码内存队列"><a href="#2-方案一：代码内存队列" class="headerlink" title="2. 方案一：代码内存队列"></a>2. 方案一：代码内存队列</h2><h3 id="2-1-实现原理"><a href="#2-1-实现原理" class="headerlink" title="2.1 实现原理"></a>2.1 实现原理</h3><p>使用 JDK 自带的 <code>DelayQueue</code> + 守护线程轮询。</p>
+<h3 id="2-2-代码实现"><a href="#2-2-代码实现" class="headerlink" title="2.2 代码实现"></a>2.2 代码实现</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.concurrent.DelayQueue;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.Delayed;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AlertTask</span> <span class="keyword">implements</span> <span class="title class_">Delayed</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> String alertId;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> <span class="type">long</span> triggerTime; <span class="comment">// 触发时间戳（毫秒）</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AlertTask</span><span class="params">(String alertId, <span class="type">long</span> delayMs)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.alertId = alertId;</span><br><span class="line">        <span class="built_in">this</span>.triggerTime = System.currentTimeMillis() + delayMs;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">getDelay</span><span class="params">(TimeUnit unit)</span> &#123;</span><br><span class="line">        <span class="type">long</span> <span class="variable">diff</span> <span class="operator">=</span> triggerTime - System.currentTimeMillis();</span><br><span class="line">        <span class="keyword">return</span> unit.convert(diff, TimeUnit.MILLISECONDS);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> <span class="type">int</span> <span class="title function_">compareTo</span><span class="params">(Delayed other)</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> Long.compare(</span><br><span class="line">            <span class="built_in">this</span>.triggerTime,</span><br><span class="line">            ((AlertTask) other).triggerTime</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getAlertId</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> alertId;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.concurrent.DelayQueue;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">InMemoryAlertScheduler</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DelayQueue&lt;AlertTask&gt; queue = <span class="keyword">new</span> <span class="title class_">DelayQueue</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="meta">@PostConstruct</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">startConsumer</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">Thread</span> <span class="variable">consumer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">Thread</span>(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">while</span> (!Thread.currentThread().isInterrupted()) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="type">AlertTask</span> <span class="variable">task</span> <span class="operator">=</span> queue.take(); <span class="comment">// 阻塞直到有到期任务</span></span><br><span class="line">                    handleAlert(task.getAlertId());</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    Thread.currentThread().interrupt();</span><br><span class="line">                    <span class="keyword">break</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;, <span class="string">&quot;alert-delay-consumer&quot;</span>);</span><br><span class="line">        consumer.setDaemon(<span class="literal">true</span>);</span><br><span class="line">        consumer.start();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">schedule</span><span class="params">(String alertId, <span class="type">long</span> delayMs)</span> &#123;</span><br><span class="line">        queue.put(<span class="keyword">new</span> <span class="title class_">AlertTask</span>(alertId, delayMs));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">handleAlert</span><span class="params">(String alertId)</span> &#123;</span><br><span class="line">        <span class="comment">// 查询告警是否已确认，未确认则重推</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-3-优缺点分析"><a href="#2-3-优缺点分析" class="headerlink" title="2.3 优缺点分析"></a>2.3 优缺点分析</h3><table>
+<thead>
+<tr>
+<th>优点</th>
+<th>缺点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>零外部依赖</td>
+<td><strong>进程重启后队列丢失</strong></td>
+</tr>
+<tr>
+<td>实现简单，10 分钟搞定</td>
+<td>集群部署时多节点重复调度</td>
+</tr>
+<tr>
+<td>精度高（毫秒级）</td>
+<td>大量任务时内存压力大</td>
+</tr>
+<tr>
+<td>适合开发&#x2F;测试环境</td>
+<td>无法跨 JVM 协调</td>
+</tr>
+</tbody></table>
+<p><strong>结论</strong>：适合原型验证和单机开发环境，<strong>不满足生产可靠性要求</strong>。</p>
+<hr>
+<h2 id="3-方案二：Redis-ZSet-延时队列"><a href="#3-方案二：Redis-ZSet-延时队列" class="headerlink" title="3. 方案二：Redis ZSet 延时队列"></a>3. 方案二：Redis ZSet 延时队列</h2><h3 id="3-1-核心原理"><a href="#3-1-核心原理" class="headerlink" title="3.1 核心原理"></a>3.1 核心原理</h3><p>利用 ZSet 的 <strong>score 有序性</strong>：</p>
+<ul>
+<li><code>score</code> &#x3D; 任务触发时间戳</li>
+<li><code>member</code> &#x3D; 任务 ID</li>
+<li>定时轮询 <code>ZRANGEBYSCORE</code>，取出所有 <code>score &lt;= 当前时间</code> 的任务</li>
+</ul>
+<h3 id="3-2-完整实现"><a href="#3-2-完整实现" class="headerlink" title="3.2 完整实现"></a>3.2 完整实现</h3><h4 id="任务入队"><a href="#任务入队" class="headerlink" title="任务入队"></a>任务入队</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AlertQueueService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">QUEUE_KEY</span> <span class="operator">=</span> <span class="string">&quot;alert:delay:queue&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> StringRedisTemplate redisTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将告警加入延时队列</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> alertId  告警 ID</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> delayMs  延迟毫秒数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">enqueue</span><span class="params">(String alertId, <span class="type">long</span> delayMs)</span> &#123;</span><br><span class="line">        <span class="type">double</span> <span class="variable">triggerTime</span> <span class="operator">=</span> System.currentTimeMillis() + delayMs;</span><br><span class="line">        redisTemplate.opsForZSet().add(QUEUE_KEY, alertId, triggerTime);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 告警被确认时，从队列中移除</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">cancel</span><span class="params">(String alertId)</span> &#123;</span><br><span class="line">        redisTemplate.opsForZSet().remove(QUEUE_KEY, alertId);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 查询待处理任务数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">public</span> Long <span class="title function_">pendingCount</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> redisTemplate.opsForZSet().zCard(QUEUE_KEY);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="定时消费（Lua-原子脚本）"><a href="#定时消费（Lua-原子脚本）" class="headerlink" title="定时消费（Lua 原子脚本）"></a>定时消费（Lua 原子脚本）</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AlertScheduler</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">QUEUE_KEY</span> <span class="operator">=</span> <span class="string">&quot;alert:delay:queue&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">LOCK_KEY</span> <span class="operator">=</span> <span class="string">&quot;alert:scheduler:lock&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> StringRedisTemplate redisTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> AlertNotifyService notifyService;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Lua 脚本：原子性地取出到期任务并删除</span></span><br><span class="line"><span class="comment">     * 避免多节点重复消费</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">FETCH_AND_REMOVE_LUA</span> <span class="operator">=</span></span><br><span class="line">        <span class="string">&quot;local tasks = redis.call(&#x27;ZRANGEBYSCORE&#x27;, KEYS[1], &#x27;0&#x27;, ARGV[1], &#x27;LIMIT&#x27;, 0, ARGV[2])\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;if #tasks &gt; 0 then\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;    redis.call(&#x27;ZREM&#x27;, KEYS[1], unpack(tasks))\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;end\n&quot;</span> +</span><br><span class="line">        <span class="string">&quot;return tasks&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> DefaultRedisScript&lt;List&gt; fetchScript;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AlertScheduler</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.fetchScript = <span class="keyword">new</span> <span class="title class_">DefaultRedisScript</span>&lt;&gt;();</span><br><span class="line">        <span class="built_in">this</span>.fetchScript.setScriptText(FETCH_AND_REMOVE_LUA);</span><br><span class="line">        <span class="built_in">this</span>.fetchScript.setResultType(List.class);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每 10 秒轮询一次，取出到期告警任务</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Scheduled(fixedDelay = 10_000)</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">pollExpiredAlerts</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 分布式锁：防止多节点同时消费</span></span><br><span class="line">        <span class="type">Boolean</span> <span class="variable">locked</span> <span class="operator">=</span> redisTemplate.opsForValue()</span><br><span class="line">            .setIfAbsent(LOCK_KEY, <span class="string">&quot;1&quot;</span>, Duration.ofSeconds(<span class="number">30</span>));</span><br><span class="line">        <span class="keyword">if</span> (!Boolean.TRUE.equals(locked)) &#123;</span><br><span class="line">            <span class="keyword">return</span>; <span class="comment">// 其他节点正在处理</span></span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="type">String</span> <span class="variable">now</span> <span class="operator">=</span> String.valueOf(System.currentTimeMillis());</span><br><span class="line">            <span class="meta">@SuppressWarnings(&quot;unchecked&quot;)</span></span><br><span class="line">            List&lt;String&gt; alertIds = redisTemplate.execute(</span><br><span class="line">                fetchScript,</span><br><span class="line">                List.of(QUEUE_KEY),</span><br><span class="line">                now, <span class="string">&quot;50&quot;</span> <span class="comment">// 每次最多取 50 条</span></span><br><span class="line">            );</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (alertIds != <span class="literal">null</span> &amp;&amp; !alertIds.isEmpty()) &#123;</span><br><span class="line">                <span class="keyword">for</span> (String alertId : alertIds) &#123;</span><br><span class="line">                    processAlert(alertId);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            redisTemplate.delete(LOCK_KEY);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">processAlert</span><span class="params">(String alertId)</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 查询告警是否已确认</span></span><br><span class="line">            <span class="keyword">if</span> (!notifyService.isAcknowledged(alertId)) &#123;</span><br><span class="line">                notifyService.resend(alertId);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="comment">// 处理失败，重新入队（延迟 60 秒重试）</span></span><br><span class="line">            redisTemplate.opsForZSet().add(</span><br><span class="line">                QUEUE_KEY,</span><br><span class="line">                alertId,</span><br><span class="line">                System.currentTimeMillis() + <span class="number">60_000</span></span><br><span class="line">            );</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="启动类配置"><a href="#启动类配置" class="headerlink" title="启动类配置"></a>启动类配置</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableScheduling</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AlertApplication</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        SpringApplication.run(AlertApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-可靠性分析"><a href="#3-3-可靠性分析" class="headerlink" title="3.3 可靠性分析"></a>3.3 可靠性分析</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>表现</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>进程重启</td>
+<td>✅ 不丢失</td>
+<td>任务在 Redis 中，重启后继续消费</td>
+</tr>
+<tr>
+<td>多节点部署</td>
+<td>✅ 不重复</td>
+<td>Lua 脚本原子取出 + 分布式锁</td>
+</tr>
+<tr>
+<td>Redis 宕机</td>
+<td>⚠️ 取决于持久化</td>
+<td>AOF everysec 最多丢 1 秒数据</td>
+</tr>
+<tr>
+<td>大量任务堆积</td>
+<td>✅ 可控</td>
+<td>ZSet 内存占用小，百万级无压力</td>
+</tr>
+</tbody></table>
+<h3 id="3-4-告警归并并发坑：先处理后删除为什么会误删新任务"><a href="#3-4-告警归并并发坑：先处理后删除为什么会误删新任务" class="headerlink" title="3.4 告警归并并发坑：先处理后删除为什么会误删新任务"></a>3.4 告警归并并发坑：先处理后删除为什么会误删新任务</h3><p>上面的示例采用的是“原子取出并删除，再处理”的消费模型，适合告警重推。<br>但很多告警系统还有另一个需求：同一设备、同一规则、同一时间窗口内的<br>告警要先归并，满足条件后再生成一条聚合告警。</p>
+<p>这时不少实现会变成：</p>
+<ol>
+<li>REST 接口收到告警后，满足归并条件就直接归并处理</li>
+<li>不满足条件就按 <code>mergeKey</code> 写入 ZSet，等待定时任务扫描</li>
+<li>定时任务扫到到期 <code>mergeKey</code> 后，先执行归并处理</li>
+<li>归并成功后再从 ZSet 删除这个 <code>mergeKey</code></li>
+</ol>
+<p>问题就在第 4 步：如果处理期间又有新告警进来，<code>ZREM</code> 删除的可能不是<br>旧任务，而是新告警刚写入的延迟任务。</p>
+<pre class="mermaid">sequenceDiagram
+    participant Job as 定时任务
+    participant Redis as Redis ZSet
+    participant Api as REST 接口
+    participant DB as 告警明细库
+
+    Job->>Redis: 读取到期 mergeKey=M, score=100
+    Job->>DB: 开始归并 M 的旧告警
+    Api->>DB: 写入 M 的新告警明细
+    Api->>Redis: ZADD M score=200
+    Job->>DB: 旧告警归并完成
+    Job->>Redis: ZREM M
+    Redis-->>Api: 新延迟任务被误删</pre>
+
+<p>这个竞态的根因是：ZSet 的 <code>member</code> 只有一个，同一个 <code>mergeKey</code> 再次<br><code>ZADD</code> 会覆盖 score；而普通 <code>ZREM mergeKey</code> 无法区分它删除的是“旧版本<br>任务”还是“新版本任务”。</p>
+<h3 id="3-5-四种修复方式对比"><a href="#3-5-四种修复方式对比" class="headerlink" title="3.5 四种修复方式对比"></a>3.5 四种修复方式对比</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>核心思路</th>
+<th>优点</th>
+<th>风险</th>
+<th>建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>先删再处理</td>
+<td>扫描到期后先 <code>ZREM</code>，再执行业务归并</td>
+<td>不会误删新任务</td>
+<td>进程宕机可能丢任务</td>
+<td>需配合 processing 队列</td>
+</tr>
+<tr>
+<td>全链路加锁</td>
+<td>REST 入队和定时归并都锁同一 <code>mergeKey</code></td>
+<td>语义最直观</td>
+<td>接口耗时上升，锁过期难调</td>
+<td>不作为首选</td>
+</tr>
+<tr>
+<td>score&#x2F;version 条件删除</td>
+<td>删除前比较快照，只删旧版本任务</td>
+<td>改动小，保留现有流程</td>
+<td>归并逻辑仍需幂等</td>
+<td><strong>推荐</strong></td>
+</tr>
+<tr>
+<td>processing zset + lease</td>
+<td>到期任务先搬到处理中队列，成功再 ack</td>
+<td>可靠性最好</td>
+<td>代码和监控都更复杂</td>
+<td>后续演进</td>
+</tr>
+</tbody></table>
+<p>如果目标是“最小改动”，首选 <code>score/version</code> 条件删除。它不改变现有<br>REST 接口和定时任务的大结构，只是在队列任务上补一个版本栅栏。</p>
+<h3 id="3-6-最小改动方案：score-version-条件删除"><a href="#3-6-最小改动方案：score-version-条件删除" class="headerlink" title="3.6 最小改动方案：score&#x2F;version 条件删除"></a>3.6 最小改动方案：score&#x2F;version 条件删除</h3><p>设计里需要统一几个概念：</p>
+<ul>
+<li><code>mergeKey</code>：归并维度，例如设备 ID、告警类型、规则 ID 组合</li>
+<li><code>QUEUE_KEY</code>：Redis ZSet，存放待归并任务</li>
+<li><code>VERSION_KEY</code>：Redis Hash，存放每个 <code>mergeKey</code> 的版本号</li>
+<li><code>safeAckLua</code>：成功后条件删除脚本</li>
+<li><code>safeRetryLua</code>：失败后条件改 score 脚本</li>
+</ul>
+<p>整体流程如下：</p>
+<pre class="mermaid">graph TD
+    A[新告警先落库] --> B[version +1 并 ZADD]
+    C[读取到期快照] --> D[归并处理 mergeKey]
+    D --> E{成功还是失败?}
+    E --> F[执行条件 ack/retry]
+    B -.并发更新.-> F
+    F --> G{快照仍有效?}
+    G -->|是| H[删除旧任务或改到重试时间]
+    G -->|否| I[保留新任务]
+
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style G fill:#fff3e0,stroke:#333,color:#000
+    style I fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<h4 id="入队：先落库，再原子更新版本和-score"><a href="#入队：先落库，再原子更新版本和-score" class="headerlink" title="入队：先落库，再原子更新版本和 score"></a>入队：先落库，再原子更新版本和 score</h4><p>REST 接口不要只把数据放进 Redis。先把告警明细写入数据库或其他可靠<br>存储，再更新 Redis 队列。这样即使定时任务稍后处理，也能按 <code>mergeKey</code><br>查到完整明细。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AlertMergeService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">QUEUE_KEY</span> <span class="operator">=</span> <span class="string">&quot;alert:merge:delay:queue&quot;</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">VERSION_KEY</span> <span class="operator">=</span> <span class="string">&quot;alert:merge:version&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">ENQUEUE_LUA</span> <span class="operator">=</span> <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">        local version = redis.call(&#x27;HINCRBY&#x27;, KEYS[2], ARGV[1], 1)</span></span><br><span class="line"><span class="string">        redis.call(&#x27;ZADD&#x27;, KEYS[1], ARGV[2], ARGV[1])</span></span><br><span class="line"><span class="string">        return version</span></span><br><span class="line"><span class="string">        &quot;&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StringRedisTemplate redisTemplate;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> AlertDetailMapper alertDetailMapper;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> AlertMergeMapper alertMergeMapper;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">AlertMergeService</span><span class="params">(</span></span><br><span class="line"><span class="params">        StringRedisTemplate redisTemplate,</span></span><br><span class="line"><span class="params">        AlertDetailMapper alertDetailMapper,</span></span><br><span class="line"><span class="params">        AlertMergeMapper alertMergeMapper</span></span><br><span class="line"><span class="params">    )</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.redisTemplate = redisTemplate;</span><br><span class="line">        <span class="built_in">this</span>.alertDetailMapper = alertDetailMapper;</span><br><span class="line">        <span class="built_in">this</span>.alertMergeMapper = alertMergeMapper;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="type">long</span> <span class="title function_">enqueue</span><span class="params">(AlertEvent event)</span> &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">mergeKey</span> <span class="operator">=</span> buildMergeKey(event);</span><br><span class="line">        <span class="type">long</span> <span class="variable">triggerTime</span> <span class="operator">=</span> System.currentTimeMillis() + event.delayMs();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 先落库，保证后续归并可以按 mergeKey 找回完整明细。</span></span><br><span class="line">        alertDetailMapper.insert(event.toEntity(mergeKey));</span><br><span class="line"></span><br><span class="line">        <span class="type">Long</span> <span class="variable">version</span> <span class="operator">=</span> redisTemplate.execute(</span><br><span class="line">            RedisScript.of(ENQUEUE_LUA, Long.class),</span><br><span class="line">            List.of(QUEUE_KEY, VERSION_KEY),</span><br><span class="line">            mergeKey,</span><br><span class="line">            String.valueOf(triggerTime)</span><br><span class="line">        );</span><br><span class="line">        <span class="keyword">return</span> version == <span class="literal">null</span> ? <span class="number">0L</span> : version;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里把 <code>HINCRBY</code> 和 <code>ZADD</code> 放进同一个 Lua 脚本，是为了避免 Redis 内部<br>出现“版本已增加但 score 还没更新”的中间态。</p>
+<p>下面几段方法继续放在 <code>AlertMergeService</code> 中，为了便于讲解按职责拆开。</p>
+<h4 id="扫描：取到期任务时带上-score-version-快照"><a href="#扫描：取到期任务时带上-score-version-快照" class="headerlink" title="扫描：取到期任务时带上 score&#x2F;version 快照"></a>扫描：取到期任务时带上 score&#x2F;version 快照</h4><p>定时任务扫描时不要只拿 <code>mergeKey</code>，还要拿当时的 <code>score</code> 和 <code>version</code>。<br>这三个值组成快照，后面 ack 或 retry 都必须基于这份快照判断。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">record</span> <span class="title class_">MergeTaskSnapshot</span><span class="params">(</span></span><br><span class="line"><span class="params">    String mergeKey,</span></span><br><span class="line"><span class="params">    <span class="type">double</span> score,</span></span><br><span class="line"><span class="params">    <span class="type">long</span> version</span></span><br><span class="line"><span class="params">)</span> &#123;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> List&lt;MergeTaskSnapshot&gt; <span class="title function_">fetchExpired</span><span class="params">(<span class="type">long</span> now, <span class="type">int</span> limit)</span> &#123;</span><br><span class="line">    Set&lt;ZSetOperations.TypedTuple&lt;String&gt;&gt; tuples = redisTemplate</span><br><span class="line">        .opsForZSet()</span><br><span class="line">        .rangeByScoreWithScores(QUEUE_KEY, <span class="number">0</span>, now, <span class="number">0</span>, limit);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (tuples == <span class="literal">null</span> || tuples.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">return</span> List.of();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    List&lt;MergeTaskSnapshot&gt; snapshots = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (ZSetOperations.TypedTuple&lt;String&gt; tuple : tuples) &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">mergeKey</span> <span class="operator">=</span> tuple.getValue();</span><br><span class="line">        <span class="type">Double</span> <span class="variable">score</span> <span class="operator">=</span> tuple.getScore();</span><br><span class="line">        <span class="type">Object</span> <span class="variable">version</span> <span class="operator">=</span> redisTemplate.opsForHash()</span><br><span class="line">            .get(VERSION_KEY, mergeKey);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (mergeKey != <span class="literal">null</span> &amp;&amp; score != <span class="literal">null</span> &amp;&amp; version != <span class="literal">null</span>) &#123;</span><br><span class="line">            snapshots.add(<span class="keyword">new</span> <span class="title class_">MergeTaskSnapshot</span>(</span><br><span class="line">                mergeKey,</span><br><span class="line">                score,</span><br><span class="line">                Long.parseLong(version.toString())</span><br><span class="line">            ));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> snapshots;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="处理：归并必须按-mergeKey-幂等"><a href="#处理：归并必须按-mergeKey-幂等" class="headerlink" title="处理：归并必须按 mergeKey 幂等"></a>处理：归并必须按 mergeKey 幂等</h4><p>版本栅栏只能保证“不误删新任务”，不能替代业务幂等。归并处理本身仍然<br>要按 <code>mergeKey</code> 做幂等保护，例如：</p>
+<ul>
+<li>归并结果表对 <code>mergeKey + windowStart</code> 建唯一键</li>
+<li>状态流转使用 CAS，例如 <code>PENDING -&gt; MERGED</code></li>
+<li>批量写入使用 upsert，避免重复定时扫描造成重复结果</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">mergeBySnapshot</span><span class="params">(MergeTaskSnapshot snapshot)</span> &#123;</span><br><span class="line">    List&lt;AlertDetail&gt; details = alertDetailMapper</span><br><span class="line">        .selectPendingByMergeKey(snapshot.mergeKey());</span><br><span class="line">    <span class="keyword">if</span> (details.isEmpty()) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="type">AlertMergeResult</span> <span class="variable">result</span> <span class="operator">=</span> AlertMergeResult.from(</span><br><span class="line">        snapshot.mergeKey(),</span><br><span class="line">        details</span><br><span class="line">    );</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> <span class="variable">updated</span> <span class="operator">=</span> alertMergeMapper.upsertByMergeKey(result);</span><br><span class="line">    <span class="keyword">if</span> (updated == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    alertDetailMapper.markMerged(snapshot.mergeKey());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="成功：只删除仍然等于快照的任务"><a href="#成功：只删除仍然等于快照的任务" class="headerlink" title="成功：只删除仍然等于快照的任务"></a>成功：只删除仍然等于快照的任务</h4><p>归并成功后不要直接 <code>ZREM</code>，而是执行 <code>safeAckLua</code>。只有当前 score 和<br>version 都还等于快照值，才说明没有新告警覆盖这个 <code>mergeKey</code>。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">SAFE_ACK_LUA</span> <span class="operator">=</span> <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    local currentScore = redis.call(&#x27;ZSCORE&#x27;, KEYS[1], ARGV[1])</span></span><br><span class="line"><span class="string">    if not currentScore then</span></span><br><span class="line"><span class="string">        return 0</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    local currentVersion = redis.call(&#x27;HGET&#x27;, KEYS[2], ARGV[1])</span></span><br><span class="line"><span class="string">    if tonumber(currentScore) == tonumber(ARGV[2])</span></span><br><span class="line"><span class="string">        and currentVersion == ARGV[3] then</span></span><br><span class="line"><span class="string">        return redis.call(&#x27;ZREM&#x27;, KEYS[1], ARGV[1])</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    return 0</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">safeAck</span><span class="params">(MergeTaskSnapshot snapshot)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">removed</span> <span class="operator">=</span> redisTemplate.execute(</span><br><span class="line">        RedisScript.of(SAFE_ACK_LUA, Long.class),</span><br><span class="line">        List.of(QUEUE_KEY, VERSION_KEY),</span><br><span class="line">        snapshot.mergeKey(),</span><br><span class="line">        String.valueOf(snapshot.score()),</span><br><span class="line">        String.valueOf(snapshot.version())</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">return</span> Long.valueOf(<span class="number">1L</span>).equals(removed);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果 <code>safeAck</code> 返回 <code>false</code>，通常不是错误，而是处理期间有新告警进来。<br>此时新任务仍留在 ZSet 中，下一轮扫描会继续处理。</p>
+<h4 id="失败：只重试仍然等于快照的任务"><a href="#失败：只重试仍然等于快照的任务" class="headerlink" title="失败：只重试仍然等于快照的任务"></a>失败：只重试仍然等于快照的任务</h4><p>处理失败也不要无脑 <code>ZADD</code>。如果失败期间已经有新告警进入，新的 score<br>应该保留；如果还是旧版本，才把它改到重试时间。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">SAFE_RETRY_LUA</span> <span class="operator">=</span> <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    local currentScore = redis.call(&#x27;ZSCORE&#x27;, KEYS[1], ARGV[1])</span></span><br><span class="line"><span class="string">    if not currentScore then</span></span><br><span class="line"><span class="string">        return 0</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    local currentVersion = redis.call(&#x27;HGET&#x27;, KEYS[2], ARGV[1])</span></span><br><span class="line"><span class="string">    if tonumber(currentScore) == tonumber(ARGV[2])</span></span><br><span class="line"><span class="string">        and currentVersion == ARGV[3] then</span></span><br><span class="line"><span class="string">        redis.call(&#x27;ZADD&#x27;, KEYS[1], ARGV[4], ARGV[1])</span></span><br><span class="line"><span class="string">        return 1</span></span><br><span class="line"><span class="string">    end</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    return 0</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="type">boolean</span> <span class="title function_">safeRetry</span><span class="params">(MergeTaskSnapshot snapshot, <span class="type">long</span> nextRetryTime)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">updated</span> <span class="operator">=</span> redisTemplate.execute(</span><br><span class="line">        RedisScript.of(SAFE_RETRY_LUA, Long.class),</span><br><span class="line">        List.of(QUEUE_KEY, VERSION_KEY),</span><br><span class="line">        snapshot.mergeKey(),</span><br><span class="line">        String.valueOf(snapshot.score()),</span><br><span class="line">        String.valueOf(snapshot.version()),</span><br><span class="line">        String.valueOf(nextRetryTime)</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">return</span> Long.valueOf(<span class="number">1L</span>).equals(updated);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>最终定时任务只需要把处理结果映射到 <code>safeAck</code> 或 <code>safeRetry</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Scheduled(fixedDelay = 10_000)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">pollExpiredMergeTasks</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">now</span> <span class="operator">=</span> System.currentTimeMillis();</span><br><span class="line">    <span class="keyword">for</span> (MergeTaskSnapshot snapshot : fetchExpired(now, <span class="number">50</span>)) &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            mergeBySnapshot(snapshot);</span><br><span class="line">            safeAck(snapshot);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception ex) &#123;</span><br><span class="line">            <span class="type">long</span> <span class="variable">nextRetryTime</span> <span class="operator">=</span> System.currentTimeMillis() + <span class="number">60_000</span>;</span><br><span class="line">            safeRetry(snapshot, nextRetryTime);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> String <span class="title function_">buildMergeKey</span><span class="params">(AlertEvent event)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> event.deviceId() + <span class="string">&quot;:&quot;</span> + event.ruleId() + <span class="string">&quot;:&quot;</span> + event.level();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这套方案的关键不是“让处理过程完全串行”，而是让删除动作具备条件：<br>旧任务只能确认旧任务，不能碰新任务。</p>
+<hr>
+<h2 id="4-方案三：RabbitMQ-死信队列"><a href="#4-方案三：RabbitMQ-死信队列" class="headerlink" title="4. 方案三：RabbitMQ 死信队列"></a>4. 方案三：RabbitMQ 死信队列</h2><h3 id="4-1-实现原理"><a href="#4-1-实现原理" class="headerlink" title="4.1 实现原理"></a>4.1 实现原理</h3><p>利用 TTL（消息过期时间）+ Dead Letter Exchange（死信交换机）：</p>
+<ol>
+<li>告警消息发送到 <code>delay-queue</code>，设置 TTL &#x3D; 延迟时间</li>
+<li>消息过期后，自动路由到死信交换机</li>
+<li>死信交换机转发到 <code>alert-process-queue</code></li>
+<li>消费者从 <code>alert-process-queue</code> 取出并处理</li>
+</ol>
+<h3 id="4-2-配置示例"><a href="#4-2-配置示例" class="headerlink" title="4.2 配置示例"></a>4.2 配置示例</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitAlertConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">delayQueue</span><span class="params">()</span> &#123;</span><br><span class="line">        Map&lt;String, Object&gt; args = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, <span class="string">&quot;alert.dlx&quot;</span>);</span><br><span class="line">        args.put(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, <span class="string">&quot;alert.process&quot;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(<span class="string">&quot;alert.delay.queue&quot;</span>, <span class="literal">true</span>, <span class="literal">false</span>, <span class="literal">false</span>, args);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> DirectExchange <span class="title function_">deadLetterExchange</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">DirectExchange</span>(<span class="string">&quot;alert.dlx&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Queue <span class="title function_">processQueue</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Queue</span>(<span class="string">&quot;alert.process.queue&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> Binding <span class="title function_">dlxBinding</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> BindingBuilder</span><br><span class="line">            .bind(processQueue())</span><br><span class="line">            .to(deadLetterExchange())</span><br><span class="line">            .with(<span class="string">&quot;alert.process&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RabbitAlertProducer</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RabbitTemplate rabbitTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">scheduleAlert</span><span class="params">(String alertId, <span class="type">long</span> delayMs)</span> &#123;</span><br><span class="line">        rabbitTemplate.convertAndSend(</span><br><span class="line">            <span class="string">&quot;&quot;</span>, <span class="string">&quot;alert.delay.queue&quot;</span>, alertId,</span><br><span class="line">            message -&gt; &#123;</span><br><span class="line">                message.getMessageProperties()</span><br><span class="line">                    .setExpiration(String.valueOf(delayMs));</span><br><span class="line">                <span class="keyword">return</span> message;</span><br><span class="line">            &#125;</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-3-引入-MQ-的代价"><a href="#4-3-引入-MQ-的代价" class="headerlink" title="4.3 引入 MQ 的代价"></a>4.3 引入 MQ 的代价</h3><p>这不只是加一个依赖的事：</p>
+<table>
+<thead>
+<tr>
+<th>代价项</th>
+<th>具体影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>运维成本</td>
+<td>RabbitMQ 集群搭建、监控、Erlang 升级</td>
+</tr>
+<tr>
+<td>学习曲线</td>
+<td>团队需要理解交换机&#x2F;绑定&#x2F;死信&#x2F;确认机制</td>
+</tr>
+<tr>
+<td>故障域扩大</td>
+<td>MQ 宕机 &#x3D; 所有依赖 MQ 的功能不可用</td>
+</tr>
+<tr>
+<td>网络拓扑</td>
+<td>新增端口开放、防火墙规则、VPC 配置</td>
+</tr>
+<tr>
+<td>消息积压</td>
+<td>需要处理消费者跟不上的场景</td>
+</tr>
+<tr>
+<td>资源占用</td>
+<td>Erlang VM 内存开销大，至少 512MB 起步</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="5-架构选型决策"><a href="#5-架构选型决策" class="headerlink" title="5. 架构选型决策"></a>5. 架构选型决策</h2><h3 id="5-1-决策核心：从需求出发"><a href="#5-1-决策核心：从需求出发" class="headerlink" title="5.1 决策核心：从需求出发"></a>5.1 决策核心：从需求出发</h3><p>不要问「哪个技术最先进」，要问「哪个方案在当前约束下最合适」。</p>
+<p><strong>当前约束条件</strong>：</p>
+<ol>
+<li>✅ 系统已有 Redis（Lettuce 客户端，配置完善）</li>
+<li>❌ 未引入任何消息队列</li>
+<li>📊 告警量 &lt; 1000 条&#x2F;天，QPS &lt; 100</li>
+<li>👥 团队 3-5 人，运维能力有限</li>
+<li>⏱️ 时间精度要求秒级即可</li>
+</ol>
+<h3 id="5-2-决策矩阵"><a href="#5-2-决策矩阵" class="headerlink" title="5.2 决策矩阵"></a>5.2 决策矩阵</h3><table>
+<thead>
+<tr>
+<th>决策因素</th>
+<th>权重</th>
+<th>代码队列</th>
+<th>ZSet</th>
+<th>RabbitMQ</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>可靠性</td>
+<td>30%</td>
+<td>2</td>
+<td>8</td>
+<td>10</td>
+</tr>
+<tr>
+<td>实现成本</td>
+<td>25%</td>
+<td>10</td>
+<td>8</td>
+<td>4</td>
+</tr>
+<tr>
+<td>运维成本</td>
+<td>20%</td>
+<td>10</td>
+<td>9</td>
+<td>3</td>
+</tr>
+<tr>
+<td>扩展性</td>
+<td>15%</td>
+<td>2</td>
+<td>7</td>
+<td>10</td>
+</tr>
+<tr>
+<td>团队熟悉度</td>
+<td>10%</td>
+<td>10</td>
+<td>8</td>
+<td>3</td>
+</tr>
+<tr>
+<td><strong>加权得分</strong></td>
+<td>-</td>
+<td><strong>6.3</strong></td>
+<td><strong>8.0</strong></td>
+<td><strong>6.1</strong></td>
+</tr>
+</tbody></table>
+<p>加权得分显示，Redis ZSet 综合得分最高（8.0），是当前场景的最优选。</p>
+<h3 id="5-3-架构哲学：只有最适合的，没有最好的"><a href="#5-3-架构哲学：只有最适合的，没有最好的" class="headerlink" title="5.3 架构哲学：只有最适合的，没有最好的"></a>5.3 架构哲学：只有最适合的，没有最好的</h3><p><strong>反面案例</strong>：某创业团队 5 人，日活 1000，引入了 Kafka + Redis Cluster + ElasticSearch + K8s，运维占用了 40% 的开发时间，核心功能反而推进缓慢。</p>
+<p><strong>正面案例</strong>：某中型公司告警系统，用 Redis ZSet 跑了 2 年，日均处理 5000+ 告警任务，zero downtime。当业务量增长到 10 万级时再平滑迁移到 RocketMQ。</p>
+<p><strong>核心原则</strong>：</p>
+<ul>
+<li><strong>YAGNI (You Aren’t Gonna Need It)</strong>：不要为假想的未来需求引入复杂度</li>
+<li><strong>最小依赖原则</strong>：每引入一个中间件，系统的故障域就增加一个</li>
+<li><strong>渐进式演进</strong>：先用简单方案上线，有数据支撑后再升级</li>
+</ul>
+<blockquote>
+<p>引入一个新中间件的成本 ≠ Maven 加一行依赖的成本。它等于：学习成本 + 运维成本 + 故障处理成本 + 团队认知负担，这些才是真正的技术债。</p>
+</blockquote>
+<hr>
+<h2 id="6-生产注意事项"><a href="#6-生产注意事项" class="headerlink" title="6. 生产注意事项"></a>6. 生产注意事项</h2><h3 id="6-1-轮询间隔的选择"><a href="#6-1-轮询间隔的选择" class="headerlink" title="6.1 轮询间隔的选择"></a>6.1 轮询间隔的选择</h3><table>
+<thead>
+<tr>
+<th>间隔</th>
+<th>精度</th>
+<th>CPU 开销</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 秒</td>
+<td>高</td>
+<td>中</td>
+<td>秒级精度要求</td>
+</tr>
+<tr>
+<td>5 秒</td>
+<td>中</td>
+<td>低</td>
+<td>一般告警场景</td>
+</tr>
+<tr>
+<td>10 秒</td>
+<td>一般</td>
+<td>极低</td>
+<td>分钟级告警（推荐）</td>
+</tr>
+<tr>
+<td>30 秒</td>
+<td>低</td>
+<td>极低</td>
+<td>非实时场景</td>
+</tr>
+</tbody></table>
+<h3 id="6-2-ZSet-Key-的管理"><a href="#6-2-ZSet-Key-的管理" class="headerlink" title="6.2 ZSet Key 的管理"></a>6.2 ZSet Key 的管理</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 按天分 Key，避免单个 ZSet 无限膨胀</span></span><br><span class="line"><span class="type">String</span> <span class="variable">queueKey</span> <span class="operator">=</span> <span class="string">&quot;alert:delay:queue:&quot;</span> + LocalDate.now().format(</span><br><span class="line">    DateTimeFormatter.ofPattern(<span class="string">&quot;yyyyMMdd&quot;</span>)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 定时清理过期 Key（凌晨清理前一天的 Key）</span></span><br><span class="line"><span class="meta">@Scheduled(cron = &quot;0 0 3 * * ?&quot;)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">cleanExpiredKeys</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">yesterday</span> <span class="operator">=</span> LocalDate.now().minusDays(<span class="number">1</span>).format(</span><br><span class="line">        DateTimeFormatter.ofPattern(<span class="string">&quot;yyyyMMdd&quot;</span>)</span><br><span class="line">    );</span><br><span class="line">    redisTemplate.delete(<span class="string">&quot;alert:delay:queue:&quot;</span> + yesterday);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-Redis-宕机降级策略"><a href="#6-3-Redis-宕机降级策略" class="headerlink" title="6.3 Redis 宕机降级策略"></a>6.3 Redis 宕机降级策略</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Scheduled(fixedDelay = 10_000)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">pollExpiredAlerts</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="comment">// 正常 ZSet 消费逻辑</span></span><br><span class="line">        doPoll();</span><br><span class="line">    &#125; <span class="keyword">catch</span> (RedisConnectionFailureException e) &#123;</span><br><span class="line">        log.error(<span class="string">&quot;Redis 连接失败，启用降级策略&quot;</span>);</span><br><span class="line">        <span class="comment">// 降级：从 MySQL 查询未确认且超时的告警</span></span><br><span class="line">        fallbackFromMySQL();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">fallbackFromMySQL</span><span class="params">()</span> &#123;</span><br><span class="line">    List&lt;Alert&gt; expired = alertMapper.selectUnacknowledgedBefore(</span><br><span class="line">        LocalDateTime.now().minusMinutes(<span class="number">5</span>)</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">for</span> (Alert alert : expired) &#123;</span><br><span class="line">        notifyService.resend(alert.getId());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-ZSet-和-Redisson-的-RDelayedQueue-有什么区别？"><a href="#Q1-ZSet-和-Redisson-的-RDelayedQueue-有什么区别？" class="headerlink" title="Q1: ZSet 和 Redisson 的 RDelayedQueue 有什么区别？"></a>Q1: ZSet 和 Redisson 的 RDelayedQueue 有什么区别？</h3><p>Redisson 的 <code>RDelayedQueue</code> 底层也是基于 ZSet 实现的，封装了轮询、原子消费等逻辑。如果项目已引入 Redisson，可以直接使用：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">RBlockingQueue&lt;String&gt; blockingQueue = redisson.getBlockingQueue(<span class="string">&quot;alert-queue&quot;</span>);</span><br><span class="line">RDelayedQueue&lt;String&gt; delayedQueue = redisson.getDelayedQueue(blockingQueue);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 入队</span></span><br><span class="line">delayedQueue.offer(<span class="string">&quot;alert-123&quot;</span>, <span class="number">5</span>, TimeUnit.MINUTES);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 消费</span></span><br><span class="line"><span class="type">String</span> <span class="variable">alertId</span> <span class="operator">=</span> blockingQueue.take(); <span class="comment">// 阻塞式</span></span><br></pre></td></tr></table></figure>
+
+<p>如果只用 Lettuce&#x2F;Jedis，手动实现 ZSet 方案更轻量。</p>
+<h3 id="Q2-如何保证-ZSet-消费的幂等性？"><a href="#Q2-如何保证-ZSet-消费的幂等性？" class="headerlink" title="Q2: 如何保证 ZSet 消费的幂等性？"></a>Q2: 如何保证 ZSet 消费的幂等性？</h3><p>告警重推本身应该是幂等的（发送通知这个动作可以重复）。但如果涉及状态变更，使用以下策略：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">processAlert</span><span class="params">(String alertId)</span> &#123;</span><br><span class="line">    <span class="comment">// 1. 先查询数据库中的告警状态</span></span><br><span class="line">    <span class="type">Alert</span> <span class="variable">alert</span> <span class="operator">=</span> alertMapper.selectById(alertId);</span><br><span class="line">    <span class="keyword">if</span> (alert == <span class="literal">null</span> || alert.isAcknowledged()) &#123;</span><br><span class="line">        <span class="keyword">return</span>; <span class="comment">// 已确认，跳过</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 2. CAS 更新状态，防止并发重复处理</span></span><br><span class="line">    <span class="type">int</span> <span class="variable">updated</span> <span class="operator">=</span> alertMapper.updateStatusCAS(</span><br><span class="line">        alertId, AlertStatus.PENDING, AlertStatus.RESENDING</span><br><span class="line">    );</span><br><span class="line">    <span class="keyword">if</span> (updated == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span>; <span class="comment">// 已被其他线程处理</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 3. 执行重推</span></span><br><span class="line">    notifyService.resend(alertId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q3-多节点部署时如何避免重复推送？"><a href="#Q3-多节点部署时如何避免重复推送？" class="headerlink" title="Q3: 多节点部署时如何避免重复推送？"></a>Q3: 多节点部署时如何避免重复推送？</h3><p>文章中的 Lua 脚本已经解决了重推场景的问题：<code>ZRANGEBYSCORE</code> +<br><code>ZREM</code> 在同一个 Lua 脚本中原子执行，只有一个节点能成功取出任务。<br>分布式锁是额外的保险层。</p>
+<p>如果是告警归并场景，不能只看“重复推送”，还要看“新任务是否被旧任务<br>误删”。这时推荐使用 <code>score/version</code> 条件删除。</p>
+<h3 id="Q4-如果-Redis-宕机，告警任务会丢失吗？"><a href="#Q4-如果-Redis-宕机，告警任务会丢失吗？" class="headerlink" title="Q4: 如果 Redis 宕机，告警任务会丢失吗？"></a>Q4: 如果 Redis 宕机，告警任务会丢失吗？</h3><p>取决于 Redis 持久化配置：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>数据安全</th>
+<th>性能影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>appendonly yes</code> + <code>appendfsync everysec</code></td>
+<td>最多丢 1 秒</td>
+<td>低</td>
+</tr>
+<tr>
+<td><code>appendonly yes</code> + <code>appendfsync always</code></td>
+<td>不丢数据</td>
+<td>高</td>
+</tr>
+<tr>
+<td>仅 RDB</td>
+<td>可能丢几分钟</td>
+<td>无</td>
+</tr>
+</tbody></table>
+<p><strong>建议</strong>：AOF <code>everysec</code> + 定期 RDB 快照。对于告警场景，1 秒的数据丢失可接受。</p>
+<h3 id="Q5-什么情况下应该升级到-RabbitMQ？"><a href="#Q5-什么情况下应该升级到-RabbitMQ？" class="headerlink" title="Q5: 什么情况下应该升级到 RabbitMQ？"></a>Q5: 什么情况下应该升级到 RabbitMQ？</h3><p>当出现以下任一信号时，考虑升级：</p>
+<ul>
+<li>告警量增长到 <strong>日均 10 万条以上</strong></li>
+<li>需要 <strong>多消费者组</strong>（不同告警类型由不同团队处理）</li>
+<li>需要 <strong>消息回溯&#x2F;重放</strong>（审计需求）</li>
+<li>需要 <strong>跨系统事件驱动</strong>（告警触发工单、告警触发自动扩容等）</li>
+<li>Redis 内存压力大，ZSet 成为瓶颈</li>
+</ul>
+<p>升级路径：ZSet 方案可以平滑过渡到 MQ——只需将入队逻辑从 <code>ZADD</code> 改为 <code>send()</code>，消费逻辑从轮询改为监听。</p>
+<h3 id="Q6-为什么不直接先删再处理？"><a href="#Q6-为什么不直接先删再处理？" class="headerlink" title="Q6: 为什么不直接先删再处理？"></a>Q6: 为什么不直接先删再处理？</h3><p>先删再处理可以避免旧任务误删新任务，但它会引入另一个问题：定时任务<br>删除成功后，如果 JVM 崩溃或业务归并超时，这个任务就没有地方恢复。</p>
+<p>如果选择先删再处理，建议增加 <code>processing zset</code>：</p>
+<ol>
+<li>到期任务从 <code>QUEUE_KEY</code> 搬到 <code>PROCESSING_KEY</code></li>
+<li>处理成功后从 <code>PROCESSING_KEY</code> ack</li>
+<li>后台补偿任务扫描超时 lease，把任务搬回 <code>QUEUE_KEY</code></li>
+</ol>
+<p>这套方案可靠性更强，但已经不是“最小改动”。在已有 ZSet 方案上修补<br>并发删除问题，<code>score/version</code> 条件删除通常成本更低。</p>
+<h3 id="Q7-只比较-score-够不够？"><a href="#Q7-只比较-score-够不够？" class="headerlink" title="Q7: 只比较 score 够不够？"></a>Q7: 只比较 score 够不够？</h3><p>不够。score 是触发时间，理论上可能因为相同延迟、时间取整或重试策略而<br>重复。只比较 score 时，旧任务仍有机会误判为当前任务。</p>
+<p><code>version</code> 是单调递增的业务栅栏。每次 REST 接口为同一个 <code>mergeKey</code><br>写入新告警时，都执行一次 <code>HINCRBY</code>。旧任务拿着旧 version 去 ack，<br>即使 score 巧合一致，也不会删除新任务。</p>
+<h3 id="Q8-新告警和定时归并同时发生怎么办？"><a href="#Q8-新告警和定时归并同时发生怎么办？" class="headerlink" title="Q8: 新告警和定时归并同时发生怎么办？"></a>Q8: 新告警和定时归并同时发生怎么办？</h3><p>按推荐流程处理：</p>
+<ol>
+<li>新告警先落库，再用 Lua 原子执行 <code>version +1</code> 和 <code>ZADD</code></li>
+<li>定时任务只拿 <code>mergeKey + score + version</code> 快照</li>
+<li>归并逻辑按 <code>mergeKey</code> 做幂等</li>
+<li>成功或失败后都用 Lua 比较快照，再决定 ack 或 retry</li>
+</ol>
+<p>只要删除和重试动作都带条件，旧任务最多多处理一次，不会把新任务删掉。</p>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>延时任务不等于需要 MQ</strong>：Redis ZSet 在中小型场景下完全够用，可靠性有保障</li>
+<li><strong>引入新中间件的隐性成本远大于显性成本</strong>：运维、学习、故障域扩大才是真正的代价</li>
+<li><strong>架构决策应基于约束条件而非技术偏好</strong>：当前规模 + 现有技术栈 + 团队能力 &#x3D; 最适合的方案</li>
+<li><strong>归并任务需要版本栅栏</strong>：先处理后删除时，必须用 score&#x2F;version 条件 ack 避免误删新任务</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><p><strong>今天就可以做的</strong>：</p>
+<ul>
+<li>评估当前系统是否有类似的延时任务需求（超时未支付取消、定时提醒等）</li>
+<li>检查 Redis 是否已开启 AOF 持久化</li>
+<li>排查归并类定时任务是否存在“先处理后 <code>ZREM</code>”的无条件删除</li>
+</ul>
+<p><strong>本周可以完成的</strong>：</p>
+<ul>
+<li>基于本文代码搭建一个 ZSet 延时队列的 demo</li>
+<li>压测验证在目标并发量下的性能和可靠性</li>
+<li>为告警归并任务补充 <code>score/version</code> 条件 ack 和条件 retry</li>
+</ul>
+<p><strong>长期持续改进的</strong>：</p>
+<ul>
+<li>监控 ZSet Key 的大小和消费延迟</li>
+<li>制定从 ZSet 到 MQ 的升级触发条件和迁移方案</li>
+<li>当可靠性要求继续提高时，演进到 processing zset + lease 模型</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-23</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-27</td>
+<td>补充告警归并并发删除问题与最小改动方案</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/rabbitmq/" rel="tag">rabbitmq</a>, <a class="tag-none-link" href="/tags/redis/" rel="tag">redis</a>, <a class="tag-none-link" href="/tags/zset/" rel="tag">zset</a>, <a class="tag-none-link" href="/tags/%E5%91%8A%E8%AD%A6%E7%B3%BB%E7%BB%9F/" rel="tag">告警系统</a>, <a class="tag-none-link" href="/tags/%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97/" rel="tag">延时队列</a>, <a class="tag-none-link" href="/tags/%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" rel="tag">架构设计</a>, <a class="tag-none-link" href="/tags/%E9%98%9F%E5%88%97/" rel="tag">队列</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.764Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 终端长任务不断线：从 Ctrl+Z、bg 到 tmux 的选择指南" href="/2026/03/22/tech/tools/2026-03-23-console-job-control-and-tmux/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" MyBatis Plus 手动注册 LocalDateTime TypeHandler：@PostConstruct 实战" href="/2026/03/22/tech/backend/2026-03-23-mybatis-localdatetime-typehandler-register/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E4%B8%89%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 三方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E5%86%B3%E7%AD%96%E7%BB%93%E8%AE%BA"><span class="toc-number">1.2.</span> <span class="toc-text">🎯 决策结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%9A%E5%8A%A1%E8%83%8C%E6%99%AF"><span class="toc-number">3.</span> <span class="toc-text">1. 业务背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E9%9C%80%E6%B1%82%E6%8F%8F%E8%BF%B0"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 需求描述</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%8A%80%E6%9C%AF%E7%BA%A6%E6%9D%9F"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 技术约束</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%A0%B8%E5%BF%83%E9%97%AE%E9%A2%98"><span class="toc-number">3.3.</span> <span class="toc-text">1.3 核心问题</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%86%85%E5%AD%98%E9%98%9F%E5%88%97"><span class="toc-number">4.</span> <span class="toc-text">2. 方案一：代码内存队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 实现原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 代码实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E4%BC%98%E7%BC%BA%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 优缺点分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9ARedis-ZSet-%E5%BB%B6%E6%97%B6%E9%98%9F%E5%88%97"><span class="toc-number">5.</span> <span class="toc-text">3. 方案二：Redis ZSet 延时队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 核心原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%8C%E6%95%B4%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 完整实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BB%BB%E5%8A%A1%E5%85%A5%E9%98%9F"><span class="toc-number">5.2.1.</span> <span class="toc-text">任务入队</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9A%E6%97%B6%E6%B6%88%E8%B4%B9%EF%BC%88Lua-%E5%8E%9F%E5%AD%90%E8%84%9A%E6%9C%AC%EF%BC%89"><span class="toc-number">5.2.2.</span> <span class="toc-text">定时消费（Lua 原子脚本）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%AF%E5%8A%A8%E7%B1%BB%E9%85%8D%E7%BD%AE"><span class="toc-number">5.2.3.</span> <span class="toc-text">启动类配置</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 可靠性分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-%E5%91%8A%E8%AD%A6%E5%BD%92%E5%B9%B6%E5%B9%B6%E5%8F%91%E5%9D%91%EF%BC%9A%E5%85%88%E5%A4%84%E7%90%86%E5%90%8E%E5%88%A0%E9%99%A4%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BC%9A%E8%AF%AF%E5%88%A0%E6%96%B0%E4%BB%BB%E5%8A%A1"><span class="toc-number">5.4.</span> <span class="toc-text">3.4 告警归并并发坑：先处理后删除为什么会误删新任务</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-%E5%9B%9B%E7%A7%8D%E4%BF%AE%E5%A4%8D%E6%96%B9%E5%BC%8F%E5%AF%B9%E6%AF%94"><span class="toc-number">5.5.</span> <span class="toc-text">3.5 四种修复方式对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-%E6%9C%80%E5%B0%8F%E6%94%B9%E5%8A%A8%E6%96%B9%E6%A1%88%EF%BC%9Ascore-version-%E6%9D%A1%E4%BB%B6%E5%88%A0%E9%99%A4"><span class="toc-number">5.6.</span> <span class="toc-text">3.6 最小改动方案：score&#x2F;version 条件删除</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%A5%E9%98%9F%EF%BC%9A%E5%85%88%E8%90%BD%E5%BA%93%EF%BC%8C%E5%86%8D%E5%8E%9F%E5%AD%90%E6%9B%B4%E6%96%B0%E7%89%88%E6%9C%AC%E5%92%8C-score"><span class="toc-number">5.6.1.</span> <span class="toc-text">入队：先落库，再原子更新版本和 score</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%89%AB%E6%8F%8F%EF%BC%9A%E5%8F%96%E5%88%B0%E6%9C%9F%E4%BB%BB%E5%8A%A1%E6%97%B6%E5%B8%A6%E4%B8%8A-score-version-%E5%BF%AB%E7%85%A7"><span class="toc-number">5.6.2.</span> <span class="toc-text">扫描：取到期任务时带上 score&#x2F;version 快照</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%EF%BC%9A%E5%BD%92%E5%B9%B6%E5%BF%85%E9%A1%BB%E6%8C%89-mergeKey-%E5%B9%82%E7%AD%89"><span class="toc-number">5.6.3.</span> <span class="toc-text">处理：归并必须按 mergeKey 幂等</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%88%90%E5%8A%9F%EF%BC%9A%E5%8F%AA%E5%88%A0%E9%99%A4%E4%BB%8D%E7%84%B6%E7%AD%89%E4%BA%8E%E5%BF%AB%E7%85%A7%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="toc-number">5.6.4.</span> <span class="toc-text">成功：只删除仍然等于快照的任务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%B1%E8%B4%A5%EF%BC%9A%E5%8F%AA%E9%87%8D%E8%AF%95%E4%BB%8D%E7%84%B6%E7%AD%89%E4%BA%8E%E5%BF%AB%E7%85%A7%E7%9A%84%E4%BB%BB%E5%8A%A1"><span class="toc-number">5.6.5.</span> <span class="toc-text">失败：只重试仍然等于快照的任务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%96%B9%E6%A1%88%E4%B8%89%EF%BC%9ARabbitMQ-%E6%AD%BB%E4%BF%A1%E9%98%9F%E5%88%97"><span class="toc-number">6.</span> <span class="toc-text">4. 方案三：RabbitMQ 死信队列</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 实现原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E9%85%8D%E7%BD%AE%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 配置示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%BC%95%E5%85%A5-MQ-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 引入 MQ 的代价</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%9E%B6%E6%9E%84%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96"><span class="toc-number">7.</span> <span class="toc-text">5. 架构选型决策</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%86%B3%E7%AD%96%E6%A0%B8%E5%BF%83%EF%BC%9A%E4%BB%8E%E9%9C%80%E6%B1%82%E5%87%BA%E5%8F%91"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 决策核心：从需求出发</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%86%B3%E7%AD%96%E7%9F%A9%E9%98%B5"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 决策矩阵</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E6%9E%B6%E6%9E%84%E5%93%B2%E5%AD%A6%EF%BC%9A%E5%8F%AA%E6%9C%89%E6%9C%80%E9%80%82%E5%90%88%E7%9A%84%EF%BC%8C%E6%B2%A1%E6%9C%89%E6%9C%80%E5%A5%BD%E7%9A%84"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 架构哲学：只有最适合的，没有最好的</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E7%94%9F%E4%BA%A7%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">8.</span> <span class="toc-text">6. 生产注意事项</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E8%BD%AE%E8%AF%A2%E9%97%B4%E9%9A%94%E7%9A%84%E9%80%89%E6%8B%A9"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 轮询间隔的选择</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-ZSet-Key-%E7%9A%84%E7%AE%A1%E7%90%86"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 ZSet Key 的管理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-Redis-%E5%AE%95%E6%9C%BA%E9%99%8D%E7%BA%A7%E7%AD%96%E7%95%A5"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 Redis 宕机降级策略</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">9.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-ZSet-%E5%92%8C-Redisson-%E7%9A%84-RDelayedQueue-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">9.1.</span> <span class="toc-text">Q1: ZSet 和 Redisson 的 RDelayedQueue 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81-ZSet-%E6%B6%88%E8%B4%B9%E7%9A%84%E5%B9%82%E7%AD%89%E6%80%A7%EF%BC%9F"><span class="toc-number">9.2.</span> <span class="toc-text">Q2: 如何保证 ZSet 消费的幂等性？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A4%9A%E8%8A%82%E7%82%B9%E9%83%A8%E7%BD%B2%E6%97%B6%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%8E%A8%E9%80%81%EF%BC%9F"><span class="toc-number">9.3.</span> <span class="toc-text">Q3: 多节点部署时如何避免重复推送？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-%E5%A6%82%E6%9E%9C-Redis-%E5%AE%95%E6%9C%BA%EF%BC%8C%E5%91%8A%E8%AD%A6%E4%BB%BB%E5%8A%A1%E4%BC%9A%E4%B8%A2%E5%A4%B1%E5%90%97%EF%BC%9F"><span class="toc-number">9.4.</span> <span class="toc-text">Q4: 如果 Redis 宕机，告警任务会丢失吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E4%BB%80%E4%B9%88%E6%83%85%E5%86%B5%E4%B8%8B%E5%BA%94%E8%AF%A5%E5%8D%87%E7%BA%A7%E5%88%B0-RabbitMQ%EF%BC%9F"><span class="toc-number">9.5.</span> <span class="toc-text">Q5: 什么情况下应该升级到 RabbitMQ？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%9B%B4%E6%8E%A5%E5%85%88%E5%88%A0%E5%86%8D%E5%A4%84%E7%90%86%EF%BC%9F"><span class="toc-number">9.6.</span> <span class="toc-text">Q6: 为什么不直接先删再处理？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q7-%E5%8F%AA%E6%AF%94%E8%BE%83-score-%E5%A4%9F%E4%B8%8D%E5%A4%9F%EF%BC%9F"><span class="toc-number">9.7.</span> <span class="toc-text">Q7: 只比较 score 够不够？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q8-%E6%96%B0%E5%91%8A%E8%AD%A6%E5%92%8C%E5%AE%9A%E6%97%B6%E5%BD%92%E5%B9%B6%E5%90%8C%E6%97%B6%E5%8F%91%E7%94%9F%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">9.8.</span> <span class="toc-text">Q8: 新告警和定时归并同时发生怎么办？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">10.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">10.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

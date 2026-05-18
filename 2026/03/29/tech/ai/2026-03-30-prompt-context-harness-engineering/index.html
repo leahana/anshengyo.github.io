@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Harness Engineering：为什么 AI Coding 正在从 Prompt 走向 Context 与 Harness | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/29/tech/ai/2026-03-30-prompt-context-harness-engineering/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="agents, ai-coding, context-engineering, harness-engineering, prompt-engineering" />
+  
+  <meta name="description" content="一句话定位：这不是三个孤立概念，而是 AI 系统工程关注点的升级。   核心理念：Prompt 解决“怎么说”，Context 解决“喂什么”，Harness 解决“系统怎么让 agent 稳定完成工作”。   3 分钟速览版 点击展开核心概念  核心关系 graph LR     P[&quot;Prompt Engineering怎么说&quot;] --&gt; C[&quot;Context Engineering喂什么&quot;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Harness Engineering：为什么 AI Coding 正在从 Prompt 走向 Context 与 Harness">
+<meta property="og:url" content="https://leahana.github.io/2026/03/29/tech/ai/2026-03-30-prompt-context-harness-engineering/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="一句话定位：这不是三个孤立概念，而是 AI 系统工程关注点的升级。   核心理念：Prompt 解决“怎么说”，Context 解决“喂什么”，Harness 解决“系统怎么让 agent 稳定完成工作”。   3 分钟速览版 点击展开核心概念  核心关系 graph LR     P[&quot;Prompt Engineering怎么说&quot;] --&gt; C[&quot;Context Engineering喂什么&quot;">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/core-relationship.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/diagram_20260417_061753_00.webp">
+<meta property="og:image" content="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/decision-roadmap.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/diagram_20260417_061758_01.webp">
+<meta property="og:image" content="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/bug-fix-workflow.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/diagram_20260417_061908_02.webp">
+<meta property="article:published_time" content="2026-03-29T21:58:37.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="agents">
+<meta property="article:tag" content="ai-coding">
+<meta property="article:tag" content="context-engineering">
+<meta property="article:tag" content="harness-engineering">
+<meta property="article:tag" content="prompt-engineering">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/core-relationship.png">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Harness Engineering：为什么 AI Coding 正在从 Prompt 走向 Context 与 Harness","description":"\n一句话定位：这不是三个孤立概念，而是 AI 系统工程关注点的升级。\n\n\n核心理念：Prompt 解决“怎么说”，Context 解决“喂什么”，","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-29T21:58:37.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/29/tech/ai/2026-03-30-prompt-context-harness-engineering/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/29/tech/ai/2026-03-30-prompt-context-harness-engineering/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Harness Engineering：为什么 AI Coding 正在从 Prompt 走向 Context 与 Harness</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-29T21:58:37.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-30</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~8.78K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%85%B3%E7%B3%BB"><span class="toc-number">1.1.</span> <span class="toc-text">核心关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E8%80%85%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">三者对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E6%97%B6%E9%9C%80%E8%A6%81%E5%8D%87%E7%BA%A7"><span class="toc-number">1.3.</span> <span class="toc-text">何时需要升级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88-Harness-Engineering-%E4%BC%9A%E5%87%BA%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">1. 为什么 Harness Engineering 会出现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E%E2%80%9Cshow-me-code%E2%80%9D%E5%88%B0%E2%80%9Cshow-me-prompt%E2%80%9D%EF%BC%9A%E8%AE%A8%E8%AE%BA%E7%84%A6%E7%82%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%98%E4%BA%86"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 从“show me code”到“show me prompt”：讨论焦点为什么变了</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%8E%B0%E5%9C%A8%E5%BF%85%E9%A1%BB%E5%85%B3%E5%BF%83-harness"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 为什么现在必须关心 harness</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%B8%89%E4%B8%AA%E6%A6%82%E5%BF%B5%E7%9A%84%E5%AE%9A%E4%B9%89%E3%80%81%E8%BE%B9%E7%95%8C%E4%B8%8E%E5%8C%85%E5%90%AB%E5%85%B3%E7%B3%BB"><span class="toc-number">4.</span> <span class="toc-text">2. 三个概念的定义、边界与包含关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%B8%89%E8%80%85%E6%9C%80%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 三者最容易混淆的边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9C%A8-AI-coding-agent-%E5%BC%80%E5%8F%91%E9%87%8C%E5%88%86%E5%88%AB%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">5.</span> <span class="toc-text">3. 在 AI coding &#x2F; agent 开发里分别解决什么问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Prompt-Engineering-%E8%A7%A3%E5%86%B3%E2%80%9C%E6%9C%80%E5%B0%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%A5%91%E7%BA%A6%E2%80%9D"><span class="toc-number">6.</span> <span class="toc-text">3.1 Prompt Engineering 解决“最小可执行契约”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Context-Engineering-%E8%A7%A3%E5%86%B3%E2%80%9C%E8%BF%99%E6%AC%A1%E8%B0%83%E7%94%A8%E5%89%8D%E5%BA%94%E8%AF%A5%E7%9F%A5%E9%81%93%E4%BB%80%E4%B9%88%E2%80%9D"><span class="toc-number">7.</span> <span class="toc-text">3.2 Context Engineering 解决“这次调用前应该知道什么”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Harness-Engineering-%E8%A7%A3%E5%86%B3%E2%80%9C%E6%80%8E%E6%A0%B7%E8%AE%A9%E4%BB%BB%E5%8A%A1%E7%9C%9F%E6%AD%A3%E4%BA%A4%E4%BB%98%E2%80%9D"><span class="toc-number">8.</span> <span class="toc-text">3.3 Harness Engineering 解决“怎样让任务真正交付”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%B8%80%E4%B8%AA%E2%80%9C%E8%AE%A9-agent-%E4%BF%AE-bug%E2%80%9D%E7%9A%84%E8%B4%AF%E7%A9%BF%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">4. 一个“让 agent 修 bug”的贯穿案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8F%AA%E5%81%9A-prompt-%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88"><span class="toc-number">9.1.</span> <span class="toc-text">4.1 只做 prompt 会发生什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%8A%8A-context-%E5%8A%A0%E8%BF%9B%E5%8E%BB%EF%BC%8C%E4%BC%9A%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-number">9.2.</span> <span class="toc-text">4.2 把 context 加进去，会解决什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%86%8D%E5%BE%80%E5%89%8D%E4%B8%80%E6%AD%A5%EF%BC%8Charness-%E6%89%8D%E6%98%AF%E7%9C%9F%E6%AD%A3%E7%9A%84%E4%BA%A4%E4%BB%98%E5%B1%82"><span class="toc-number">9.3.</span> <span class="toc-text">4.3 再往前一步，harness 才是真正的交付层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">10.</span> <span class="toc-text">5. 常见误区与故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">10.1.</span> <span class="toc-text">5.1 常见误区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">10.2.</span> <span class="toc-text">5.2 故障排查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-FAQ"><span class="toc-number">11.</span> <span class="toc-text">6. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Harness-Engineering-%E5%92%8C-Agent-Framework-%E6%98%AF%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="toc-number">11.1.</span> <span class="toc-text">6.1 Harness Engineering 和 Agent Framework 是什么关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Context-Engineering-%E4%BC%9A%E6%9B%BF%E4%BB%A3-Prompt-Engineering-%E5%90%97"><span class="toc-number">11.2.</span> <span class="toc-text">6.2 Context Engineering 会替代 Prompt Engineering 吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%A4%A7%E5%AE%B6%E5%BC%80%E5%A7%8B%E4%BB%8E%E2%80%9Cshow-me-code%E2%80%9D%E8%B5%B0%E5%90%91%E2%80%9Cshow-me-prompt%E2%80%9D"><span class="toc-number">11.3.</span> <span class="toc-text">6.3 为什么大家开始从“show me code”走向“show me prompt”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%B0%8F%E5%9B%A2%E9%98%9F%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%9C%80%E8%A6%81%E4%B8%8A-harness"><span class="toc-number">11.4.</span> <span class="toc-text">6.4 小团队什么时候需要上 harness</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E4%B8%AA%E4%BA%BA%E5%BC%80%E5%8F%91%E8%80%85%E6%80%8E%E6%A0%B7%E4%BB%8E-prompt-%E9%80%90%E6%AD%A5%E6%BC%94%E8%BF%9B%E5%88%B0-harness"><span class="toc-number">11.5.</span> <span class="toc-text">6.5 个人开发者怎样从 prompt 逐步演进到 harness</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E8%90%BD%E5%9C%B0%E6%B8%85%E5%8D%95%EF%BC%9A%E4%BB%8E-Prompt-%E5%88%B0-Context-%E5%88%B0-Harness"><span class="toc-number">12.</span> <span class="toc-text">7. 落地清单：从 Prompt 到 Context 到 Harness</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Prompt-Engineering-%E6%9C%80%E5%B0%8F%E8%90%BD%E5%9C%B0%E9%A1%B9"><span class="toc-number">12.1.</span> <span class="toc-text">Prompt Engineering 最小落地项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Context-Engineering-%E5%8D%87%E7%BA%A7%E9%A1%B9"><span class="toc-number">12.2.</span> <span class="toc-text">Context Engineering 升级项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Harness-Engineering-%E7%94%9F%E4%BA%A7%E7%BA%A7%E9%A1%B9"><span class="toc-number">12.3.</span> <span class="toc-text">Harness Engineering 生产级项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">13.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">14.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>一句话定位：这不是三个孤立概念，而是 AI 系统工程关注点的升级。</p>
+</blockquote>
+<blockquote>
+<p>核心理念：<code>Prompt</code> 解决“怎么说”，<code>Context</code> 解决“喂什么”，<code>Harness</code> 解决“系统怎么让 agent 稳定完成工作”。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary><strong>点击展开核心概念</strong></summary>
+
+<h3 id="核心关系"><a href="#核心关系" class="headerlink" title="核心关系"></a>核心关系</h3><p><img src="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/core-relationship.png" alt="三概念核心关系"></p>
+<pre class="mermaid">graph LR
+    P["Prompt Engineering<br/>怎么说"] --> C["Context Engineering<br/>喂什么"]
+    C --> H["Harness Engineering<br/>怎样稳定运行"]
+
+    style P fill:#bbdefb,stroke:#333,color:#000
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style H fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/diagram_20260417_061753_00.webp" alt="Prompt, Context, Harness 核心关系图"></p>
+</details>
+
+<p>这三个概念不是并列替代关系，而是逐层外扩的工程关注点。你可以把它理解为：从“写一段更好的指令”，到“组织一次更好的推理输入”，再到“设计一套让 agent 在真实环境里可靠工作的运行系统”。</p>
+<h3 id="三者对比"><a href="#三者对比" class="headerlink" title="三者对比"></a>三者对比</h3><table>
+<thead>
+<tr>
+<th>概念</th>
+<th>核心问题</th>
+<th>关注对象</th>
+<th>典型手段</th>
+<th>常见适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Prompt Engineering</td>
+<td>我该怎么说，模型才更容易做对</td>
+<td>指令与输出约束</td>
+<td>system prompt、few-shot、格式要求、示例</td>
+<td>单轮问答、生成、抽取、改写</td>
+</tr>
+<tr>
+<td>Context Engineering</td>
+<td>这次推理前，模型应该知道什么</td>
+<td>每次调用时进入上下文的全部信息</td>
+<td>RAG、历史裁剪、摘要、记忆、工具结果注入</td>
+<td>多轮 agent、长任务、代码库理解</td>
+</tr>
+<tr>
+<td>Harness Engineering</td>
+<td>怎样让 agent 在系统里稳定交付</td>
+<td>模型之外的整套运行框架</td>
+<td>工具接入、权限、测试闭环、重试、评估、人工升级</td>
+<td>AI coding、长期 agent、生产级自动化</td>
+</tr>
+</tbody></table>
+<h3 id="何时需要升级"><a href="#何时需要升级" class="headerlink" title="何时需要升级"></a>何时需要升级</h3><p><img src="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/decision-roadmap.png" alt="LLM工程决策路线"></p>
+<pre class="mermaid">graph TD
+    A["单轮输出?"]
+    A -->|yes| B["先做 Prompt Engineering"]
+    A -->|no| C["跨多轮或跨文件?"]
+    C -->|yes| D["升级到 Context Engineering"]
+    C -->|no| E["需要工具, 测试, 回退?"]
+    E -->|yes| F["升级到 Harness Engineering"]
+    D --> G["管理上下文规模与质量"]
+    F --> H["设计反馈回路与护栏"]
+
+    style B fill:#bbdefb,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,color:#000
+    style F fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/diagram_20260417_061758_01.webp" alt="LLM 工程能力升级决策路径"></p>
+</details>
+
+<p>最实用的判断标准不是术语本身，而是失败模式：</p>
+<ul>
+<li>如果失败主要来自“指令不清”，先优化 prompt。</li>
+<li>如果失败主要来自“模型不知道足够的背景”，先优化 context。</li>
+<li>如果失败主要来自“任务做了一半就跑偏、不可验证、不可回滚、不可接管”，你已经进入 harness 问题。</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="深度剖析版"><a href="#深度剖析版" class="headerlink" title="深度剖析版"></a>深度剖析版</h2><h2 id="1-为什么-Harness-Engineering-会出现"><a href="#1-为什么-Harness-Engineering-会出现" class="headerlink" title="1. 为什么 Harness Engineering 会出现"></a>1. 为什么 Harness Engineering 会出现</h2><p><code>Harness Engineering</code> 之所以冒出来，并不是因为 <code>Prompt Engineering</code> 失效了，而是因为 agent 的任务边界变了。早期很多 LLM 应用更像“一次性生成器”，你只要把话说清楚，输出往往就能过关。但在 AI coding 和 agent 系统里，任务不再是一次回答，而是一连串可执行动作：读取代码、选择文件、调用工具、运行测试、根据结果修正、必要时再交给人。</p>
+<p>OpenAI 在 <code>2026-02-11</code> 的文章《Harness engineering: leveraging Codex in an agent-first world》中，把这种变化压缩成一句很有代表性的话：<code>Humans steer. Agents execute.</code> 这句话背后的重点不是“模型更会写代码了”，而是工程师的主要工作开始从“亲手写每一行代码”转向“设计环境、指定意图、建立反馈回路”。</p>
+<h3 id="1-1-从“show-me-code”到“show-me-prompt”：讨论焦点为什么变了"><a href="#1-1-从“show-me-code”到“show-me-prompt”：讨论焦点为什么变了" class="headerlink" title="1.1 从“show me code”到“show me prompt”：讨论焦点为什么变了"></a>1.1 从“show me code”到“show me prompt”：讨论焦点为什么变了</h3><p><code>show me code</code> 代表的是第一阶段的期待：大家最关心模型能不能直接给出看起来正确的代码片段。</p>
+<p><code>show me prompt</code> 则代表第二阶段的意识变化：大家开始追问，为什么同一个模型在不同产品里表现差异这么大，差异究竟来自模型本身，还是来自它背后的 prompt、context、tooling、memory 和 workflow。</p>
+<p>这句话不是一个行业标准术语，而是一种很有解释力的现象描述。它至少反映了三件事：</p>
+<ul>
+<li>prompt 已经不只是输入文本，而是在很多产品里变成了可复用的工程资产。</li>
+<li>好结果越来越依赖“给模型什么背景”，而不只是“用什么措辞发问”。</li>
+<li>当人们继续追问 prompt 背后的运行条件时，问题自然会外扩到 harness。</li>
+</ul>
+<p>换句话说，大家表面上是在问“给我看看你的 prompt”，本质上是在问“你的 agent 到底是怎么被组织起来的”。</p>
+<h3 id="1-2-为什么现在必须关心-harness"><a href="#1-2-为什么现在必须关心-harness" class="headerlink" title="1.2 为什么现在必须关心 harness"></a>1.2 为什么现在必须关心 harness</h3><p>模型能力上来之后，瓶颈开始转移。真正影响 AI coding 成败的，越来越不是一句 prompt 写得多漂亮，而是下面这些系统性问题：</p>
+<ul>
+<li>agent 是否拿到了最相关的上下文，而不是一大堆噪声。</li>
+<li>agent 是否拥有合适但受控的工具权限。</li>
+<li>每一步动作之后，系统是否能给出可验证的反馈。</li>
+<li>失败时能否自动收敛、重试、回退，或者及时升级给人。</li>
+</ul>
+<p>如果这些问题没有被工程化处理，再强的模型也会在真实任务里出现同样的症状：上下文漂移、行动发散、修错文件、测试不跑、越修越乱。</p>
+<h2 id="2-三个概念的定义、边界与包含关系"><a href="#2-三个概念的定义、边界与包含关系" class="headerlink" title="2. 三个概念的定义、边界与包含关系"></a>2. 三个概念的定义、边界与包含关系</h2><p>从今天的主流实践看，这三个概念可以这样理解：</p>
+<ul>
+<li><code>Prompt Engineering</code>：设计和组织指令，让模型更容易在一次调用里理解你的目标、约束和输出格式。</li>
+<li><code>Context Engineering</code>：决定每次调用前到底给模型哪些信息，以及如何在多轮任务里持续维护这些信息。</li>
+<li><code>Harness Engineering</code>：把模型放进一个受控的运行系统里，让它能调用工具、接受反馈、通过检查、失败重试，并在必要时交回人类。</li>
+</ul>
+<p>这里有一个非常实用的工程化归纳：</p>
+<p><code>Prompt Engineering ⊂ Context Engineering ⊂ Harness Engineering</code></p>
+<p>这个关系不是教科书式统一标准，而是为了帮助工程决策。因为在真实 agent 系统里：</p>
+<ul>
+<li>prompt 是 context 的一部分。</li>
+<li>context 又只是 harness 中的一个组成部分。</li>
+<li>harness 关心的是端到端任务能否稳定交付，而不是单次推理是否“看起来聪明”。</li>
+</ul>
+<p>Anthropic 在 <code>2025-09-29</code> 的文章《Effective context engineering for AI agents》中把这个区别说得很清楚：应用 AI 的重心正在从“怎样写好 prompt”，转向“怎样配置最可能得到目标行为的上下文”。再往前一步，OpenAI 的 <code>Harness Engineering</code> 讨论实际上是在继续追问：就算上下文配置对了，agent 是否真的能在系统里可靠完成工作。</p>
+<h3 id="2-1-三者最容易混淆的边界"><a href="#2-1-三者最容易混淆的边界" class="headerlink" title="2.1 三者最容易混淆的边界"></a>2.1 三者最容易混淆的边界</h3><p>最常见的混淆有三个：</p>
+<ul>
+<li>把 prompt 当成全部控制手段，结果把大量脆弱逻辑硬编码进系统提示词。</li>
+<li>把 context 理解成“塞更多资料”，结果上下文越来越长，信号越来越稀。</li>
+<li>把 harness 理解成“多接几个工具”，结果缺少测试闭环、权限边界和人工兜底。</li>
+</ul>
+<p>判断边界最简单的方法是看你在设计什么：</p>
+<ul>
+<li>你在设计一句话或一段结构化指令，通常是在做 prompt。</li>
+<li>你在设计输入集合、记忆策略、裁剪规则，通常是在做 context。</li>
+<li>你在设计 agent 的运行环境、反馈机制和升级路径，通常是在做 harness。</li>
+</ul>
+<h2 id="3-在-AI-coding-agent-开发里分别解决什么问题"><a href="#3-在-AI-coding-agent-开发里分别解决什么问题" class="headerlink" title="3. 在 AI coding &#x2F; agent 开发里分别解决什么问题"></a>3. 在 AI coding &#x2F; agent 开发里分别解决什么问题</h2><h2 id="3-1-Prompt-Engineering-解决“最小可执行契约”"><a href="#3-1-Prompt-Engineering-解决“最小可执行契约”" class="headerlink" title="3.1 Prompt Engineering 解决“最小可执行契约”"></a>3.1 Prompt Engineering 解决“最小可执行契约”</h2><p>在 AI coding 里，prompt 的价值不是把所有逻辑都写进去，而是定义一次调用的最小契约：</p>
+<ul>
+<li>任务目标是什么。</li>
+<li>哪些约束不能破坏。</li>
+<li>输出要长什么样。</li>
+<li>失败时应该如何说明。</li>
+</ul>
+<p>一个足够好的 prompt，应该让模型在没有额外追问的情况下，知道“什么算完成，什么算越界”。</p>
+<p>下面是一个面向修 bug 的简化 prompt 示例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">你是负责修复生产回归问题的代码代理。</span><br><span class="line"></span><br><span class="line">目标：</span><br><span class="line">修复用户登录后偶发 500 错误的问题。</span><br><span class="line"></span><br><span class="line">约束：</span><br><span class="line">1. 不修改数据库 schema。</span><br><span class="line">2. 不改变现有 HTTP API 的入参与返回结构。</span><br><span class="line">3. 优先做最小修复，不顺手重构无关代码。</span><br><span class="line"></span><br><span class="line">输出要求：</span><br><span class="line">1. 先用 3 句话总结你理解的问题。</span><br><span class="line">2. 给出计划。</span><br><span class="line">3. 完成修改后列出受影响文件。</span><br><span class="line">4. 报告你运行了哪些测试，以及结果如何。</span><br><span class="line">5. 如果你无法确认修复有效，明确说明原因，不要假装完成。</span><br></pre></td></tr></table></figure>
+
+<p>这个 prompt 已经能明显提升结果质量，但它还不够解决长任务问题。因为模型知道“应该做什么”，不等于它真的拿到了“做成这件事所需的信息和环境”。</p>
+<h2 id="3-2-Context-Engineering-解决“这次调用前应该知道什么”"><a href="#3-2-Context-Engineering-解决“这次调用前应该知道什么”" class="headerlink" title="3.2 Context Engineering 解决“这次调用前应该知道什么”"></a>3.2 Context Engineering 解决“这次调用前应该知道什么”</h2><p>在代码任务里，context 往往决定 agent 是像一个靠谱同事，还是像一个只会猜的实习生。</p>
+<p>高质量的上下文通常包括：</p>
+<ul>
+<li>与报错直接相关的日志片段，而不是整份日志文件。</li>
+<li>涉及模块的关键文件，而不是整个仓库。</li>
+<li>最近几次相关提交或 PR 摘要。</li>
+<li>测试说明、约束规则、接口契约。</li>
+<li>上一轮动作的结果，包括失败信息和当前假设。</li>
+</ul>
+<p>Anthropic 把 context 看作有限资源，这个判断在 AI coding 场景里尤其重要。上下文越长，并不自动等于效果越好；很多时候，真正有价值的是“更小但更高信号”的输入。</p>
+<p>OpenAI Cookbook 关于 session memory 的示例也说明了这一点：多轮 agent 的问题不只是保存历史，而是管理历史。你既可以简单保留最近若干轮，也可以在接近窗口上限时做高保真摘要，但核心目标始终是同一个：让下一轮看到最有用的信息，而不是最多的信息。</p>
+<h2 id="3-3-Harness-Engineering-解决“怎样让任务真正交付”"><a href="#3-3-Harness-Engineering-解决“怎样让任务真正交付”" class="headerlink" title="3.3 Harness Engineering 解决“怎样让任务真正交付”"></a>3.3 Harness Engineering 解决“怎样让任务真正交付”</h2><p>到了 harness 层，讨论对象不再只是模型输入，而是完整的任务闭环。</p>
+<p>在 AI coding 里，一个最低可用的 harness 通常要回答这些问题：</p>
+<ul>
+<li>agent 能访问哪些文件、命令和外部系统。</li>
+<li>调工具的顺序和边界是什么。</li>
+<li>修改后必须经过哪些自动检查。</li>
+<li>失败几次后需要收敛、换策略或升级给人。</li>
+<li>最终结果如何记录、审查和回滚。</li>
+</ul>
+<p>这也是为什么 <code>Harness Engineering</code> 更接近“系统设计”而不是“提示词技巧”。它本质上是在为 agent 建一条安全、可验证、可维护的工作轨道。</p>
+<h2 id="4-一个“让-agent-修-bug”的贯穿案例"><a href="#4-一个“让-agent-修-bug”的贯穿案例" class="headerlink" title="4. 一个“让 agent 修 bug”的贯穿案例"></a>4. 一个“让 agent 修 bug”的贯穿案例</h2><p>假设你要让一个 coding agent 修复线上登录接口的偶发 <code>500</code> 错误。这个任务看起来像一个普通 bugfix，但实际上正好能把三层问题分开。</p>
+<h3 id="4-1-只做-prompt-会发生什么"><a href="#4-1-只做-prompt-会发生什么" class="headerlink" title="4.1 只做 prompt 会发生什么"></a>4.1 只做 prompt 会发生什么</h3><p>如果你只给一句“修掉这个 bug，顺便把代码整理一下”，模型常见的失败方式包括：</p>
+<ul>
+<li>对问题理解过度泛化，开始无关重构。</li>
+<li>不知道应该先看哪些文件，只能在仓库里瞎猜。</li>
+<li>修改后不跑测试，或者只报告主观判断。</li>
+<li>看见一次报错就自信下结论，没有验证回归范围。</li>
+</ul>
+<p>Prompt 可以减少这些问题，但不能根治它们。</p>
+<h3 id="4-2-把-context-加进去，会解决什么"><a href="#4-2-把-context-加进去，会解决什么" class="headerlink" title="4.2 把 context 加进去，会解决什么"></a>4.2 把 context 加进去，会解决什么</h3><p>如果你再补上这些上下文，成功率会大幅提高：</p>
+<ul>
+<li>最近 20 分钟的相关错误日志摘要。</li>
+<li><code>auth</code>、<code>session</code>、<code>middleware</code> 相关文件路径。</li>
+<li>过去一周内改过登录流程的提交摘要。</li>
+<li>登录接口的契约说明和现有测试入口。</li>
+<li>当前任务已知的排查结论，例如“数据库层指标正常，错误集中在 session 反序列化分支”。</li>
+</ul>
+<p>这时 agent 已经更像一个拿到案卷的工程师，而不是一个只能根据一句话猜题的模型。</p>
+<h3 id="4-3-再往前一步，harness-才是真正的交付层"><a href="#4-3-再往前一步，harness-才是真正的交付层" class="headerlink" title="4.3 再往前一步，harness 才是真正的交付层"></a>4.3 再往前一步，harness 才是真正的交付层</h3><p>当任务进入真实工作流之后，你还需要把 agent 放进可运行、可验证、可接管的闭环里。</p>
+<p><img src="https://cdn.jsdmirror.com/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/bug-fix-workflow.png" alt="Bug修复完整流程"></p>
+<pre class="mermaid">sequenceDiagram
+    participant U as User
+    participant A as Agent
+    participant R as Retriever
+    participant T as Tools
+    participant C as Checks
+    participant H as Human
+
+    U->>A: 描述 bug 与约束
+    A->>R: 拉取相关上下文
+    R-->>A: 日志、文件、提交摘要
+    A->>T: 阅读文件并实施修复
+    A->>C: 运行测试与静态检查
+    C-->>A: 通过或失败反馈
+    A->>A: 根据结果重试或收敛
+    A-->>H: 超出阈值时升级</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-30-prompt-context-harness-engineering/diagram_20260417_061908_02.webp" alt="Harness Engineering 下的 Agent 修 bug 完整闭环"></p>
+</details>
+
+<p>下面是一份简化的 harness 伪配置：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">task:</span> <span class="string">fix-login-500</span></span><br><span class="line"><span class="attr">goal:</span> <span class="string">修复登录后偶发</span> <span class="number">500</span> <span class="string">错误</span></span><br><span class="line"></span><br><span class="line"><span class="attr">inputs:</span></span><br><span class="line">  <span class="attr">prompt:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">明确问题、约束和输出格式</span></span><br><span class="line">  <span class="attr">context:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">最近报错摘要</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">相关文件列表</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">最近提交摘要</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">测试入口说明</span></span><br><span class="line"></span><br><span class="line"><span class="attr">tools:</span></span><br><span class="line">  <span class="attr">read_files:</span> <span class="string">allowed</span></span><br><span class="line">  <span class="attr">search_code:</span> <span class="string">allowed</span></span><br><span class="line">  <span class="attr">run_tests:</span></span><br><span class="line">    <span class="attr">allowed:</span> <span class="literal">true</span></span><br><span class="line">    <span class="attr">commands:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">npm</span> <span class="string">test</span> <span class="string">--</span> <span class="string">login</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">npm</span> <span class="string">run</span> <span class="string">lint</span></span><br><span class="line">  <span class="attr">deploy:</span></span><br><span class="line">    <span class="attr">allowed:</span> <span class="literal">false</span></span><br><span class="line"></span><br><span class="line"><span class="attr">checks:</span></span><br><span class="line">  <span class="attr">must_pass:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">lint</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">targeted_tests</span></span><br><span class="line">  <span class="attr">must_report:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">changed_files</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">root_cause</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">residual_risk</span></span><br><span class="line"></span><br><span class="line"><span class="attr">retries:</span></span><br><span class="line">  <span class="attr">max_attempts:</span> <span class="number">2</span></span><br><span class="line">  <span class="attr">on_failure:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">refine_context</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">rerun_checks</span></span><br><span class="line"></span><br><span class="line"><span class="attr">escalation:</span></span><br><span class="line">  <span class="attr">trigger:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">repeated_test_failure</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">uncertain_root_cause</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">cross_service_impact</span></span><br><span class="line">  <span class="attr">action:</span> <span class="string">handoff_to_human</span></span><br></pre></td></tr></table></figure>
+
+<p>这个例子最能说明 <code>Harness Engineering</code> 的本质：它不是额外包了一层壳，而是把 prompt、context、tools、checks、retries、handoff 组织成了一条完整轨道。</p>
+<h2 id="5-常见误区与故障排查"><a href="#5-常见误区与故障排查" class="headerlink" title="5. 常见误区与故障排查"></a>5. 常见误区与故障排查</h2><h3 id="5-1-常见误区"><a href="#5-1-常见误区" class="headerlink" title="5.1 常见误区"></a>5.1 常见误区</h3><ul>
+<li>误区一：prompt 写得足够长，agent 就会更可靠。实际情况往往相反，过长 prompt 很容易把脆弱逻辑堆进文字里。</li>
+<li>误区二：context engineering 等于把资料塞满上下文窗口。真正有效的是高信号组织，而不是简单扩容。</li>
+<li>误区三：公开一个 prompt 模板，就等于公开了系统能力。很多效果差异其实藏在上下文装配、工具封装和检查闭环里。</li>
+<li>误区四：只要 agent 能成功一次，就说明系统设计没问题。生产系统真正关心的是稳定性、可验证性和失败后的处理方式。</li>
+</ul>
+<h3 id="5-2-故障排查"><a href="#5-2-故障排查" class="headerlink" title="5.2 故障排查"></a>5.2 故障排查</h3><table>
+<thead>
+<tr>
+<th>症状</th>
+<th>更可能的问题层</th>
+<th>常见原因</th>
+<th>优先处理方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>输出格式混乱、目标理解偏差大</td>
+<td>Prompt</td>
+<td>约束不明确，成功标准模糊</td>
+<td>重写任务目标、边界和输出要求</td>
+</tr>
+<tr>
+<td>反复引用无关文件、遗漏关键事实</td>
+<td>Context</td>
+<td>检索粒度差，历史过长或摘要失真</td>
+<td>缩小输入范围，补关键事实，重做摘要</td>
+</tr>
+<tr>
+<td>改完代码不验证，或反复在失败路径打转</td>
+<td>Harness</td>
+<td>缺少 checks、重试策略和升级条件</td>
+<td>增加测试 gate、失败阈值和 handoff 机制</td>
+</tr>
+<tr>
+<td>同一个任务在不同环境里表现差异极大</td>
+<td>Harness</td>
+<td>权限、工具、上下文装配不一致</td>
+<td>统一运行环境与上下文注入流程</td>
+</tr>
+</tbody></table>
+<h2 id="6-FAQ"><a href="#6-FAQ" class="headerlink" title="6. FAQ"></a>6. FAQ</h2><h3 id="6-1-Harness-Engineering-和-Agent-Framework-是什么关系"><a href="#6-1-Harness-Engineering-和-Agent-Framework-是什么关系" class="headerlink" title="6.1 Harness Engineering 和 Agent Framework 是什么关系"></a>6.1 Harness Engineering 和 Agent Framework 是什么关系</h3><p>Framework 更像是脚手架或开发框架，帮你更快搭 agent。Harness 更像是你最终围绕 agent 建出来的运行系统。你可以用同一个 framework，做出很弱的 harness，也可以做出很强的 harness。</p>
+<h3 id="6-2-Context-Engineering-会替代-Prompt-Engineering-吗"><a href="#6-2-Context-Engineering-会替代-Prompt-Engineering-吗" class="headerlink" title="6.2 Context Engineering 会替代 Prompt Engineering 吗"></a>6.2 Context Engineering 会替代 Prompt Engineering 吗</h3><p>不会。Prompt 仍然重要，因为它定义了目标、边界和输出契约。只是随着任务变复杂，prompt 不再是全部，必须和 context 一起设计。</p>
+<h3 id="6-3-为什么大家开始从“show-me-code”走向“show-me-prompt”"><a href="#6-3-为什么大家开始从“show-me-code”走向“show-me-prompt”" class="headerlink" title="6.3 为什么大家开始从“show me code”走向“show me prompt”"></a>6.3 为什么大家开始从“show me code”走向“show me prompt”</h3><p>因为大家逐渐发现，真正可复用的差异化能力往往不只是模型输出结果，而是结果背后的组织方式。问 prompt，本质上是在追问系统设计。但如果继续追问下去，你最终会看到的不是一句 prompt，而是一整套 harness。</p>
+<h3 id="6-4-小团队什么时候需要上-harness"><a href="#6-4-小团队什么时候需要上-harness" class="headerlink" title="6.4 小团队什么时候需要上 harness"></a>6.4 小团队什么时候需要上 harness</h3><p>当任务开始满足下面任一条件时，就该至少做一个轻量 harness：跨多文件、多轮推理、需要工具调用、需要自动验证、失败成本高，或者需要多人协作交接。</p>
+<h3 id="6-5-个人开发者怎样从-prompt-逐步演进到-harness"><a href="#6-5-个人开发者怎样从-prompt-逐步演进到-harness" class="headerlink" title="6.5 个人开发者怎样从 prompt 逐步演进到 harness"></a>6.5 个人开发者怎样从 prompt 逐步演进到 harness</h3><p>最现实的路径不是一步到位，而是三步走：先把 prompt 写成稳定模板，再补最小上下文装配，最后把测试、日志、权限和 handoff 机制接进来。很多个人项目并不需要完整平台，但至少需要最小闭环。</p>
+<h2 id="7-落地清单：从-Prompt-到-Context-到-Harness"><a href="#7-落地清单：从-Prompt-到-Context-到-Harness" class="headerlink" title="7. 落地清单：从 Prompt 到 Context 到 Harness"></a>7. 落地清单：从 Prompt 到 Context 到 Harness</h2><h3 id="Prompt-Engineering-最小落地项"><a href="#Prompt-Engineering-最小落地项" class="headerlink" title="Prompt Engineering 最小落地项"></a>Prompt Engineering 最小落地项</h3><ul>
+<li><input disabled="" type="checkbox"> 为每类任务写清目标、约束、输出格式和失败报告方式。</li>
+<li><input disabled="" type="checkbox"> 把“不要做什么”改成“应该怎么做”。</li>
+<li><input disabled="" type="checkbox"> 为高频任务沉淀可复用模板，而不是每次临时手写。</li>
+<li><input disabled="" type="checkbox"> 用少量高质量示例替代大段模糊解释。</li>
+<li><input disabled="" type="checkbox"> 把 prompt 当作契约，而不是塞满业务逻辑的万能胶。</li>
+</ul>
+<h3 id="Context-Engineering-升级项"><a href="#Context-Engineering-升级项" class="headerlink" title="Context Engineering 升级项"></a>Context Engineering 升级项</h3><ul>
+<li><input disabled="" type="checkbox"> 明确每次调用前需要哪些最小必要信息。</li>
+<li><input disabled="" type="checkbox"> 建立代码检索、日志摘要、历史压缩和记忆策略。</li>
+<li><input disabled="" type="checkbox"> 控制上下文长度，优先保留高信号信息。</li>
+<li><input disabled="" type="checkbox"> 区分长期记忆、短期会话状态和即时工具结果。</li>
+<li><input disabled="" type="checkbox"> 为长任务设计 compaction 或 trimming 机制，避免上下文漂移。</li>
+</ul>
+<h3 id="Harness-Engineering-生产级项"><a href="#Harness-Engineering-生产级项" class="headerlink" title="Harness Engineering 生产级项"></a>Harness Engineering 生产级项</h3><ul>
+<li><input disabled="" type="checkbox"> 设计 agent 可调用的工具边界和权限模型。</li>
+<li><input disabled="" type="checkbox"> 为关键任务接入 lint、测试、评估和结果报告 gate。</li>
+<li><input disabled="" type="checkbox"> 定义失败重试策略，而不是无限循环尝试。</li>
+<li><input disabled="" type="checkbox"> 为不确定、跨系统、高风险任务设置人工升级条件。</li>
+<li><input disabled="" type="checkbox"> 记录 agent 的输入、动作、结果和残余风险，保证可审计。</li>
+<li><input disabled="" type="checkbox"> 把 prompt、context、tools、checks、handoff 作为一套系统统一设计。</li>
+</ul>
+<p>如果只想记住一句话，可以记这个顺序：</p>
+<p>先让模型听懂，再让模型看到该看到的，最后让模型在一个可靠系统里干活。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://openai.com/index/harness-engineering/">OpenAI - Harness engineering: leveraging Codex in an agent-first world</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents">Anthropic - Effective context engineering for AI agents</a></li>
+<li><a target="_blank" rel="noopener" href="https://developers.openai.com/cookbook/examples/agents_sdk/session_memory">OpenAI Cookbook - Context Engineering: Short-Term Memory Management with Sessions</a></li>
+<li><a target="_blank" rel="noopener" href="https://help.openai.com/en/articles/6654000-prompt-engineering-guide">OpenAI Help - Best practices for prompt engineering with the OpenAI API</a></li>
+</ul>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-30</td>
+<td>基于对话与公开资料整理首版，确立以 Harness Engineering 为主线的对比与落地框架</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/agents/" rel="tag">agents</a>, <a class="tag-none-link" href="/tags/ai-coding/" rel="tag">ai-coding</a>, <a class="tag-none-link" href="/tags/context-engineering/" rel="tag">context-engineering</a>, <a class="tag-none-link" href="/tags/harness-engineering/" rel="tag">harness-engineering</a>, <a class="tag-none-link" href="/tags/prompt-engineering/" rel="tag">prompt-engineering</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Agent 节点调用数据中台接口返回空列表的处理方案" href="/2026/03/26/tech/ai/2026-03-27-agent-node-http-response-handling-with-data-platform/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" GitHub Actions 与 Harness 怎么选：CI/CD 与交付治理判断框架" href="/2026/03/30/tech/tools/2026-03-31-github-actions-vs-harness-selection-note/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%85%B3%E7%B3%BB"><span class="toc-number">1.1.</span> <span class="toc-text">核心关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E8%80%85%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">三者对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BD%95%E6%97%B6%E9%9C%80%E8%A6%81%E5%8D%87%E7%BA%A7"><span class="toc-number">1.3.</span> <span class="toc-text">何时需要升级</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88-Harness-Engineering-%E4%BC%9A%E5%87%BA%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">1. 为什么 Harness Engineering 会出现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8E%E2%80%9Cshow-me-code%E2%80%9D%E5%88%B0%E2%80%9Cshow-me-prompt%E2%80%9D%EF%BC%9A%E8%AE%A8%E8%AE%BA%E7%84%A6%E7%82%B9%E4%B8%BA%E4%BB%80%E4%B9%88%E5%8F%98%E4%BA%86"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 从“show me code”到“show me prompt”：讨论焦点为什么变了</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%8E%B0%E5%9C%A8%E5%BF%85%E9%A1%BB%E5%85%B3%E5%BF%83-harness"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 为什么现在必须关心 harness</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%B8%89%E4%B8%AA%E6%A6%82%E5%BF%B5%E7%9A%84%E5%AE%9A%E4%B9%89%E3%80%81%E8%BE%B9%E7%95%8C%E4%B8%8E%E5%8C%85%E5%90%AB%E5%85%B3%E7%B3%BB"><span class="toc-number">4.</span> <span class="toc-text">2. 三个概念的定义、边界与包含关系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E4%B8%89%E8%80%85%E6%9C%80%E5%AE%B9%E6%98%93%E6%B7%B7%E6%B7%86%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 三者最容易混淆的边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9C%A8-AI-coding-agent-%E5%BC%80%E5%8F%91%E9%87%8C%E5%88%86%E5%88%AB%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">5.</span> <span class="toc-text">3. 在 AI coding &#x2F; agent 开发里分别解决什么问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-Prompt-Engineering-%E8%A7%A3%E5%86%B3%E2%80%9C%E6%9C%80%E5%B0%8F%E5%8F%AF%E6%89%A7%E8%A1%8C%E5%A5%91%E7%BA%A6%E2%80%9D"><span class="toc-number">6.</span> <span class="toc-text">3.1 Prompt Engineering 解决“最小可执行契约”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-Context-Engineering-%E8%A7%A3%E5%86%B3%E2%80%9C%E8%BF%99%E6%AC%A1%E8%B0%83%E7%94%A8%E5%89%8D%E5%BA%94%E8%AF%A5%E7%9F%A5%E9%81%93%E4%BB%80%E4%B9%88%E2%80%9D"><span class="toc-number">7.</span> <span class="toc-text">3.2 Context Engineering 解决“这次调用前应该知道什么”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-Harness-Engineering-%E8%A7%A3%E5%86%B3%E2%80%9C%E6%80%8E%E6%A0%B7%E8%AE%A9%E4%BB%BB%E5%8A%A1%E7%9C%9F%E6%AD%A3%E4%BA%A4%E4%BB%98%E2%80%9D"><span class="toc-number">8.</span> <span class="toc-text">3.3 Harness Engineering 解决“怎样让任务真正交付”</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E4%B8%80%E4%B8%AA%E2%80%9C%E8%AE%A9-agent-%E4%BF%AE-bug%E2%80%9D%E7%9A%84%E8%B4%AF%E7%A9%BF%E6%A1%88%E4%BE%8B"><span class="toc-number">9.</span> <span class="toc-text">4. 一个“让 agent 修 bug”的贯穿案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%8F%AA%E5%81%9A-prompt-%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88"><span class="toc-number">9.1.</span> <span class="toc-text">4.1 只做 prompt 会发生什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%8A%8A-context-%E5%8A%A0%E8%BF%9B%E5%8E%BB%EF%BC%8C%E4%BC%9A%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88"><span class="toc-number">9.2.</span> <span class="toc-text">4.2 把 context 加进去，会解决什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E5%86%8D%E5%BE%80%E5%89%8D%E4%B8%80%E6%AD%A5%EF%BC%8Charness-%E6%89%8D%E6%98%AF%E7%9C%9F%E6%AD%A3%E7%9A%84%E4%BA%A4%E4%BB%98%E5%B1%82"><span class="toc-number">9.3.</span> <span class="toc-text">4.3 再往前一步，harness 才是真正的交付层</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA%E4%B8%8E%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">10.</span> <span class="toc-text">5. 常见误区与故障排查</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%B8%B8%E8%A7%81%E8%AF%AF%E5%8C%BA"><span class="toc-number">10.1.</span> <span class="toc-text">5.1 常见误区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5"><span class="toc-number">10.2.</span> <span class="toc-text">5.2 故障排查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-FAQ"><span class="toc-number">11.</span> <span class="toc-text">6. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-Harness-Engineering-%E5%92%8C-Agent-Framework-%E6%98%AF%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB"><span class="toc-number">11.1.</span> <span class="toc-text">6.1 Harness Engineering 和 Agent Framework 是什么关系</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-Context-Engineering-%E4%BC%9A%E6%9B%BF%E4%BB%A3-Prompt-Engineering-%E5%90%97"><span class="toc-number">11.2.</span> <span class="toc-text">6.2 Context Engineering 会替代 Prompt Engineering 吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%A4%A7%E5%AE%B6%E5%BC%80%E5%A7%8B%E4%BB%8E%E2%80%9Cshow-me-code%E2%80%9D%E8%B5%B0%E5%90%91%E2%80%9Cshow-me-prompt%E2%80%9D"><span class="toc-number">11.3.</span> <span class="toc-text">6.3 为什么大家开始从“show me code”走向“show me prompt”</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E5%B0%8F%E5%9B%A2%E9%98%9F%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E9%9C%80%E8%A6%81%E4%B8%8A-harness"><span class="toc-number">11.4.</span> <span class="toc-text">6.4 小团队什么时候需要上 harness</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E4%B8%AA%E4%BA%BA%E5%BC%80%E5%8F%91%E8%80%85%E6%80%8E%E6%A0%B7%E4%BB%8E-prompt-%E9%80%90%E6%AD%A5%E6%BC%94%E8%BF%9B%E5%88%B0-harness"><span class="toc-number">11.5.</span> <span class="toc-text">6.5 个人开发者怎样从 prompt 逐步演进到 harness</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E8%90%BD%E5%9C%B0%E6%B8%85%E5%8D%95%EF%BC%9A%E4%BB%8E-Prompt-%E5%88%B0-Context-%E5%88%B0-Harness"><span class="toc-number">12.</span> <span class="toc-text">7. 落地清单：从 Prompt 到 Context 到 Harness</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Prompt-Engineering-%E6%9C%80%E5%B0%8F%E8%90%BD%E5%9C%B0%E9%A1%B9"><span class="toc-number">12.1.</span> <span class="toc-text">Prompt Engineering 最小落地项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Context-Engineering-%E5%8D%87%E7%BA%A7%E9%A1%B9"><span class="toc-number">12.2.</span> <span class="toc-text">Context Engineering 升级项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Harness-Engineering-%E7%94%9F%E4%BA%A7%E7%BA%A7%E9%A1%B9"><span class="toc-number">12.3.</span> <span class="toc-text">Harness Engineering 生产级项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">13.</span> <span class="toc-text">参考资料</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">14.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

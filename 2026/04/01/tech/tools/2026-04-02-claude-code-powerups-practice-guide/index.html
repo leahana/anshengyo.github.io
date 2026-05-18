@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Claude Code Power-Ups 全解：10 个能力点的认知沉淀与实践路径 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-claude-code-powerups-practice-guide/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI, CLI, Claude Code, Power-Ups, 效率工具" />
+  
+  <meta name="description" content="基于 Claude Code v2.1.90 新增的 &#x2F;powerup 命令，逐一拆解 10 个核心能力点，分享实际使用中的认知沉淀和可复现的实践路径。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code Power-Ups 全解：10 个能力点的认知沉淀与实践路径">
+<meta property="og:url" content="https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-claude-code-powerups-practice-guide/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="基于 Claude Code v2.1.90 新增的 &#x2F;powerup 命令，逐一拆解 10 个核心能力点，分享实际使用中的认知沉淀和可复现的实践路径。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-claude-code-powerups-practice-guide/diagram_20260417_084054_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-claude-code-powerups-practice-guide/diagram_20260417_084158_01.webp">
+<meta property="article:published_time" content="2026-04-01T23:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.765Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI">
+<meta property="article:tag" content="CLI">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="Power-Ups">
+<meta property="article:tag" content="效率工具">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-claude-code-powerups-practice-guide/diagram_20260417_084054_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Claude Code Power-Ups 全解：10 个能力点的认知沉淀与实践路径","description":"基于 Claude Code v2.1.90 新增的 /powerup 命令，逐一拆解 10 个核心能力点，分享实际使用中的认知沉淀和可复现的实践路径。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-01T23:00:00.000Z","dateModified":"2026-05-18T05:47:58.765Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-claude-code-powerups-practice-guide/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/01/tech/tools/2026-04-02-claude-code-powerups-practice-guide/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Claude Code Power-Ups 全解：10 个能力点的认知沉淀与实践路径</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-01T23:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-02</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~9.49K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E8%BD%AE%EF%BC%9A%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C"><span class="toc-number">2.</span> <span class="toc-text">第一轮：基础操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Talk-to-your-codebase-%E2%80%94-files-line-refs"><span class="toc-number">2.1.</span> <span class="toc-text">1. Talk to your codebase — @ files, line refs</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Steer-with-modes-%E2%80%94-shift-tab-plan-auto"><span class="toc-number">2.2.</span> <span class="toc-text">2. Steer with modes — shift+tab, plan, auto</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Undo-anything-%E2%80%94-rewind-Esc-Esc"><span class="toc-number">2.3.</span> <span class="toc-text">3. Undo anything — &#x2F;rewind, Esc-Esc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-Dial-the-model-%E2%80%94-model-effort"><span class="toc-number">2.4.</span> <span class="toc-text">10. Dial the model — &#x2F;model, &#x2F;effort</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E8%BD%AE%EF%BC%9A%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">第二轮：项目配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Teach-Claude-your-rules-%E2%80%94-CLAUDE-md-memory"><span class="toc-number">3.1.</span> <span class="toc-text">5. Teach Claude your rules — CLAUDE.md, &#x2F;memory</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-Extend-with-tools-%E2%80%94-MCP-mcp"><span class="toc-number">3.2.</span> <span class="toc-text">6. Extend with tools — MCP, &#x2F;mcp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-Automate-your-workflow-%E2%80%94-skills-hooks"><span class="toc-number">3.3.</span> <span class="toc-text">7. Automate your workflow — skills, hooks</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E8%BD%AE%EF%BC%9A%E8%BF%9B%E9%98%B6%E5%8D%8F%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">第三轮：进阶协作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Run-in-the-background-%E2%80%94-tasks-tasks"><span class="toc-number">4.1.</span> <span class="toc-text">4. Run in the background — tasks, &#x2F;tasks</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-Multiply-yourself-%E2%80%94-subagents-agents"><span class="toc-number">4.2.</span> <span class="toc-text">8. Multiply yourself — subagents, &#x2F;agents</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-Code-from-anywhere-%E2%80%94-remote-control-teleport"><span class="toc-number">4.3.</span> <span class="toc-text">9. Code from anywhere — &#x2F;remote-control, &#x2F;teleport</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E5%90%88%E5%B7%A5%E4%BD%9C%E6%B5%81%EF%BC%9A%E4%B8%80%E6%AC%A1%E7%9C%9F%E5%AE%9E%E7%9A%84%E5%8D%9A%E5%AE%A2%E5%86%99%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">组合工作流：一次真实的博客写作过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>我有习惯查看应用近期update日志的习惯，2.1.90版本更新了&#x2F;powerup 动画演示功能命令<br><strong>一句话定位</strong>：这是一篇围绕 Claude Code <code>/powerup</code> 命令中 10 个交互演示的经验总结，帮你从”知道有这功能”到”在真实项目中用起来”。</p>
+<p><strong>核心理念</strong>：工具的价值不在于功能数量，而在于你能把几个关键能力组合成自己的工作节奏。与其追求 10&#x2F;10 全解锁，不如先把 3-4 个高频能力练成肌肉记忆。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary><strong>点击展开：10 个 Power-Ups 一览表</strong></summary>
+
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Power-Up</th>
+<th>关键词</th>
+<th>一句话理解</th>
+<th>推荐优先级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Talk to your codebase</td>
+<td><code>@</code> files, line refs</td>
+<td>用 <code>@</code> 引用替代自然语言描述，零歧义</td>
+<td>★★★</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Steer with modes</td>
+<td>shift+tab, plan, auto</td>
+<td>三种模式对应三种工作节奏</td>
+<td>★★★</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Undo anything</td>
+<td>&#x2F;rewind, Esc-Esc</td>
+<td>安全网，敢试才敢用</td>
+<td>★★★</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Run in the background</td>
+<td>tasks, &#x2F;tasks</td>
+<td>后台任务不阻塞主对话</td>
+<td>★★☆</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Teach Claude your rules</td>
+<td>CLAUDE.md, &#x2F;memory</td>
+<td>项目规范持久化，减少重复沟通</td>
+<td>★★★</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Extend with tools</td>
+<td>MCP, &#x2F;mcp</td>
+<td>外部能力接入的统一协议</td>
+<td>★★☆</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Automate your workflow</td>
+<td>skills, hooks</td>
+<td>可复用命令 + 事件驱动自动化</td>
+<td>★★☆</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Multiply yourself</td>
+<td>subagents, &#x2F;agents</td>
+<td>并行探索，分而治之</td>
+<td>★★☆</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Code from anywhere</td>
+<td>&#x2F;remote-control, &#x2F;teleport</td>
+<td>多设备协作与会话迁移</td>
+<td>★☆☆</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Dial the model</td>
+<td>&#x2F;model, &#x2F;effort</td>
+<td>按任务复杂度选模型和推理深度</td>
+<td>★★☆</td>
+</tr>
+</tbody></table>
+</details>
+
+<pre class="mermaid">graph LR
+    A["基础操作<br/>#1 #2 #3 #10"] --> B["项目配置<br/>#5 #6 #7"]
+    B --> C["进阶协作<br/>#4 #8 #9"]
+
+    style A fill:#c8e6c9,stroke:#333,color:#000
+    style B fill:#e3f2fd,stroke:#333,color:#000
+    style C fill:#fff3e0,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-claude-code-powerups-practice-guide/diagram_20260417_084054_00.webp" alt="分钟速览版图解：&quot;基础操作、#1 #2 #3 #10&quot;"></p>
+</details>
+
+<p>建议学习顺序：先打好基础操作的底子，再把项目配置做扎实，最后探索进阶协作能力。下面按这个顺序展开。</p>
+<hr>
+<h2 id="第一轮：基础操作"><a href="#第一轮：基础操作" class="headerlink" title="第一轮：基础操作"></a>第一轮：基础操作</h2><h3 id="1-Talk-to-your-codebase-—-files-line-refs"><a href="#1-Talk-to-your-codebase-—-files-line-refs" class="headerlink" title="1. Talk to your codebase — @ files, line refs"></a>1. Talk to your codebase — <code>@</code> files, line refs</h3><p><strong>我的理解</strong>：<code>@</code> 引用是 Claude Code 交互中投入产出比最高的习惯。一个 <code>@_config.yml:15</code> 胜过三句话的描述，因为它直接把文件内容注入上下文，Claude 看到的是代码本身而不是你对代码的描述。</p>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>@</code> 不只能引用文件，还能引用到具体行号范围，比如 <code>@src/index.ts:10-25</code></li>
+<li>在较大项目中，精准 <code>@</code> 引用比让 Claude 自己搜索更快、更省 token</li>
+<li>可以在一条消息中 <code>@</code> 多个文件，Claude 会综合分析它们的关系</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 第一步：体验基础引用</span></span><br><span class="line"><span class="comment"># 在 Claude Code 中输入：</span></span><br><span class="line">@package.json 这个项目用了哪些 Hexo 插件？</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第二步：精准到行</span></span><br><span class="line">@_config.yml:35-50 这段 permalink 配置的具体效果是什么？</span><br><span class="line"></span><br><span class="line"><span class="comment"># 第三步：多文件联合分析</span></span><br><span class="line">@_config.yml @_config.kratos-rebirth.yml 主配置和主题配置之间有哪些重叠或冲突？</span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：养成习惯——凡是涉及具体文件的问题，先 <code>@</code> 再问。这比”帮我看看配置文件”的效率高一个量级。</p>
+<hr>
+<h3 id="2-Steer-with-modes-—-shift-tab-plan-auto"><a href="#2-Steer-with-modes-—-shift-tab-plan-auto" class="headerlink" title="2. Steer with modes — shift+tab, plan, auto"></a>2. Steer with modes — shift+tab, plan, auto</h3><p><strong>我的理解</strong>：三种模式本质上对应三种信任度：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>信任度</th>
+<th>适合场景</th>
+<th>快捷键</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Plan</td>
+<td>低 — 只读不改</td>
+<td>复杂任务前的方案设计、代码审计</td>
+<td><code>shift+tab</code> 切换</td>
+</tr>
+<tr>
+<td>Normal</td>
+<td>中 — 逐步确认</td>
+<td>日常开发，需要审批每步操作</td>
+<td>默认模式</td>
+</tr>
+<tr>
+<td>Auto</td>
+<td>高 — 自动执行</td>
+<td>已验证的重复操作、测试运行</td>
+<td><code>shift+tab</code> 切换</td>
+</tr>
+</tbody></table>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>shift+tab</code> 可以在对话中途随时切换，不需要重启会话</li>
+<li>Plan 模式下 Claude 只能读不能写，适合”先让 Claude 看看，我再决定”的场景</li>
+<li>Auto 模式虽然方便，但建议只在有 git 版本控制的目录下使用，保留回退能力</li>
+</ul>
+<p><strong>和 OpenSpec 的边界</strong>：</p>
+<ul>
+<li>Plan Mode 是<strong>硬约束</strong>：工具层直接禁止 Claude 写文件</li>
+<li>OpenSpec 里的 <code>/opsx:explore</code> 更像<strong>流程约束</strong>：先把需求聊清楚，再进入<br><code>propose -&gt; apply -&gt; archive</code></li>
+<li>如果你只是想临时理清思路、做一次只读审计，Plan Mode 更轻</li>
+<li>如果你想把计划沉淀成 <code>proposal.md / design.md / tasks.md</code> 这类可跨会话<br>复用的文件，OpenSpec 更合适</li>
+</ul>
+<p>所以它们不是替代关系，而是两个层次：</p>
+<ul>
+<li>Plan Mode 解决“先别误改代码”</li>
+<li>OpenSpec 解决“把这次变更变成可持续推进的工程单”</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 场景：你要重构一个配置文件，但不确定改动范围</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 先切 Plan 模式（shift+tab 选 Plan）</span></span><br><span class="line">请分析 _config.kratos-rebirth.yml，哪些配置项已经过时或冗余？</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 看完方案，切回 Normal 模式逐步执行</span></span><br><span class="line"><span class="comment"># （shift+tab 选 Normal）</span></span><br><span class="line">按刚才的分析，帮我清理第一项冗余配置</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 如果是批量格式化这种低风险操作，切 Auto</span></span><br><span class="line"><span class="comment"># （shift+tab 选 Auto）</span></span><br><span class="line">把 <span class="built_in">source</span>/_posts/ 下所有文章的 frontmatter <span class="built_in">date</span> 格式统一为 +0800 时区</span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：Plan → Normal → Auto 是一个自然的信任度递进过程。复杂任务从 Plan 开始，验证思路后切 Normal 执行，重复性操作交给 Auto。</p>
+<p>如果你已经在项目里初始化了 OpenSpec，可以把这层分工记得更清楚一些：</p>
+<ul>
+<li>Plan Mode：一次性的安全思考模式</li>
+<li>OpenSpec：带状态的变更管理工作流</li>
+</ul>
+<p>更完整的 OpenSpec 实战路径，可以看这篇：</p>
+<ul>
+<li><a href="../ai/2026-04-07-openspec-toolchain-integration-practice.md">OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链</a></li>
+</ul>
+<hr>
+<h3 id="3-Undo-anything-—-rewind-Esc-Esc"><a href="#3-Undo-anything-—-rewind-Esc-Esc" class="headerlink" title="3. Undo anything — &#x2F;rewind, Esc-Esc"></a>3. Undo anything — &#x2F;rewind, Esc-Esc</h3><p><strong>我的理解</strong>：<code>/rewind</code> 和 <code>Esc-Esc</code> 是 Claude Code 的安全网。有了它们，你才能放心让 Claude 做大胆的尝试——最坏情况也就是回退一步。</p>
+<p><strong>两者的区别</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>作用</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Esc-Esc</code></td>
+<td>立即中断当前正在执行的操作</td>
+<td>相当于 <code>Ctrl+C</code></td>
+</tr>
+<tr>
+<td><code>/rewind</code></td>
+<td>回退到对话中的任意历史节点，撤销所有文件改动</td>
+<td>相当于 <code>git reset --hard</code> + 对话回滚</td>
+</tr>
+</tbody></table>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>/rewind</code> 不只是撤销消息，它会连同文件改动一起回退</li>
+<li>这意味着你可以让 Claude 先试一种方案，不满意就 <code>/rewind</code> 试另一种，文件系统也会干净回退</li>
+<li><code>Esc-Esc</code> 是”刹车”，<code>/rewind</code> 是”倒车”，两者配合使用</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 场景：想试两种不同的样式方案</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 方案 A</span></span><br><span class="line">帮我把博客代码块的背景色改成深蓝色主题</span><br><span class="line"><span class="comment"># → Claude 修改了 custom.styl</span></span><br><span class="line"><span class="comment"># → 预览效果不满意</span></span><br><span class="line"></span><br><span class="line">/rewind</span><br><span class="line"><span class="comment"># → 文件和对话都回到修改前</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 方案 B</span></span><br><span class="line">帮我把博客代码块改成 GitHub 风格的浅色主题</span><br><span class="line"><span class="comment"># → 这次满意了，保留</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：<code>/rewind</code> 降低了试错成本。以前会花时间在脑子里反复权衡”要不要让 AI 改”，现在直接让它改，不行就 rewind。</p>
+<hr>
+<h3 id="10-Dial-the-model-—-model-effort"><a href="#10-Dial-the-model-—-model-effort" class="headerlink" title="10. Dial the model — &#x2F;model, &#x2F;effort"></a>10. Dial the model — &#x2F;model, &#x2F;effort</h3><p><strong>我的理解</strong>：不是所有任务都需要最强模型和最深推理。合理搭配 <code>/model</code> 和 <code>/effort</code> 既省成本又不牺牲质量。</p>
+<p><strong>搭配策略</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>任务类型</th>
+<th>推荐配置</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>简单查询、格式化</td>
+<td>Haiku + low effort</td>
+<td>快且便宜，够用就行</td>
+</tr>
+<tr>
+<td>日常开发、代码修改</td>
+<td>Sonnet + medium effort</td>
+<td>性价比最优</td>
+</tr>
+<tr>
+<td>架构设计、复杂调试</td>
+<td>Opus + high effort</td>
+<td>需要深度推理</td>
+</tr>
+<tr>
+<td>关键决策、安全审计</td>
+<td>Opus + max effort</td>
+<td>最大化推理预算</td>
+</tr>
+</tbody></table>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>/effort</code> 调的是推理深度（thinking token 预算），不是模型本身</li>
+<li>同一个 Opus 模型，<code>/effort low</code> 和 <code>/effort max</code> 的输出质量可以差很多</li>
+<li>Claude Pro 用户在 <code>/model</code> 中切换不影响计费模式，但 token 消耗量不同</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 对同一个问题测试不同配置</span></span><br><span class="line"></span><br><span class="line">/effort low</span><br><span class="line">解释 Hexo 的 permalink 配置语法</span><br><span class="line"></span><br><span class="line">/effort max</span><br><span class="line">分析我的博客部署流程中有哪些潜在的安全风险，给出具体的改进建议</span><br><span class="line"></span><br><span class="line"><span class="comment"># 感受差异：low 给你简洁答案，max 给你结构化深度分析</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：默认用 high effort 是合理的起点，但当你意识到某个问题只需要快速回答时，主动降 effort 是一个好习惯。不用每次都”杀鸡用牛刀”。</p>
+<hr>
+<h2 id="第二轮：项目配置"><a href="#第二轮：项目配置" class="headerlink" title="第二轮：项目配置"></a>第二轮：项目配置</h2><h3 id="5-Teach-Claude-your-rules-—-CLAUDE-md-memory"><a href="#5-Teach-Claude-your-rules-—-CLAUDE-md-memory" class="headerlink" title="5. Teach Claude your rules — CLAUDE.md, &#x2F;memory"></a>5. Teach Claude your rules — CLAUDE.md, &#x2F;memory</h3><p><strong>我的理解</strong>：<code>CLAUDE.md</code> 和 <code>/memory</code> 解决的是同一个问题——<strong>减少重复沟通</strong>。区别在于作用域：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>作用域</th>
+<th>存储位置</th>
+<th>适合内容</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>CLAUDE.md</code></td>
+<td>项目级</td>
+<td>项目根目录，随代码版本控制</td>
+<td>编码规范、架构约定、命令速查</td>
+</tr>
+<tr>
+<td><code>/memory</code></td>
+<td>用户级</td>
+<td><code>~/.claude/</code> 个人目录</td>
+<td>个人偏好、常用工作流、跨项目习惯</td>
+</tr>
+</tbody></table>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>CLAUDE.md</code> 是给团队看的——它随 git 提交，新成员 clone 下来 Claude 就自动遵守</li>
+<li><code>/memory</code> 是给自己用的——比如”我喜欢中文回复”、”commit message 用英文”</li>
+<li>两者冲突时，<code>CLAUDE.md</code> 优先（项目规范 &gt; 个人偏好）</li>
+<li><code>CLAUDE.md</code> 不需要一次写完，可以随项目演进持续补充</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 查看当前记忆</span></span><br><span class="line">/memory</span><br><span class="line"><span class="comment"># → 审查已有条目，删除过时的，补充新的</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 审查项目规范</span></span><br><span class="line">@CLAUDE.md 这份文档中有没有和当前项目实际情况不符的内容？</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 从真实痛点出发补充规范</span></span><br><span class="line"><span class="comment"># 如果你发现 Claude 每次都忘记某个约定，就把它写进 CLAUDE.md</span></span><br><span class="line"><span class="comment"># 例如：发现 Claude 总是用 npm 而不是 pnpm</span></span><br><span class="line"><span class="comment"># → 在 CLAUDE.md 中明确标注 &quot;Package Manager: pnpm (requires v9+)&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：<code>CLAUDE.md</code> 最大的价值是”写一次，省百次”。我的博客项目 <code>CLAUDE.md</code> 覆盖了文件命名、更新记录、安全检查、图片管理等所有关键约定，新会话启动后 Claude 自动遵守，不需要每次重复交代。</p>
+<hr>
+<h3 id="6-Extend-with-tools-—-MCP-mcp"><a href="#6-Extend-with-tools-—-MCP-mcp" class="headerlink" title="6. Extend with tools — MCP, &#x2F;mcp"></a>6. Extend with tools — MCP, &#x2F;mcp</h3><p><strong>我的理解</strong>：MCP（Model Context Protocol）是 Claude Code 的”外挂系统”。通过它，Claude 可以调用外部工具——GitHub API、Web 搜索、数据库查询、自定义服务等。</p>
+<p><strong>当前项目已接入的 MCP 服务</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>MCP 服务</th>
+<th>能力</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>GitHub</td>
+<td>Issue&#x2F;PR&#x2F;代码搜索</td>
+<td>查看部署状态、管理 PR</td>
+</tr>
+<tr>
+<td>Web Search</td>
+<td>网页搜索</td>
+<td>查找最新文档、解决方案</td>
+</tr>
+<tr>
+<td>Context7</td>
+<td>框架文档查询</td>
+<td>查 Hexo&#x2F;pnpm 等最新 API</td>
+</tr>
+<tr>
+<td>Web Reader</td>
+<td>网页内容读取</td>
+<td>抓取参考文章内容</td>
+</tr>
+</tbody></table>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>/mcp</code> 可以在会话中动态启用&#x2F;禁用 MCP 服务器，不需要重启</li>
+<li>MCP 服务有认证要求时（如 GitHub），需要提前配置好 token</li>
+<li>并非所有场景都需要 MCP——本地文件操作 Claude 原生就能做，MCP 解决的是”需要访问外部系统”的问题</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 查看当前 MCP 状态</span></span><br><span class="line">/mcp</span><br><span class="line"><span class="comment"># → 检查哪些服务已连接、哪些断开</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 用 GitHub MCP 查看项目状态</span></span><br><span class="line">查看 leahana/leahana.github.io 仓库最近的 PR 和部署状态</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 用 Context7 查文档</span></span><br><span class="line">查一下 Hexo 8.x 的 tag plugins 有没有新增语法</span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：MCP 的核心价值是让 Claude 从”只能看本地文件”变成”能访问你的整个工具链”。一旦配好，很多原本需要切换浏览器、手动复制粘贴的操作，直接在对话中就能完成。</p>
+<hr>
+<h3 id="7-Automate-your-workflow-—-skills-hooks"><a href="#7-Automate-your-workflow-—-skills-hooks" class="headerlink" title="7. Automate your workflow — skills, hooks"></a>7. Automate your workflow — skills, hooks</h3><p><strong>我的理解</strong>：Skills 和 Hooks 是两种自动化机制，解决不同层面的问题：</p>
+<table>
+<thead>
+<tr>
+<th>机制</th>
+<th>触发方式</th>
+<th>类比</th>
+<th>适合场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Skills</td>
+<td>手动调用 <code>/skill-name</code></td>
+<td>Shell alias</td>
+<td>可复用的复杂工作流</td>
+</tr>
+<tr>
+<td>Hooks</td>
+<td>事件自动触发</td>
+<td>Git hooks</td>
+<td>质量门禁、自动格式化</td>
+</tr>
+</tbody></table>
+<p><strong>当前项目的实际配置</strong>：</p>
+<ul>
+<li><strong>Skills</strong>: <code>/optimize-doc</code>（文章优化）、<code>/save</code>（会话存档）、<code>/security-review</code>（安全审查）</li>
+<li><strong>Hooks</strong>: <code>.githooks/pre-commit</code>（敏感信息扫描）、<code>.githooks/pre-push</code>（全量扫描 + 图片 URL 检查）</li>
+</ul>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li>Skills 存放在 <code>.claude/skills/</code> 目录，本质是 Markdown 文件定义的 prompt 模板</li>
+<li>Hooks 可以绑定 Claude 的工具调用事件（<code>PreToolUse</code>、<code>PostToolUse</code>），不只是 Git hooks</li>
+<li>项目级 skills 优先于全局 skills，避免命名冲突</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 体验已有 skill</span></span><br><span class="line">/optimize-doc <span class="built_in">source</span>/_posts/tech/tools/某篇文章.md</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 查看 skill 定义，理解它的工作原理</span></span><br><span class="line">@.claude/skills/optimize-doc.md 这个 skill 的流程是什么？</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 考虑是否需要新 skill</span></span><br><span class="line"><span class="comment"># 如果你经常执行&quot;创建新文章 → 填写 frontmatter → 设置分类&quot;这套流程</span></span><br><span class="line"><span class="comment"># 可以创建一个 /new-post skill 来一键完成</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. 验证 hooks 是否正常工作</span></span><br><span class="line">pnpm check:secrets</span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：Skills 适合”我经常做这件事，想一键触发”；Hooks 适合”这件事必须每次都做，不能忘”。两者组合覆盖了主动和被动两种自动化需求。</p>
+<hr>
+<h2 id="第三轮：进阶协作"><a href="#第三轮：进阶协作" class="headerlink" title="第三轮：进阶协作"></a>第三轮：进阶协作</h2><h3 id="4-Run-in-the-background-—-tasks-tasks"><a href="#4-Run-in-the-background-—-tasks-tasks" class="headerlink" title="4. Run in the background — tasks, &#x2F;tasks"></a>4. Run in the background — tasks, &#x2F;tasks</h3><p><strong>我的理解</strong>：后台任务解决的核心问题是<strong>不阻塞</strong>。让 Claude 在后台跑一个耗时操作，你在前台继续做别的事。</p>
+<p><strong>和 subagent 的区别</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>后台任务</th>
+<th>Subagent</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>启动方式</td>
+<td>对话中创建</td>
+<td>Claude 自动调度或手动请求</td>
+</tr>
+<tr>
+<td>上下文</td>
+<td>共享主会话上下文</td>
+<td>独立上下文</td>
+</tr>
+<tr>
+<td>查看进度</td>
+<td><code>/tasks</code></td>
+<td>等待返回结果</td>
+</tr>
+<tr>
+<td>适合场景</td>
+<td>单个耗时操作</td>
+<td>并行的多个独立任务</td>
+</tr>
+</tbody></table>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 场景：你想检查所有文章的质量，但不想等着</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 1. 创建后台任务</span></span><br><span class="line">帮我扫描 <span class="built_in">source</span>/_posts/ 下所有文章，检查：</span><br><span class="line">- 缺少 description 字段的</span><br><span class="line">- 没有更新记录表的</span><br><span class="line">- frontmatter <span class="built_in">date</span> 格式不规范的</span><br><span class="line">（这个任务在后台跑就行）</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 继续前台工作</span></span><br><span class="line"><span class="comment"># 不用等，直接开始写新文章或做其他事</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 随时查看进度</span></span><br><span class="line">/tasks</span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：后台任务最适合”审计类”工作——扫描、统计、检查。这些任务不需要你盯着看过程，只需要看最终报告。</p>
+<hr>
+<h3 id="8-Multiply-yourself-—-subagents-agents"><a href="#8-Multiply-yourself-—-subagents-agents" class="headerlink" title="8. Multiply yourself — subagents, &#x2F;agents"></a>8. Multiply yourself — subagents, &#x2F;agents</h3><p><strong>我的理解</strong>：Subagents 是”分身术”。当一个任务可以拆成多个独立子问题时，让多个 agent 并行处理，然后汇总结果。</p>
+<p><strong>Agent 类型和适用场景</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>Agent 类型</th>
+<th>特长</th>
+<th>典型用法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Explore</td>
+<td>代码搜索和理解</td>
+<td>“这个项目的认证流程是什么？”</td>
+</tr>
+<tr>
+<td>Plan</td>
+<td>方案设计</td>
+<td>“设计一个缓存策略”</td>
+</tr>
+<tr>
+<td>General-purpose</td>
+<td>多步骤复杂任务</td>
+<td>“调研 + 实现 + 测试”</td>
+</tr>
+</tbody></table>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li>每个 subagent 上下文独立，所以启动时需要给足背景信息</li>
+<li>并行启动多个 agent 要在同一条消息中发出，不能分多条</li>
+<li>Agent 结果返回后需要主对话做综合——不要指望 agent 之间自动协调</li>
+<li>Worktree 隔离模式（<code>isolation: &quot;worktree&quot;</code>）可以让 agent 在独立的 git 分支中工作，不影响主目录</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 场景：想全面了解博客项目的现状</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 同时启动 2 个 Explore agent：</span></span><br><span class="line"><span class="comment"># Agent 1: 分析所有文章的分类和标签分布，输出统计</span></span><br><span class="line"><span class="comment"># Agent 2: 检查主题配置中有哪些功能已启用/未启用</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Claude 会并行执行，分别返回结果</span></span><br><span class="line"><span class="comment"># 你在主对话中汇总两份报告，形成博客内容地图</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 进阶：用 worktree 隔离做实验性修改</span></span><br><span class="line"><span class="comment"># Agent 在独立分支修改代码，确认可行后再 merge 回来</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：Subagents 的关键是”拆得开、合得回”。先想清楚任务能不能拆成独立子问题，能拆就用 agent 并行；拆不开（有依赖关系）就老老实实串行处理。</p>
+<hr>
+<h3 id="9-Code-from-anywhere-—-remote-control-teleport"><a href="#9-Code-from-anywhere-—-remote-control-teleport" class="headerlink" title="9. Code from anywhere — &#x2F;remote-control, &#x2F;teleport"></a>9. Code from anywhere — &#x2F;remote-control, &#x2F;teleport</h3><p><strong>我的理解</strong>：这两个命令解决的是<strong>多设备、多终端协作</strong>的问题：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/remote-control</code></td>
+<td>从另一个终端向运行中的 Claude 实例发送指令</td>
+<td>SSH 到正在运行的进程</td>
+</tr>
+<tr>
+<td><code>/teleport</code></td>
+<td>把当前会话的完整上下文迁移到另一台设备</td>
+<td><code>tmux</code> 的 session 迁移</td>
+</tr>
+</tbody></table>
+<p><strong>典型使用场景</strong>：</p>
+<ul>
+<li>在 Mac 上用 Claude Code 启动了一个长任务，切到 iPad SSH 终端用 <code>/remote-control</code> 查看进度或追加指令</li>
+<li>在公司电脑上分析完代码，用 <code>/teleport</code> 把上下文带回家继续</li>
+</ul>
+<p><strong>容易忽略的点</strong>：</p>
+<ul>
+<li><code>/remote-control</code> 需要当前有一个运行中的 Claude 实例，它不是启动新实例</li>
+<li><code>/teleport</code> 迁移的是对话上下文，不是文件——目标设备需要有相同的代码仓库</li>
+<li>这两个功能在网络不稳定时（如手机热点）要注意连接中断问题</li>
+<li><code>/remote-control</code> 也可以被脚本调用，实现自动化流水线中嵌入 Claude</li>
+</ul>
+<p><strong>实践路径</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 终端 A（主工作终端）</span></span><br><span class="line">claude</span><br><span class="line"><span class="comment"># → 正常工作中...</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端 B（另一个终端窗口或 SSH 连接）</span></span><br><span class="line">claude /remote-control</span><br><span class="line"><span class="comment"># → 可以向终端 A 的 Claude 实例发送指令</span></span><br><span class="line"><span class="comment"># → 比如追加一条：&quot;顺便也检查一下图片链接是否有效&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 跨设备迁移</span></span><br><span class="line"><span class="comment"># 在设备 A 上：</span></span><br><span class="line">/teleport</span><br><span class="line"><span class="comment"># → 获得一个迁移码或链接</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 在设备 B 上：</span></span><br><span class="line">claude --resume &lt;迁移信息&gt;</span><br><span class="line"><span class="comment"># → 完整恢复上下文，继续工作</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>经验总结</strong>：<code>/remote-control</code> 和 <code>/teleport</code> 把 Claude Code 从”单终端工具”变成了”多端协作平台”。对于需要在多台设备间切换的开发者，这两个能力让”上下文切换”的成本大幅降低。</p>
+<hr>
+<h2 id="组合工作流：一次真实的博客写作过程"><a href="#组合工作流：一次真实的博客写作过程" class="headerlink" title="组合工作流：一次真实的博客写作过程"></a>组合工作流：一次真实的博客写作过程</h2><p>实际使用中，这 10 个能力不是孤立的，而是自然组合在一起的。以下是一次典型的博客写作流程中涉及的 Power-Ups：</p>
+<pre class="mermaid">graph TD
+    A["#2 Plan 模式<br/>规划文章结构"] --> B["#1 @ 引用<br/>参考已有文章风格"]
+    B --> C["#2 Normal 模式<br/>逐步编写内容"]
+    C --> D{"需要查资料？"}
+    D -->|是| E["#6 MCP 工具<br/>搜索文档/网页"]
+    D -->|否| F["继续写作"]
+    E --> F
+    F --> G["#7 /optimize-doc<br/>Skill 优化文章"]
+    G --> H["#2 Auto 模式<br/>批量格式检查"]
+    H --> I["#7 Git Hooks<br/>自动安全扫描"]
+
+    style A fill:#c8e6c9,stroke:#333,color:#000
+    style G fill:#e3f2fd,stroke:#333,color:#000
+    style I fill:#fff3e0,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/tools/2026-04-02-claude-code-powerups-practice-guide/diagram_20260417_084158_01.webp" alt="组合工作流：一次真实的博客写作过程图解：&quot;#2 Plan 模式、规划文章结构&quot;"></p>
+</details>
+
+<p>一次工作流串联了 #1、#2、#6、#7 四个 Power-Up。不需要刻意使用所有能力，而是让它们在需要的时候自然出现。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-02</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-07</td>
+<td>补充 Plan Mode 与 OpenSpec 的边界说明，并增加相关实践文章跳转</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 2 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI/" rel="tag">AI</a>, <a class="tag-none-link" href="/tags/CLI/" rel="tag">CLI</a>, <a class="tag-none-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a>, <a class="tag-none-link" href="/tags/Power-Ups/" rel="tag">Power-Ups</a>, <a class="tag-none-link" href="/tags/%E6%95%88%E7%8E%87%E5%B7%A5%E5%85%B7/" rel="tag">效率工具</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.765Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Claude Code Code Review 插件对比：官方插件 vs codex-review" href="/2026/04/01/tech/ai/2026-04-02-claude-code-review-plugins-comparison/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Kaggle x Google Agent 5 Days 精读：Day 2 Agent 工具体系" href="/2026/04/02/tech/ai/2026-04-03-kaggle-google-agent-5days-day2-whitepaper-reading/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E8%BD%AE%EF%BC%9A%E5%9F%BA%E7%A1%80%E6%93%8D%E4%BD%9C"><span class="toc-number">2.</span> <span class="toc-text">第一轮：基础操作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Talk-to-your-codebase-%E2%80%94-files-line-refs"><span class="toc-number">2.1.</span> <span class="toc-text">1. Talk to your codebase — @ files, line refs</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Steer-with-modes-%E2%80%94-shift-tab-plan-auto"><span class="toc-number">2.2.</span> <span class="toc-text">2. Steer with modes — shift+tab, plan, auto</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Undo-anything-%E2%80%94-rewind-Esc-Esc"><span class="toc-number">2.3.</span> <span class="toc-text">3. Undo anything — &#x2F;rewind, Esc-Esc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-Dial-the-model-%E2%80%94-model-effort"><span class="toc-number">2.4.</span> <span class="toc-text">10. Dial the model — &#x2F;model, &#x2F;effort</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E8%BD%AE%EF%BC%9A%E9%A1%B9%E7%9B%AE%E9%85%8D%E7%BD%AE"><span class="toc-number">3.</span> <span class="toc-text">第二轮：项目配置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-Teach-Claude-your-rules-%E2%80%94-CLAUDE-md-memory"><span class="toc-number">3.1.</span> <span class="toc-text">5. Teach Claude your rules — CLAUDE.md, &#x2F;memory</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-Extend-with-tools-%E2%80%94-MCP-mcp"><span class="toc-number">3.2.</span> <span class="toc-text">6. Extend with tools — MCP, &#x2F;mcp</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-Automate-your-workflow-%E2%80%94-skills-hooks"><span class="toc-number">3.3.</span> <span class="toc-text">7. Automate your workflow — skills, hooks</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E8%BD%AE%EF%BC%9A%E8%BF%9B%E9%98%B6%E5%8D%8F%E4%BD%9C"><span class="toc-number">4.</span> <span class="toc-text">第三轮：进阶协作</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Run-in-the-background-%E2%80%94-tasks-tasks"><span class="toc-number">4.1.</span> <span class="toc-text">4. Run in the background — tasks, &#x2F;tasks</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-Multiply-yourself-%E2%80%94-subagents-agents"><span class="toc-number">4.2.</span> <span class="toc-text">8. Multiply yourself — subagents, &#x2F;agents</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9-Code-from-anywhere-%E2%80%94-remote-control-teleport"><span class="toc-number">4.3.</span> <span class="toc-text">9. Code from anywhere — &#x2F;remote-control, &#x2F;teleport</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%84%E5%90%88%E5%B7%A5%E4%BD%9C%E6%B5%81%EF%BC%9A%E4%B8%80%E6%AC%A1%E7%9C%9F%E5%AE%9E%E7%9A%84%E5%8D%9A%E5%AE%A2%E5%86%99%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">组合工作流：一次真实的博客写作过程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

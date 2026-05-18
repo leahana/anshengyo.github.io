@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>OpenCode &amp; oh-my-openagent 更新追踪 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-opencode-update-tracking/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CLI, oh-my-openagent, opencode, 更新追踪" />
+  
+  <meta name="description" content="持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。当前追踪至 OpenCode v1.15.x &#x2F; oh-my-openagent v4.1.x。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenCode &amp; oh-my-openagent 更新追踪">
+<meta property="og:url" content="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-opencode-update-tracking/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。当前追踪至 OpenCode v1.15.x &#x2F; oh-my-openagent v4.1.x。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-04-12T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.768Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CLI">
+<meta property="article:tag" content="oh-my-openagent">
+<meta property="article:tag" content="opencode">
+<meta property="article:tag" content="更新追踪">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"OpenCode & oh-my-openagent 更新追踪","description":"持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。当前追踪至 OpenCode v1.15.x / oh-my-openagent v4.1.x。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-12T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.768Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-opencode-update-tracking/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/12/tech/tools/tracking/2026-04-13-opencode-update-tracking/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">OpenCode & oh-my-openagent 更新追踪</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-12T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-13</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~9.34K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v1-3-14-v1-3-17-OpenCode-v3-15-x-oh-my-openagent"><span class="toc-number">1.1.1.</span> <span class="toc-text">2026-04 | v1.3.14 ~ v1.3.17 (OpenCode) &amp; v3.15.x (oh-my-openagent)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v1-4-0-v1-14-29-OpenCode-v3-16-0-v3-17-6-oh-my-openagent"><span class="toc-number">1.1.2.</span> <span class="toc-text">2026-04 | v1.4.0 ~ v1.14.29 (OpenCode) &amp; v3.16.0 ~ v3.17.6 (oh-my-openagent)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-v1-14-45-v1-15-4-v4-0-0-v4-1-2"><span class="toc-number">1.1.3.</span> <span class="toc-text">2026-05 | v1.14.45 ~ v1.15.4 &#x2F; v4.0.0 ~ v4.1.2</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%882026-01-03%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">Q1（2026-01 ~ 03）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-01-03-v1-1-65-v1-3-17-OpenCode-v3-x-oh-my-openagent"><span class="toc-number">1.2.1.</span> <span class="toc-text">2026-01 ~ 03 | v1.1.65 ~ v1.3.17 (OpenCode) &#x2F; v3.x (oh-my-openagent)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%88%86%E6%9E%90%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.2.1.3.</span> <span class="toc-text">深度分析（可选）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">2.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>持续追加型文档，每次工具更新后由 AI 代理追加新批次。<br>oh-my-openagent 是 OpenCode 的插件平台，两者关联性强，合并追踪。</p>
+</blockquote>
+<hr>
+<h2 id="2026-年"><a href="#2026-年" class="headerlink" title="2026 年"></a>2026 年</h2><h3 id="Q2（2026-04-06）"><a href="#Q2（2026-04-06）" class="headerlink" title="Q2（2026-04 ~ 06）"></a>Q2（2026-04 ~ 06）</h3><h4 id="2026-04-v1-3-14-v1-3-17-OpenCode-v3-15-x-oh-my-openagent"><a href="#2026-04-v1-3-14-v1-3-17-OpenCode-v3-15-x-oh-my-openagent" class="headerlink" title="2026-04 | v1.3.14 ~ v1.3.17 (OpenCode) &amp; v3.15.x (oh-my-openagent)"></a>2026-04 | v1.3.14 ~ v1.3.17 (OpenCode) &amp; v3.15.x (oh-my-openagent)</h4><p><strong>信息截止</strong>：2026-04-07 | <strong>最新 Release</strong>：OpenCode v1.3.17 &#x2F; oh-my-openagent v3.15.3</p>
+<table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenCode v1.3.14~1.3.17</td>
+<td>2026-04-07</td>
+<td>git-backed review 恢复，配置能力增强，插件兼容性修复</td>
+</tr>
+<tr>
+<td>oh-my-openagent v3.15.x</td>
+<td>2026-04-07</td>
+<td>重命名兼容层收口，lineage-aware continuation，多 Agent 调度更稳</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法"><a href="#新特性用法" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>git-backed review 恢复（OpenCode）</strong>：运行 <code>git diff main...HEAD</code> 后，在 OpenCode 中可以直接按分支差异审查当前改动，支持长分支连续 review。</li>
+<li><strong>Provider 配置增强（OpenCode）</strong>：Azure 同时兼容 chat &#x2F; responses；ACP 会话暴露 model &#x2F; mode；Cloudflare 缺参报错更直接。使用 <code>{&quot;model&quot;:&quot;azure/gpt-5.4&quot;}</code> 配置。</li>
+<li><strong>重命名兼容层继续收口（oh-my-openagent）</strong>：自动更新、发布和包名识别继续兼容新旧名称，可通过 <code>rg -n &quot;oh-my-opencode|oh-my-openagent&quot; ~/.config .</code> 回查引用。</li>
+<li><strong>lineage-aware continuation（oh-my-openagent）</strong>：使用 <code>{&quot;description&quot;:&quot;continue refactor&quot;,&quot;run_in_background&quot;:true}</code> 可以在后台任务结束后继续沿同一 lineage 接力。</li>
+<li><strong>delegate-task 契约补强（oh-my-openagent）</strong>：参数校验、可调用 agent 模式限制和通知默认值更一致，通过显式传参避免隐式默认行为。</li>
+</ul>
+<h5 id="关键-fix"><a href="#关键-fix" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>OpenCode 修复了 revert chain 之后的 snapshot 恢复问题，review 状态能跟着 git diff 一起恢复。</li>
+<li>OpenCode 修复了 OpenAI-compatible provider 在工具调用后 session 卡住的问题。</li>
+<li>OpenCode TUI 支持禁用鼠标捕获，Windows 上 <code>Ctrl+Z</code> 改为 undo，kitty 键盘输入处理更稳。</li>
+<li>OpenCode 修复 npm 安装、<code>node-gyp</code> 路径与插件解析的兼容性问题。</li>
+<li>oh-my-openagent 在 SDK 不可用时可回退到文件存储，补上 session-last-agent 排序和 background task tracking。</li>
+<li>oh-my-openagent 继续补强 legacy config path 迁移、原子写配置和 auto-update 兼容性。</li>
+<li>oh-my-openagent tar 预检改为 fail-closed，MCP 环境变量清理时屏蔽云凭证，提升安全性。</li>
+</ul>
+<h4 id="2026-04-v1-4-0-v1-14-29-OpenCode-v3-16-0-v3-17-6-oh-my-openagent"><a href="#2026-04-v1-4-0-v1-14-29-OpenCode-v3-16-0-v3-17-6-oh-my-openagent" class="headerlink" title="2026-04 | v1.4.0 ~ v1.14.29 (OpenCode) &amp; v3.16.0 ~ v3.17.6 (oh-my-openagent)"></a>2026-04 | v1.4.0 ~ v1.14.29 (OpenCode) &amp; v3.16.0 ~ v3.17.6 (oh-my-openagent)</h4><p><strong>信息截止</strong>：2026-04-29 | <strong>最新 Release</strong>：OpenCode v1.14.29 &#x2F; oh-my-openagent v3.17.6</p>
+<p>本批次按合并追踪处理：OpenCode core 以 <code>anomalyco/opencode</code> 与<br><code>opencode.ai/changelog</code> 为主源，oh-my-openagent 以 companion release<br>补充插件平台、Agent 编排与兼容层变化。</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenCode</td>
+<td>v1.14.29</td>
+<td>2026-04-28</td>
+<td>C# comment 路径诊断、tmux console 与 import ordering 修复</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.14.27~v1.14.28</td>
+<td>2026-04-28</td>
+<td>自定义 LSP、默认 shell、Claude Code bridge 与 SDK <code>x-api-key</code> 修复</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.14.25~v1.14.26</td>
+<td>2026-04-24~25</td>
+<td>HTTP server file&#x2F;status 端点、MCP prompt、C#&#x2F;Razor LSP 与 GPT 工具调用默认策略</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.14.17~v1.14.23</td>
+<td>2026-04-19~23</td>
+<td>desktop beta、worktrees、NVIDIA provider、GPT-5.5 context length 与 registry 支持</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.4.0~v1.4.11</td>
+<td>2026-04-07~15</td>
+<td>SDK breaking change、upgrade&#x2F;export 能力、OTLP&#x2F;proxy&#x2F;PDF&#x2F;Alibaba provider 与 Question API 修复</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.17.6</td>
+<td>2026-04-28</td>
+<td>Oracle &#x2F; Hephaestus 迁移到 GPT-5.5，Ralph thinking 无限循环修复</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.17.5</td>
+<td>2026-04-24</td>
+<td>GPT-5.5 Omni 集成、Sisyphus native prompt、Claude Opus 4.7 偏好模型</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.17.3~v3.17.4</td>
+<td>2026-04-15~17</td>
+<td>OpenCode 1.4.4 兼容、动态 custom agents、session lineage 与 release polish</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.16.0</td>
+<td>2026-04-08</td>
+<td>OpenCode 1.4.0 全兼容、安装器安全预检、自动更新大版本校验与 MCP&#x2F;OAuth 稳定性</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-1"><a href="#新特性用法-1" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>OpenCode SDK 破坏性变更（v1.4.0）</strong>：<code>diff</code> payload 从<br><code>{to, from}</code> 改为 <code>{patch}</code>；<code>UserMessage.variant</code> 改为顶层<br><code>model</code> 对象。插件、脚本或二次封装要先做字段兼容。</li>
+<li><strong>升级与脱敏导出（OpenCode v1.4.5+）</strong>：日常升级优先使用<br><code>opencode upgrade</code>；分享 session 前可用<br><code>opencode export --sanitize &gt; session-redacted.json</code> 生成脱敏产物。</li>
+<li><strong>观测与网络环境（OpenCode v1.4.5+）</strong>：OTLP、全 provider proxy、<br>PDF 拖拽、Alibaba provider 与 npmrc registry 支持陆续补齐，企业内网和<br>多云环境接入成本下降。</li>
+<li><strong>IDE &#x2F; runtime 体验（OpenCode v1.14.x）</strong>：C#&#x2F;Razor&#x2F;Roslyn 诊断、<br>自定义 LSP、默认 shell、worktrees、desktop beta 和 file&#x2F;status HTTP<br>端点让 OpenCode 更适合长期驻留在项目里。</li>
+<li><strong>oh-my-openagent 安装安全线（v3.16.0）</strong>：安装器会先校验 OpenCode<br><code>&gt;= 1.4.0</code>、备份既有配置，并在冲突时提供 restore &#x2F; force &#x2F; abort<br>选择，适合团队机器逐台滚动升级。</li>
+<li><strong>动态 custom agents（oh-my-openagent v3.17.3+）</strong>：可通过<br><code>opencode.json</code> 的 <code>agent_definitions</code> 接入自定义 Agent，lineage<br>解析会区分精确路径和根路径，避免 continuation 接错会话。</li>
+<li><strong>GPT-5.5 Agent 升级（oh-my-openagent v3.17.5+）</strong>：Sisyphus 的 deep<br>路径、Hephaestus 和 Oracle 迁移到 GPT-5.5；Sisyphus 使用 OpenCode<br>native agent prompt，减少手写 prompt glue。</li>
+</ul>
+<h5 id="关键-fix-1"><a href="#关键-fix-1" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>OpenCode 修复了 Windows npm install &#x2F; <code>node-gyp</code>、SDK <code>x-api-key</code>、<br>Claude Code bridge route、tmux console disconnect 和 Apple Silicon<br>build 等升级链路问题。</li>
+<li>OpenCode 对 GPT 模型默认改用更保守的非 streaming tool calling，缓解<br>assistant message parts、多 text parts 和 usage compaction 的兼容问题。</li>
+<li>OpenCode 修复 MCP OAuth、Question API 空响应、snapshot&#x2F;revert、非 git<br>snapshot 遵守 <code>.gitignore</code>、模型 URL 与 OpenRouter reasoning config。</li>
+<li>OpenCode v1.14.x 补上 C#&#x2F;Razor&#x2F;LSP 诊断性能问题、npmrc registry、<br><code>bun install --frozen-lockfile</code>、desktop app 名称和 release 版本错误。</li>
+<li>oh-my-openagent v3.16.0 修复 MCP client OAuth mutex、LINE-suffixed<br>session timestamp、零宽空格 session filename、<code>opencode run</code> 截断和<br><code>plan</code> 命令精确匹配。</li>
+<li>oh-my-openagent v3.17.x 修复 Windows <code>grep</code> path parsing、release<br>metadata&#x2F;test suite、Claude alias mapping、Bash <code>allowed_directories</code><br>参数兼容和 Ralph interleaved thinking 无限循环。</li>
+</ul>
+<h4 id="2026-05-v1-14-45-v1-15-4-v4-0-0-v4-1-2"><a href="#2026-05-v1-14-45-v1-15-4-v4-0-0-v4-1-2" class="headerlink" title="2026-05 | v1.14.45 ~ v1.15.4 &#x2F; v4.0.0 ~ v4.1.2"></a>2026-05 | v1.14.45 ~ v1.15.4 &#x2F; v4.0.0 ~ v4.1.2</h4><p><strong>信息截止</strong>：2026-05-17 | <strong>最新 Release</strong>：OpenCode v1.15.4 &#x2F; oh-my-openagent v4.1.2</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenCode</td>
+<td>v1.14.45 ~ v1.14.46</td>
+<td>2026-05-10</td>
+<td>OpenAPI&#x2F;SDK 查询参数纠偏、legacy session 容错、安全边界补洞</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.15.0 ~ v1.15.4</td>
+<td>2026-05-15 ~ 2026-05-17</td>
+<td>Effect 事件系统、背景 subagent、pinned sessions、项目级事件总线与 LSP 修复一并落地</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v4.0.0</td>
+<td>2026-05-07</td>
+<td>Team Mode 正式发布，多 agent + tmux 可视化成为一等能力</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v4.1.0 ~ v4.1.2</td>
+<td>2026-05-13 ~ 2026-05-14</td>
+<td>Boulder 任务跟踪、Electron 兼容与 delegation&#x2F;continuation 稳定性持续增强</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-2"><a href="#新特性用法-2" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><p><strong>OpenCode 背景 subagent</strong>：<code>v1.14.51</code> 开始引入 experimental background<br>subagents，适合把长任务丢到后台继续跑，同时保留当前前台会话。</p>
+</li>
+<li><p><strong>Pinned sessions</strong>：<code>v1.15.1</code> 把 pinned sessions 和 quick-switch slots<br>做进 TUI，会话多的时候比来回翻 session picker 更省心。</p>
+</li>
+<li><p><strong>Team Mode</strong>：在 oh-my-openagent 里启用真正的多 agent 编排：</p>
+<figure class="highlight toml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[team_mode]</span></span><br><span class="line"><span class="attr">enabled</span> = <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Boulder 工作台</strong>：<code>v4.1.0</code> 后可用 <code>bunx oh-my-opencode boulder</code><br>查看 plan task 的进度百分比、耗时和完成状态，适合跟长链路任务。</p>
+</li>
+</ul>
+<h5 id="关键-fix-2"><a href="#关键-fix-2" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>OpenCode 修复了 project-scoped bus events、custom LSP refresh 和<br>injected instance 同步漂移问题。</li>
+<li>OpenCode 修复了旧 session 的负 token 计数、boolean&#x2F;numeric query 参数<br>与生成 SDK 不一致的问题。</li>
+<li>oh-my-openagent <code>v4.1.2</code> 把 hidden agents 从 delegation discovery 中排除，<br>补上了 delegate-task 的可见性边界。</li>
+<li>oh-my-openagent <code>v4.1.x</code> 持续修补 continuation synthetic 标记、<br>duplicate prompt 注入和 background-agent 唤醒时序问题。</li>
+</ul>
+<hr>
+<h3 id="Q1（2026-01-03）"><a href="#Q1（2026-01-03）" class="headerlink" title="Q1（2026-01 ~ 03）"></a>Q1（2026-01 ~ 03）</h3><h4 id="2026-01-03-v1-1-65-v1-3-17-OpenCode-v3-x-oh-my-openagent"><a href="#2026-01-03-v1-1-65-v1-3-17-OpenCode-v3-x-oh-my-openagent" class="headerlink" title="2026-01 ~ 03 | v1.1.65 ~ v1.3.17 (OpenCode) &#x2F; v3.x (oh-my-openagent)"></a>2026-01 ~ 03 | v1.1.65 ~ v1.3.17 (OpenCode) &#x2F; v3.x (oh-my-openagent)</h4><p><strong>信息截止</strong>：2026-04-03 | <strong>最新 Release</strong>：OpenCode v1.3.17</p>
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>版本</th>
+<th>日期</th>
+<th>一句话</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OpenCode</td>
+<td>v1.3.17</td>
+<td>2026-04-03</td>
+<td>当前追踪截止版本</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.3.13</td>
+<td>2026-03</td>
+<td>Effect 架构重构完成，AI SDK v6，Node.js runtime 支持</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.3.4</td>
+<td>2026-03</td>
+<td>Session&#x2F;Config&#x2F;Plugin&#x2F;LSP&#x2F;Skill 五大服务用 Effect 重写</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.3.0</td>
+<td>2026-03</td>
+<td>GitLab Agent Platform 集成；单版本 16 位贡献者里程碑</td>
+</tr>
+<tr>
+<td>OpenCode</td>
+<td>v1.2.0</td>
+<td>2026-02</td>
+<td>会话存储迁移至 SQLite 数据库</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.14.1</td>
+<td>2026-03</td>
+<td>兼容层发布；”Atlas Trusts No One” 大拆分落地</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.x</td>
+<td>2026-03</td>
+<td>品牌重塑（oh-my-opencode → oh-my-openagent）</td>
+</tr>
+<tr>
+<td>oh-my-openagent</td>
+<td>v3.x</td>
+<td>2026-Q1</td>
+<td>Hash-Anchored Edits 发布（编辑准确率 6.7% → 68.3%）</td>
+</tr>
+</tbody></table>
+<h5 id="新特性用法-3"><a href="#新特性用法-3" class="headerlink" title="新特性用法"></a>新特性用法</h5><ul>
+<li><strong>SQLite 会话迁移（OpenCode v1.2.0）</strong>：升级后删除 <code>~/.local/share/opencode/opencode.db*</code> 触发重建；会话量大时启动速度和切换响应明显提升</li>
+<li><strong>Effect 架构（OpenCode v1.3.4+）</strong>：插件崩溃不再拖垮主进程；插件开发门槛降低，Effect 类型系统可在编译期捕获大部分错误</li>
+<li><strong>GitLab Agent Platform（OpenCode v1.3.0）</strong>：可直接发现 GitLab workflow 模型并通过 WebSocket 参与 CI&#x2F;CD 流水线编排</li>
+<li><strong>Node.js Runtime（OpenCode v1.3.13+）</strong>：不再强绑 Bun，对已有 Node 工具链的团队更友好</li>
+<li><strong>Hash-Anchored Edits（oh-my-openagent）</strong>：每次编辑前锁定目标文件的 hash，10x 准确率提升（6.7% → 68.3%）；升级后无需额外配置，默认生效</li>
+<li><strong>多模型编排引擎（oh-my-openagent）</strong>：按任务类型自动路由最优模型；8 Agent 协作系统（Sisyphus 编排 + 7 专家 Agent）</li>
+<li><strong><code>@</code> 菜单 skills（oh-my-openagent）</strong>：输入 <code>@</code> 直接选技能，无需记忆技能名</li>
+</ul>
+<h5 id="关键-fix-3"><a href="#关键-fix-3" class="headerlink" title="关键 fix"></a>关键 fix</h5><ul>
+<li>OpenCode：SQLite 迁移兼容性处理，旧会话数据完整保留</li>
+<li>OpenCode：Effect 重构后的 Plugin 生命周期稳定性</li>
+<li>oh-my-openagent：v3.14.1 兼容层修复跨版本插件兼容问题</li>
+<li>oh-my-openagent：”Atlas Trusts No One” 拆分后的 200 LOC 硬限制防止模块膨胀，提升长期可维护性</li>
+</ul>
+<h5 id="深度分析（可选）"><a href="#深度分析（可选）" class="headerlink" title="深度分析（可选）"></a>深度分析（可选）</h5><blockquote>
+<p><strong>深度分析：OpenCode，从底层架构到企业级集成</strong></p>
+<p>OpenCode 在 Q1 完成了从 v1.1.65 到 v1.3.13 的跨越式迭代。仅 3 月份就发布了 10 个版本，社区贡献者从个位数飙升到单版本 16 人。这种节奏背后是两个关键决策：底层架构彻底重构，以及企业级功能的大步推进。</p>
+<ul>
+<li><strong>SQLite 数据库迁移（v1.2.0）</strong>：会话存储从文件系统迁移到了 SQLite 数据库。这为后续的会话搜索、跨会话引用、统计分析等功能提供了结构化查询基础，大量历史会话时的响应速度有明显提升。</li>
+<li><strong>Effect 架构重构（v1.3.4）</strong>：这是 Q1 最大的架构变更。Session、Config、Plugin、LSP、Skill 五大核心服务全部用 Effect 框架重写。每个服务都有统一的错误处理、依赖注入和资源管理。这大大提升了插件稳定性。</li>
+<li><strong>GitLab Agent Platform 集成（v1.3.0）</strong>：填补了大型企业市场的空白，通过 WebSocket 访问工具，让 Agent 可以实时监听 CI&#x2F;CD 流水线状态并在 MR 提交时自动审查代码、建议修复甚至触发回滚。</li>
+<li><strong>Node.js Runtime 支持（v1.3.0）</strong>：消除了仅支持 Bun 带来的生态兼容性采纳障碍，对企业标准化 Node.js 环境非常友好。</li>
+<li>其他值得关注更新包括：交互式升级流程、多步认证（GitHub Copilot Enterprise）、语法高亮扩展（Kotlin&#x2F;HCL&#x2F;Lua&#x2F;TOML）、TUI 插件系统、插件版本锁定和 Catppuccin 主题支持。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>深度分析：oh-my-openagent，从插件到架构的进化</strong></p>
+<p>oh-my-openagent 在 Q1 经历了身份和架构的双重转变，从项目名 “oh-my-opencode” 变为 “oh-my-openagent” 代表了其向 “独立 Agent 平台” 的定位跃迁。</p>
+<ul>
+<li><strong>“Atlas Trusts No One” 大拆分（v3.5.0）</strong>：645 个文件被拆分重构，代码变更量达到 +34,507&#x2F;-21,492 行。引入 200 行 LOC 硬限制。这极大地提升了稳定性，降低了维护成本。</li>
+<li><strong>Hash-Anchored Edits：10 倍准确率提升</strong>：引入了基于行哈希的编辑验证机制。编辑成功率从 6.7% 飙升到 68.3%，是解决 AI 编程代理 “编辑错位” 问题的质变。</li>
+<li><strong>多模型编排引擎</strong>：引入了按任务类型自动路由到不同模型的机制：visual-engineering (Gemini)、ultrabrain (GPT-5.4)、quick (GPT-5.4 Mini)、deep (GPT-5.3-codex)。系统自动切换匹配最适合的能力。</li>
+<li><strong>8 Agent 协作系统</strong>：构建了 8 个专业化 Agent 的协作网络，Sisyphus 作为编排者协调 7 个专家 Agent（Hephaestus, Prometheus, Atlas, Oracle, Librarian, Explore, Looker）。类似微服务架构在 AI Agent 领域的应用，让复杂项目任务拆解更合理并行执行质量更高。</li>
+</ul>
+</blockquote>
+<blockquote>
+<p><strong>深度分析：综合分析与行动建议</strong></p>
+<p>两个项目在 Q1 都在做三件相同的事：架构拆分、多模型支持、社区驱动。<br>OpenCode 选择了 “底层先行” 策略（重构架构、叠加企业功能），而 oh-my-openagent 选择了 “体验先行” 策略（大拆分、多模型编排）。</p>
+<p>行动建议：</p>
+<ul>
+<li>OpenCode 老用户：升级到 v1.3.13，删除旧数据库触发迁移。</li>
+<li>oh-my-openagent 老用户：升级到 v3.14.1，确认兼容层正常。</li>
+<li>企业评估者：用 OpenCode GitLab 集成做 PoC。</li>
+<li>个人开发者：结合使用，OpenCode 做日常编码，oh-my-openagent 做复杂项目。</li>
+</ul>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-13</td>
+<td>初始版本，建立追踪框架；迁移 Q1 精选内容（v1.1.65~v1.3.17）</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-13</td>
+<td>修正格式规范，使用 H5 标题组织批次段落；合并深度分析内容</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-29</td>
+<td>追加 OpenCode v1.4.0 ~ v1.14.29 与 oh-my-openagent v3.16.0 ~ v3.17.6 合并批次</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-29</td>
+<td>回填漏写的更新记录行（补记 v1.2 条目）</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-05-06</td>
+<td>全量结构对齐：H4 季度批次标题 <code>2026-Q1</code> → <code>2026-01 ~ 03</code>、深度分析 blockquote 提升为 <code>##### 深度分析（可选）</code> 子段、tags 标准化、description 补版本范围</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-05-18</td>
+<td>追加 2026-05 双工具批次；修正 frontmatter tags</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CLI/" rel="tag">CLI</a>, <a class="tag-none-link" href="/tags/oh-my-openagent/" rel="tag">oh-my-openagent</a>, <a class="tag-none-link" href="/tags/opencode/" rel="tag">opencode</a>, <a class="tag-none-link" href="/tags/%E6%9B%B4%E6%96%B0%E8%BF%BD%E8%B8%AA/" rel="tag">更新追踪</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.768Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Codex 更新追踪" href="/2026/04/12/tech/tools/tracking/2026-04-13-codex-update-tracking/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Claude Code 更新追踪" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#2026-%E5%B9%B4"><span class="toc-number">1.</span> <span class="toc-text">2026 年</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%882026-04-06%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">Q2（2026-04 ~ 06）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v1-3-14-v1-3-17-OpenCode-v3-15-x-oh-my-openagent"><span class="toc-number">1.1.1.</span> <span class="toc-text">2026-04 | v1.3.14 ~ v1.3.17 (OpenCode) &amp; v3.15.x (oh-my-openagent)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95"><span class="toc-number">1.1.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix"><span class="toc-number">1.1.1.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-04-v1-4-0-v1-14-29-OpenCode-v3-16-0-v3-17-6-oh-my-openagent"><span class="toc-number">1.1.2.</span> <span class="toc-text">2026-04 | v1.4.0 ~ v1.14.29 (OpenCode) &amp; v3.16.0 ~ v3.17.6 (oh-my-openagent)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-1"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-1"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-05-v1-14-45-v1-15-4-v4-0-0-v4-1-2"><span class="toc-number">1.1.3.</span> <span class="toc-text">2026-05 | v1.14.45 ~ v1.15.4 &#x2F; v4.0.0 ~ v4.1.2</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-2"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-2"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">关键 fix</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%882026-01-03%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">Q1（2026-01 ~ 03）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2026-01-03-v1-1-65-v1-3-17-OpenCode-v3-x-oh-my-openagent"><span class="toc-number">1.2.1.</span> <span class="toc-text">2026-01 ~ 03 | v1.1.65 ~ v1.3.17 (OpenCode) &#x2F; v3.x (oh-my-openagent)</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%96%B0%E7%89%B9%E6%80%A7%E7%94%A8%E6%B3%95-3"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">新特性用法</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B3%E9%94%AE-fix-3"><span class="toc-number">1.2.1.2.</span> <span class="toc-text">关键 fix</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%88%86%E6%9E%90%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.2.1.3.</span> <span class="toc-text">深度分析（可选）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">2.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

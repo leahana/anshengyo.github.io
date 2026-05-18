@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Codex Plugin 实战工作流：在 Claude Code 里调用 Codex 做审查与任务委派 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/06/tech/ai/2026-04-07-codex-plugin-claude-code-commands/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Claude, Codex, OpenAI, claude-code, 代码审查, 插件" />
+  
+  <meta name="description" content="基于当前版本能力，梳理 Codex Plugin 在 Claude Code 中的审查、委派和后台任务工作流，帮助把双引擎协作接进日常开发。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Codex Plugin 实战工作流：在 Claude Code 里调用 Codex 做审查与任务委派">
+<meta property="og:url" content="https://leahana.github.io/2026/04/06/tech/ai/2026-04-07-codex-plugin-claude-code-commands/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="基于当前版本能力，梳理 Codex Plugin 在 Claude Code 中的审查、委派和后台任务工作流，帮助把双引擎协作接进日常开发。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-codex-plugin-claude-code-commands/diagram_20260417_053731_00.webp">
+<meta property="article:published_time" content="2026-04-06T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Claude">
+<meta property="article:tag" content="Codex">
+<meta property="article:tag" content="OpenAI">
+<meta property="article:tag" content="claude-code">
+<meta property="article:tag" content="代码审查">
+<meta property="article:tag" content="插件">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-codex-plugin-claude-code-commands/diagram_20260417_053731_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Codex Plugin 实战工作流：在 Claude Code 里调用 Codex 做审查与任务委派","description":"基于当前版本能力，梳理 Codex Plugin 在 Claude Code 中的审查、委派和后台任务工作流，帮助把双引擎协作接进日常开发。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-06T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/06/tech/ai/2026-04-07-codex-plugin-claude-code-commands/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/06/tech/ai/2026-04-07-codex-plugin-claude-code-commands/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Codex Plugin 实战工作流：在 Claude Code 里调用 Codex 做审查与任务委派</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-06T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-07</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~5.73K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">🔍 这篇文章解决什么问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="toc-number">2.1.</span> <span class="toc-text">方案调研</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AD-%E5%BD%93%E5%89%8D%E7%89%88%E6%9C%AC%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C"><span class="toc-number">3.</span> <span class="toc-text">🧭 当前版本能力边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E4%B8%89%E7%B1%BB%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="toc-number">4.</span> <span class="toc-text">🚧 三类核心工作流</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%A1%E6%9F%A5%EF%BC%9Areview-%E5%92%8C-adversarial-review"><span class="toc-number">4.1.</span> <span class="toc-text">1. 审查：review 和 adversarial-review</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A7%94%E6%B4%BE%EF%BC%9Arescue"><span class="toc-number">4.2.</span> <span class="toc-text">2. 委派：rescue</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86%EF%BC%9Astatus-result-cancel"><span class="toc-number">4.3.</span> <span class="toc-text">3. 后台任务管理：status &#x2F; result &#x2F; cancel</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AA-%E5%85%B8%E5%9E%8B%E4%BD%BF%E7%94%A8%E8%B7%AF%E5%BE%84"><span class="toc-number">5.</span> <span class="toc-text">🧪 典型使用路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-A%EF%BC%9A%E6%8F%90%E4%BA%A4%E5%89%8D%E5%8F%8C%E5%BC%95%E6%93%8E%E5%AE%A1%E6%9F%A5"><span class="toc-number">5.1.</span> <span class="toc-text">流程 A：提交前双引擎审查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-B%EF%BC%9ACI-%E7%BA%A2%E7%81%AF%E6%97%B6%EF%BC%8C%E6%8A%8A%E8%B0%83%E6%9F%A5%E5%85%88%E5%A7%94%E6%B4%BE%E5%87%BA%E5%8E%BB"><span class="toc-number">5.2.</span> <span class="toc-text">流程 B：CI 红灯时，把调查先委派出去</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-C%EF%BC%9A%E9%95%BF%E6%97%B6%E9%97%B4%E8%B0%83%E6%9F%A5%EF%BC%8C%E4%B8%8D%E9%98%BB%E5%A1%9E%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C"><span class="toc-number">5.3.</span> <span class="toc-text">流程 C：长时间调查，不阻塞当前工作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A0%EF%B8%8F-%E9%A3%8E%E9%99%A9%E4%B8%8E%E9%99%90%E5%88%B6"><span class="toc-number">6.</span> <span class="toc-text">⚠️ 风险与限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%97-%E5%92%8C%E6%8F%92%E4%BB%B6%E5%AF%B9%E6%AF%94%E6%96%87%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">7.</span> <span class="toc-text">🔗 和插件对比文的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">8.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">8.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">8.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：基于当前版本插件能力，整理一套<br><code>Claude Code + Codex</code> 的审查、委派与后台协作实践。</p>
+<p>💡 <strong>核心理念</strong>：不要把它只看成“多了几个 Slash 命令”，而要<br>把它看成“Claude 主写、Codex 复核与接手”的协作接口。</p>
+</blockquote>
+<hr>
+<h2 id="📋-问题背景"><a href="#📋-问题背景" class="headerlink" title="📋 问题背景"></a>📋 问题背景</h2><h3 id="业务场景"><a href="#业务场景" class="headerlink" title="业务场景"></a>业务场景</h3><p>作为一个 vibecoding 工程师，你的日常大概是这样的：用 Claude Code 写功能、改 bug、重构代码，节奏飞快。但代码质量怎么保证？提交前有没有遗漏的边界条件？设计决策是否经得起推敲？</p>
+<p>传统方案是自己 review 或者找同事 review，但在 AI 辅助开发的工作节奏下，人工审查跟不上代码产出的速度。</p>
+<h3 id="痛点分析"><a href="#痛点分析" class="headerlink" title="痛点分析"></a>痛点分析</h3><ul>
+<li><strong>痛点 1</strong>：Claude Code 写代码很快，但没有内置的”第二双眼睛”来审查质量</li>
+<li><strong>痛点 2</strong>：手动跑 Codex CLI 做审查需要切出当前工作流，打断思路</li>
+<li><strong>痛点 3</strong>：复杂 bug 的调查和修复需要长时间运行，阻塞主工作流</li>
+</ul>
+<blockquote>
+<p>还有哈，claude 自己做 review 有点贵</p>
+</blockquote>
+<h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><p>在 Claude Code 内部无缝调用 Codex（GPT-5.x 系列），实现代码审查和任务委派的双引擎协作，同时保持工作流不被打断。</p>
+<hr>
+<h2 id="🔍-这篇文章解决什么问题"><a href="#🔍-这篇文章解决什么问题" class="headerlink" title="🔍 这篇文章解决什么问题"></a>🔍 这篇文章解决什么问题</h2><h3 id="方案调研"><a href="#方案调研" class="headerlink" title="方案调研"></a>方案调研</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>核心思路</th>
+<th>优点</th>
+<th>缺点</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>手动切 Codex CLI</td>
+<td>在终端手动运行 <code>codex</code></td>
+<td>控制力最强</td>
+<td>需要切出 Claude 工作流</td>
+<td>一次性深度任务</td>
+</tr>
+<tr>
+<td>Claude 自检</td>
+<td>继续让 Claude 自己 review</td>
+<td>零额外依赖</td>
+<td>缺少外部视角</td>
+<td>快速自查</td>
+</tr>
+<tr>
+<td>Codex Plugin</td>
+<td>在 Claude Code 内转发到本机 Codex</td>
+<td>不切上下文、能做后台协作</td>
+<td>仍需本机 Codex 安装与认证</td>
+<td>日常开发主流程</td>
+</tr>
+</tbody></table>
+<p>我更看重的不是“多了几个命令”，而是它把 <code>Claude 写</code> 和<br><code>Codex 看</code> 放进了同一条工作流里。对于实践型开发，这意味着：</p>
+<ul>
+<li>提交前可以多一层外部视角</li>
+<li>复杂调查可以交给 Codex 在后台继续跑</li>
+<li>发现问题后可以直接把修复任务委派出去，而不是重新切终端</li>
+</ul>
+<hr>
+<h2 id="🧭-当前版本能力边界"><a href="#🧭-当前版本能力边界" class="headerlink" title="🧭 当前版本能力边界"></a>🧭 当前版本能力边界</h2><p>按我本机当前安装的 <code>openai-codex</code> 插件整理，这篇文章讨论的是一个<br><strong>当前版本工作流</strong>，不是永久不变的“官方命令大全”。</p>
+<pre class="mermaid">graph TD
+    A["Claude Code"] --> B["Slash Commands"]
+    B --> C["codex-companion.mjs"]
+    C --> D["Local Codex CLI"]
+    D --> E["Codex App Server"]
+    E --> F["OpenAI Models"]
+
+    style A fill:#e3f2fd,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-codex-plugin-claude-code-commands/diagram_20260417_053731_00.webp" alt="Codex Plugin 工作原理图"></p>
+</details>
+
+<p>更准确的理解是：</p>
+<ul>
+<li>它复用的是<strong>本机 Codex CLI、认证状态和 <code>.codex/config.toml</code></strong></li>
+<li>如果你这台机器已经能跑 <code>codex</code>，插件通常就能直接复用那套状态</li>
+<li>如果你还没装或没登录，仍然要先完成安装和 <code>codex login</code></li>
+</ul>
+<p>当前版本面向用户暴露的是下面这组 Slash 命令：</p>
+<table>
+<thead>
+<tr>
+<th>命令族</th>
+<th>作用</th>
+<th>我会怎么理解它</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/codex:setup</code></td>
+<td>检查安装与认证，管理可选 review gate</td>
+<td>先确认环境是否 ready</td>
+</tr>
+<tr>
+<td><code>/codex:review</code></td>
+<td>普通只读审查</td>
+<td>提交前的日常质量门</td>
+</tr>
+<tr>
+<td><code>/codex:adversarial-review</code></td>
+<td>带攻击性的挑战式审查</td>
+<td>上线前质疑方案本身</td>
+</tr>
+<tr>
+<td><code>/codex:rescue</code></td>
+<td>调查或继续处理任务</td>
+<td>把问题委派给 Codex</td>
+</tr>
+<tr>
+<td><code>/codex:status</code> <code>/codex:result</code> <code>/codex:cancel</code></td>
+<td>管理后台任务</td>
+<td>看进度、取结果、取消任务</td>
+</tr>
+</tbody></table>
+<p>如果你刚开始接入，第一步就是：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/codex:setup</span><br></pre></td></tr></table></figure>
+
+<p>它会检查 Codex 是否已安装、是否已认证；如果本机缺少 Codex 且 <code>npm</code><br>可用，当前版本会提供安装入口。review gate 也是在这里开启或关闭：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">/codex:setup --enable-review-gate</span><br><span class="line">/codex:setup --disable-review-gate</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="🚧-三类核心工作流"><a href="#🚧-三类核心工作流" class="headerlink" title="🚧 三类核心工作流"></a>🚧 三类核心工作流</h2><h3 id="1-审查：review-和-adversarial-review"><a href="#1-审查：review-和-adversarial-review" class="headerlink" title="1. 审查：review 和 adversarial-review"></a>1. 审查：<code>review</code> 和 <code>adversarial-review</code></h3><p>这是我最常用的一组能力。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/codex:review</span><br><span class="line">/codex:review --base main</span><br><span class="line">/codex:review --background</span><br><span class="line"></span><br><span class="line">/codex:adversarial-review --base main challenge whether this was the right caching and retry design</span><br><span class="line">/codex:adversarial-review --background look <span class="keyword">for</span> race conditions and question the chosen approach</span><br></pre></td></tr></table></figure>
+
+<p>两者的区别不在“严格程度”，而在审查立场：</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th><code>/codex:review</code></th>
+<th><code>/codex:adversarial-review</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>目标</td>
+<td>看当前改动有没有明显问题</td>
+<td>质疑这条实现路线是否值得继续</td>
+</tr>
+<tr>
+<td>焦点</td>
+<td>代码质量、缺陷、遗漏</td>
+<td>假设、权衡、失败模式、替代方案</td>
+</tr>
+<tr>
+<td>自定义 focus</td>
+<td>不支持</td>
+<td>支持在命令后补充 focus 文本</td>
+</tr>
+<tr>
+<td>适用时机</td>
+<td>日常提交前</td>
+<td>关键功能上线前</td>
+</tr>
+</tbody></table>
+<p>当前版本里，这组命令还有几个很实用的边界：</p>
+<ul>
+<li>都支持 <code>--base &lt;ref&gt;</code> 做分支级审查</li>
+<li>都支持 <code>--wait</code> 和 <code>--background</code></li>
+<li><code>review</code> 支持 <code>--scope auto|working-tree|branch</code></li>
+<li><code>adversarial-review</code> 也支持同样的目标选择，但不支持<br><code>staged-only</code> &#x2F; <code>unstaged-only</code></li>
+</ul>
+<p>一个很值得记住的实现细节是：如果你不显式写 <code>--wait</code> 或<br><code>--background</code>，插件会先估计改动规模，再推荐你前台等还是后台跑。<br>对多文件、边界不清或改动较大的情况，当前版本明显偏向后台执行。</p>
+<h3 id="2-委派：rescue"><a href="#2-委派：rescue" class="headerlink" title="2. 委派：rescue"></a>2. 委派：<code>rescue</code></h3><p><code>rescue</code> 是把任务交给 Codex 接手的主入口，适合调查、尝试修复和继续<br>之前的任务。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">/codex:rescue investigate why the build is failing <span class="keyword">in</span> CI</span><br><span class="line">/codex:rescue fix the failing <span class="built_in">test</span> with the smallest safe patch</span><br><span class="line">/codex:rescue --resume apply the top fix from the last run</span><br><span class="line">/codex:rescue --background investigate the regression <span class="keyword">in</span> the auth module</span><br></pre></td></tr></table></figure>
+
+<p>当前版本的几个关键点：</p>
+<ul>
+<li>支持 <code>--background</code>、<code>--wait</code>、<code>--resume</code>、<code>--fresh</code></li>
+<li>默认执行模式是<strong>前台</strong></li>
+<li>如果你没写 <code>--resume</code> 或 <code>--fresh</code>，且当前仓库里有可恢复线程，<br>插件会先问你是继续旧线程还是新开线程</li>
+<li><code>--model</code> 和 <code>--effort</code> 是显式可控的，但不写时会沿用 Codex 默认值</li>
+<li>写 <code>spark</code> 时，当前版本会把它映射到 <code>gpt-5.3-codex-spark</code></li>
+</ul>
+<p>我自己的使用习惯很简单：</p>
+<ul>
+<li>明确、很小的补丁可以前台跑</li>
+<li>开放式调查、CI 事故、疑难杂症一律显式加 <code>--background</code></li>
+</ul>
+<h3 id="3-后台任务管理：status-result-cancel"><a href="#3-后台任务管理：status-result-cancel" class="headerlink" title="3. 后台任务管理：status &#x2F; result &#x2F; cancel"></a>3. 后台任务管理：<code>status</code> &#x2F; <code>result</code> &#x2F; <code>cancel</code></h3><p>一旦把 review 或 rescue 放到后台，这三个命令就会变成主线。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">/codex:status</span><br><span class="line">/codex:status task-abc123</span><br><span class="line">/codex:result</span><br><span class="line">/codex:result task-abc123</span><br><span class="line">/codex:cancel</span><br><span class="line">/codex:cancel task-abc123</span><br></pre></td></tr></table></figure>
+
+<p>这里有两个当前版本细节很值得记：</p>
+<ul>
+<li>不带 job id 的 <code>/codex:status</code>，会把当前会话里已知任务整理成一张<br>Markdown 表格，适合快速扫状态</li>
+<li><code>/codex:result</code> 在可用时会带上 <code>session-id</code>，你可以继续回到 Codex<br>CLI 里执行：</li>
+</ul>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">codex resume &lt;session-id&gt;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="🧪-典型使用路径"><a href="#🧪-典型使用路径" class="headerlink" title="🧪 典型使用路径"></a>🧪 典型使用路径</h2><h3 id="流程-A：提交前双引擎审查"><a href="#流程-A：提交前双引擎审查" class="headerlink" title="流程 A：提交前双引擎审查"></a>流程 A：提交前双引擎审查</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">你写完功能 → /codex:review --background → /codex:adversarial-review --background</span><br><span class="line">                                               ↓                            ↓</span><br><span class="line">                                          /codex:status              /codex:status</span><br><span class="line">                                               ↓                            ↓</span><br><span class="line">                                          /codex:result              /codex:result</span><br><span class="line">                                               ↓                            ↓</span><br><span class="line">                                     发现问题 → /codex:rescue fix the critical issue</span><br></pre></td></tr></table></figure>
+
+<p>这条链路最适合“已经写完，但还不想马上 push”的时刻。</p>
+<h3 id="流程-B：CI-红灯时，把调查先委派出去"><a href="#流程-B：CI-红灯时，把调查先委派出去" class="headerlink" title="流程 B：CI 红灯时，把调查先委派出去"></a>流程 B：CI 红灯时，把调查先委派出去</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">/codex:rescue investigate why the build is failing <span class="keyword">in</span> CI</span><br><span class="line">/codex:rescue --resume apply the top fix from the last run</span><br><span class="line">/codex:review --<span class="built_in">wait</span></span><br></pre></td></tr></table></figure>
+
+<p>这里最有价值的不是“让 Codex 一次修好”，而是把调查和修复串成同一个<br>线程，减少你重复描述上下文的成本。</p>
+<h3 id="流程-C：长时间调查，不阻塞当前工作"><a href="#流程-C：长时间调查，不阻塞当前工作" class="headerlink" title="流程 C：长时间调查，不阻塞当前工作"></a>流程 C：长时间调查，不阻塞当前工作</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">/codex:rescue --background --model gpt-5.4-mini --effort xhigh \</span><br><span class="line">  investigate the flaky integration <span class="built_in">test</span> <span class="keyword">in</span> <span class="built_in">test</span>/auth.test.ts</span><br><span class="line"></span><br><span class="line">/codex:status</span><br><span class="line">/codex:result</span><br></pre></td></tr></table></figure>
+
+<p>如果你本来就习惯让长任务慢慢跑，这条路径会很顺手。</p>
+<hr>
+<h2 id="⚠️-风险与限制"><a href="#⚠️-风险与限制" class="headerlink" title="⚠️ 风险与限制"></a>⚠️ 风险与限制</h2><ul>
+<li>这套链路依赖本机 Codex CLI；当前 README 要求 <code>Node.js 18.18+</code></li>
+<li>如果你还没登录 Codex，需要先跑 <code>/codex:setup</code>，再按提示执行<br><code>!codex login</code></li>
+<li>认证可以走 ChatGPT 账号，也可以走 API key；所有使用量仍计入<br>Codex 配额</li>
+<li>review gate 是可选能力，但它会把 Claude 的停止动作接到 Codex 审查<br>上，形成更长的循环，配额消耗会明显上升</li>
+<li>这篇文章基于我本机当前插件版本整理；命令集、模型别名和执行细节<br>后续都可能变化，发布时最好再核对一次插件 README</li>
+</ul>
+<p>我自己的保守原则是：</p>
+<ul>
+<li>平时默认关闭 review gate</li>
+<li>后台任务才用 <code>status/result/cancel</code> 做显式管理</li>
+<li><code>rescue</code> 只在我接受它继续处理当前工作区时才使用</li>
+</ul>
+<hr>
+<h2 id="🔗-和插件对比文的关系"><a href="#🔗-和插件对比文的关系" class="headerlink" title="🔗 和插件对比文的关系"></a>🔗 和插件对比文的关系</h2><p>如果你现在还在做插件选型，先看这篇：</p>
+<ul>
+<li><a href="./2026-04-02-claude-code-review-plugins-comparison.md">Claude Code Code Review 插件对比：官方插件 vs codex-review</a></li>
+</ul>
+<p>那篇回答的是“我该选谁”；这篇默认你已经决定要在 Claude Code 里接入<br>Codex，所以重点是“接进来以后，怎么把它用成一条稳定工作流”。</p>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li>Codex Plugin 的价值，不是命令数量，而是把 Claude 的主工作流和 Codex 的复核、接手能力接到了一起。</li>
+<li>对日常开发来说，最值得优先建立的是三条路径：提交前审查、问题委派、后台任务管理。</li>
+<li>这篇文章更适合当“当前版本实践记录”来读；具体命令和细节，发布前仍应以插件 README 为准。</li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>你已经在用 Claude Code，希望引入第二个模型视角做复核</li>
+<li>你经常遇到需要长时间调查的 bug 或 CI 问题</li>
+<li>你不想频繁切出 Claude 工作流，再单独打开 Codex CLI</li>
+</ul>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>如果机器上还没有 Codex，这个插件不会替你绕过安装和登录步骤</li>
+<li><code>adversarial-review</code> 更像方案压力测试，不是简单的“更严格 review”</li>
+<li><code>rescue</code> 更适合问题调查和继续处理，不建议在脏工作区里随手乱开</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-07</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-07</td>
+<td>基于校验后的插件能力重写标题与工作流口径，去除高风险命令穷举表述</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Claude/" rel="tag">Claude</a>, <a class="tag-none-link" href="/tags/Codex/" rel="tag">Codex</a>, <a class="tag-none-link" href="/tags/OpenAI/" rel="tag">OpenAI</a>, <a class="tag-none-link" href="/tags/claude-code/" rel="tag">claude-code</a>, <a class="tag-none-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%AE%A1%E6%9F%A5/" rel="tag">代码审查</a>, <a class="tag-none-link" href="/tags/%E6%8F%92%E4%BB%B6/" rel="tag">插件</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" GitHub Actions CI 最小落地方案：从计划到可实施门禁" href="/2026/04/03/tech/tools/2026-04-04-github-actions-ci-minimal-implementation-guide/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链" href="/2026/04/07/tech/ai/2026-04-07-openspec-toolchain-integration-practice/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">🔍 这篇文章解决什么问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E8%B0%83%E7%A0%94"><span class="toc-number">2.1.</span> <span class="toc-text">方案调研</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AD-%E5%BD%93%E5%89%8D%E7%89%88%E6%9C%AC%E8%83%BD%E5%8A%9B%E8%BE%B9%E7%95%8C"><span class="toc-number">3.</span> <span class="toc-text">🧭 当前版本能力边界</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E4%B8%89%E7%B1%BB%E6%A0%B8%E5%BF%83%E5%B7%A5%E4%BD%9C%E6%B5%81"><span class="toc-number">4.</span> <span class="toc-text">🚧 三类核心工作流</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%AE%A1%E6%9F%A5%EF%BC%9Areview-%E5%92%8C-adversarial-review"><span class="toc-number">4.1.</span> <span class="toc-text">1. 审查：review 和 adversarial-review</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A7%94%E6%B4%BE%EF%BC%9Arescue"><span class="toc-number">4.2.</span> <span class="toc-text">2. 委派：rescue</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%E7%AE%A1%E7%90%86%EF%BC%9Astatus-result-cancel"><span class="toc-number">4.3.</span> <span class="toc-text">3. 后台任务管理：status &#x2F; result &#x2F; cancel</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AA-%E5%85%B8%E5%9E%8B%E4%BD%BF%E7%94%A8%E8%B7%AF%E5%BE%84"><span class="toc-number">5.</span> <span class="toc-text">🧪 典型使用路径</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-A%EF%BC%9A%E6%8F%90%E4%BA%A4%E5%89%8D%E5%8F%8C%E5%BC%95%E6%93%8E%E5%AE%A1%E6%9F%A5"><span class="toc-number">5.1.</span> <span class="toc-text">流程 A：提交前双引擎审查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-B%EF%BC%9ACI-%E7%BA%A2%E7%81%AF%E6%97%B6%EF%BC%8C%E6%8A%8A%E8%B0%83%E6%9F%A5%E5%85%88%E5%A7%94%E6%B4%BE%E5%87%BA%E5%8E%BB"><span class="toc-number">5.2.</span> <span class="toc-text">流程 B：CI 红灯时，把调查先委派出去</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-C%EF%BC%9A%E9%95%BF%E6%97%B6%E9%97%B4%E8%B0%83%E6%9F%A5%EF%BC%8C%E4%B8%8D%E9%98%BB%E5%A1%9E%E5%BD%93%E5%89%8D%E5%B7%A5%E4%BD%9C"><span class="toc-number">5.3.</span> <span class="toc-text">流程 C：长时间调查，不阻塞当前工作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A0%EF%B8%8F-%E9%A3%8E%E9%99%A9%E4%B8%8E%E9%99%90%E5%88%B6"><span class="toc-number">6.</span> <span class="toc-text">⚠️ 风险与限制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%97-%E5%92%8C%E6%8F%92%E4%BB%B6%E5%AF%B9%E6%AF%94%E6%96%87%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">7.</span> <span class="toc-text">🔗 和插件对比文的关系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">8.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">8.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">8.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

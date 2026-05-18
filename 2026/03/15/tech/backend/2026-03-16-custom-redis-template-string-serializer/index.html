@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>自定义 RedisTemplate 使用 StringRedisSerializer 避免双重引号问题 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-custom-redis-template-string-serializer/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Redis, RedisTemplate, Spring Boot, StringRedisSerializer, 序列化, 踩坑记录" />
+  
+  <meta name="description" content="通过自定义 RedisTemplate 统一使用 StringRedisSerializer，避免 ObjectMapper 二次序列化导致的双重双引号包裹问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自定义 RedisTemplate 使用 StringRedisSerializer 避免双重引号问题">
+<meta property="og:url" content="https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-custom-redis-template-string-serializer/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="通过自定义 RedisTemplate 统一使用 StringRedisSerializer，避免 ObjectMapper 二次序列化导致的双重双引号包裹问题">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-custom-redis-template-string-serializer/diagram_20260417_090109_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-custom-redis-template-string-serializer/diagram_20260417_145427_00.webp">
+<meta property="article:published_time" content="2026-03-15T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Redis">
+<meta property="article:tag" content="RedisTemplate">
+<meta property="article:tag" content="Spring Boot">
+<meta property="article:tag" content="StringRedisSerializer">
+<meta property="article:tag" content="序列化">
+<meta property="article:tag" content="踩坑记录">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-custom-redis-template-string-serializer/diagram_20260417_090109_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"自定义 RedisTemplate 使用 StringRedisSerializer 避免双重引号问题","description":"通过自定义 RedisTemplate 统一使用 StringRedisSerializer，避免 ObjectMapper 二次序列化导致的双重双引号包裹问题","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-15T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-custom-redis-template-string-serializer/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/15/tech/backend/2026-03-16-custom-redis-template-string-serializer/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">自定义 RedisTemplate 使用 StringRedisSerializer 避免双重引号问题</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-15T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-16</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~11.43K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.1.</span> <span class="toc-text">问题一句话</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E9%80%89%E6%8B%A9%E5%86%B3%E7%AD%96"><span class="toc-number">1.2.</span> <span class="toc-text">序列化器选择决策</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">方案对比速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%8830-%E7%A7%92%E5%A4%8D%E5%88%B6%E5%8F%AF%E7%94%A8%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">解决方案（30 秒复制可用）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">2.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">2.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">2.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E9%97%AE%E9%A2%98%E6%A0%B9%E5%9B%A0"><span class="toc-number">3.</span> <span class="toc-text">🔍 问题根因</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E6%AC%A1%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-number">3.1.</span> <span class="toc-text">二次序列化的本质</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%97%B6%E7%9A%84%E8%BF%9E%E9%94%81%E5%8F%8D%E5%BA%94"><span class="toc-number">3.2.</span> <span class="toc-text">反序列化时的连锁反应</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">4.</span> <span class="toc-text">🔍 方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">序列化器全景对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%90%86%E7%94%B1"><span class="toc-number">4.2.</span> <span class="toc-text">选择理由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.</span> <span class="toc-text">💡 核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89-RedisTemplate%EF%BC%88%E5%AE%8C%E5%85%A8%E6%8E%A7%E5%88%B6%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">方式一：自定义 RedisTemplate（完全控制）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8-StringRedisTemplate%EF%BC%88%E9%9B%B6%E9%85%8D%E7%BD%AE%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">方式二：直接使用 StringRedisTemplate（零配置）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E6%80%8E%E4%B9%88%E9%80%89%EF%BC%9F"><span class="toc-number">5.3.</span> <span class="toc-text">两种方式怎么选？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">5.4.</span> <span class="toc-text">关键点说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">6.1.</span> <span class="toc-text">效果对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Hash-%E6%93%8D%E4%BD%9C%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.2.</span> <span class="toc-text">Hash 操作示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">6.3.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.4.</span> <span class="toc-text">最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9AStringRedisTemplate-%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89-RedisTemplate-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">7.1.</span> <span class="toc-text">Q1：StringRedisTemplate 和自定义 RedisTemplate&lt;String, String&gt; 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9A%E5%A6%82%E6%9E%9C%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%97%A2%E8%A6%81%E5%AD%98%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%8C%E5%8F%88%E8%A6%81%E7%9B%B4%E6%8E%A5%E5%AD%98%E5%AF%B9%E8%B1%A1%EF%BC%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.2.</span> <span class="toc-text">Q2：如果项目中既要存字符串，又要直接存对象，怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9AGenericJackson2JsonRedisSerializer-%E5%AD%98%E5%85%A5%E7%9A%84%E6%95%B0%E6%8D%AE%E5%B8%A6-class-%E5%AD%97%E6%AE%B5%EF%BC%8C%E5%BE%88%E5%8D%A0%E7%A9%BA%E9%97%B4%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.3.</span> <span class="toc-text">Q3：GenericJackson2JsonRedisSerializer 存入的数据带 @class 字段，很占空间怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E4%BB%8E-JDK-%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E8%BF%81%E7%A7%BB%E5%88%B0-StringRedisSerializer%EF%BC%8C%E6%97%A7%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.4.</span> <span class="toc-text">Q4：从 JDK 序列化器迁移到 StringRedisSerializer，旧数据怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9A%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E7%9A%84%E9%80%89%E6%8B%A9%E4%BC%9A%E5%BD%B1%E5%93%8D-Redis-%E6%80%A7%E8%83%BD%E5%90%97%EF%BC%9F"><span class="toc-number">7.5.</span> <span class="toc-text">Q5：序列化器的选择会影响 Redis 性能吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">8.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：解决 Redis 存储值被 <code>&quot;&quot;&quot;&quot;</code> 双重双引号包裹的序列化陷阱。</p>
+<p>💡 <strong>核心理念</strong>：让 RedisTemplate 只做纯字符串存取，序列化的活交给业务层自己控制。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3-分钟速览版"><a href="#📖-3-分钟速览版" class="headerlink" title="📖 3 分钟速览版"></a>📖 3 分钟速览版</h2><details>
+<summary><strong>📊 点击展开核心概念</strong></summary>
+
+<h3 id="问题一句话"><a href="#问题一句话" class="headerlink" title="问题一句话"></a>问题一句话</h3><p>业务层用 <code>ObjectMapper</code> 把对象转成 JSON 字符串后，<code>Jackson2JsonRedisSerializer</code> 又给它序列化了一遍，导致 Redis 里的值变成 <code>&quot;\&quot;...\&quot;&quot;</code> 双重引号结构。</p>
+<h3 id="序列化器选择决策"><a href="#序列化器选择决策" class="headerlink" title="序列化器选择决策"></a>序列化器选择决策</h3><pre class="mermaid">graph TD
+    A{"业务层是否已用 ObjectMapper 序列化?"} -->|"是"| B["使用 StringRedisSerializer"]
+    A -->|"否，直接存对象"| C["使用 Jackson2JsonRedisSerializer"]
+    B --> D["RedisTemplate 只做字符串搬运"]
+    C --> E["RedisTemplate 自动处理序列化"]
+
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-custom-redis-template-string-serializer/diagram_20260417_090109_00.webp" alt="序列化器选择决策图：业务层是否已用 ObjectMapper 序列化、使用 StringRedisSerializer、使用 Jackson2JsonRedisSerializer"></p>
+</details>
+
+<h3 id="方案对比速查"><a href="#方案对比速查" class="headerlink" title="方案对比速查"></a>方案对比速查</h3><table>
+<thead>
+<tr>
+<th>序列化器</th>
+<th>Key 可读</th>
+<th>Value 可读</th>
+<th>自动序列化对象</th>
+<th>二次序列化风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JDK 默认</td>
+<td>❌ 乱码</td>
+<td>❌ 乱码</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>Jackson2Json</td>
+<td>✅</td>
+<td>⚠️ 已序列化字符串会被二次包裹</td>
+<td>✅</td>
+<td>⚠️ 高</td>
+</tr>
+<tr>
+<td><strong>StringRedis</strong></td>
+<td>✅</td>
+<td>✅ 所见即所得</td>
+<td>❌ 需手动</td>
+<td>❌ 无</td>
+</tr>
+</tbody></table>
+<h3 id="解决方案（30-秒复制可用）"><a href="#解决方案（30-秒复制可用）" class="headerlink" title="解决方案（30 秒复制可用）"></a>解决方案（30 秒复制可用）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> RedisTemplate&lt;String, String&gt; <span class="title function_">redisTemplate</span><span class="params">(RedisConnectionFactory factory)</span> &#123;</span><br><span class="line">    RedisTemplate&lt;String, String&gt; template = <span class="keyword">new</span> <span class="title class_">RedisTemplate</span>&lt;&gt;();</span><br><span class="line">    template.setConnectionFactory(factory);</span><br><span class="line">    <span class="type">StringRedisSerializer</span> <span class="variable">s</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringRedisSerializer</span>();</span><br><span class="line">    template.setKeySerializer(s);</span><br><span class="line">    template.setValueSerializer(s);</span><br><span class="line">    template.setHashKeySerializer(s);</span><br><span class="line">    template.setHashValueSerializer(s);</span><br><span class="line">    template.afterPropertiesSet();</span><br><span class="line">    <span class="keyword">return</span> template;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>或者更简单：直接注入 Spring Boot 自动配置的 <code>StringRedisTemplate</code>。</p>
+</blockquote>
+</details>
+
+<hr>
+<h2 id="📋-问题背景"><a href="#📋-问题背景" class="headerlink" title="📋 问题背景"></a>📋 问题背景</h2><h3 id="业务场景"><a href="#业务场景" class="headerlink" title="业务场景"></a>业务场景</h3><p>在 Spring Boot 项目中使用 Redis 缓存数据，业务代码先用 <code>ObjectMapper</code> 将对象序列化为 JSON 字符串，再通过 <code>RedisTemplate</code> 写入 Redis。从 Redis 读取后，再用 <code>ObjectMapper</code> 反序列化回对象。</p>
+<p>一个典型的操作流程：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 写入</span></span><br><span class="line"><span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> objectMapper.writeValueAsString(user);</span><br><span class="line">redisTemplate.opsForValue().set(<span class="string">&quot;user:1001&quot;</span>, json);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 读取</span></span><br><span class="line"><span class="type">String</span> <span class="variable">cached</span> <span class="operator">=</span> (String) redisTemplate.opsForValue().get(<span class="string">&quot;user:1001&quot;</span>);</span><br><span class="line"><span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> objectMapper.readValue(cached, User.class);</span><br></pre></td></tr></table></figure>
+
+<h3 id="痛点分析"><a href="#痛点分析" class="headerlink" title="痛点分析"></a>痛点分析</h3><ul>
+<li><strong>双重引号</strong>：使用 <code>Jackson2JsonRedisSerializer</code> 或 <code>GenericJackson2JsonRedisSerializer</code> 作为 value 序列化器时，已经是 JSON 字符串的值会被<strong>再次序列化</strong>，变成 <code>&quot;\&quot;{&quot;name&quot;:&quot;张三&quot;}\&quot;&quot;</code></li>
+<li><strong>Key 乱码</strong>：Redis 中存储的 key 带有 <code>\xac\xed\x00\x05t\x00</code> 等 JDK 序列化前缀，用 <code>redis-cli</code> 完全不可读</li>
+<li><strong>Hash 字段污染</strong>：Hash 结构的 hashKey 和 hashValue 同样被序列化器污染，排查问题时在 Redis 客户端看到的数据无法理解</li>
+</ul>
+<h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><p>让 Redis 中存储的 key 和 value 都是<strong>干净的纯字符串</strong>，用 <code>redis-cli</code> 或可视化工具能直接看到可读内容。</p>
+<hr>
+<h2 id="🔍-问题根因"><a href="#🔍-问题根因" class="headerlink" title="🔍 问题根因"></a>🔍 问题根因</h2><h3 id="二次序列化的本质"><a href="#二次序列化的本质" class="headerlink" title="二次序列化的本质"></a>二次序列化的本质</h3><p><code>Jackson2JsonRedisSerializer</code> 的职责是：<strong>把 Java 对象序列化为 JSON 字节数组</strong>。当你传入一个 <code>String</code> 类型的值（比如已经是 JSON 的字符串），它会把这个 <code>String</code> <strong>当作一个普通 Java 对象</strong>，再调用 <code>ObjectMapper.writeValueAsBytes()</code> 序列化一遍。</p>
+<p>结果就是：</p>
+<ul>
+<li>原始 JSON 字符串：<code>{&quot;name&quot;:&quot;张三&quot;,&quot;age&quot;:25}</code></li>
+<li>被 Jackson 再包一层：<code>&quot;{&quot;name&quot;:&quot;张三&quot;,&quot;age&quot;:25}&quot;</code> → 字节数组中变成 <code>\&quot;{\\&quot;name\\&quot;:\\&quot;张三\\&quot;,\\&quot;age\\&quot;:25}\&quot;</code></li>
+</ul>
+<pre class="mermaid">graph TD
+    A["业务代码: objectMapper.writeValueAsString(user)"] -->|"得到 JSON 字符串"| B["{\"name\":\"张三\"}"]
+    B -->|"传入 redisTemplate.set()"| C{"Value 序列化器?"}
+    C -->|"Jackson2JsonRedisSerializer"| D["再次序列化: 外加引号+转义"]
+    C -->|"StringRedisSerializer"| E["原样写入: 纯字节拷贝"]
+
+    style D fill:#ffccbc,stroke:#333,color:#000
+    style E fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-16-custom-redis-template-string-serializer/diagram_20260417_145427_00.webp" alt="再次序列化原理图解：业务代码、JSON 字符串、Value 序列化器选择分支"></p>
+</details>
+
+<h3 id="反序列化时的连锁反应"><a href="#反序列化时的连锁反应" class="headerlink" title="反序列化时的连锁反应"></a>反序列化时的连锁反应</h3><p>双重引号不只是”看起来不好”，它会导致<strong>读取时反序列化失败</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Redis 中存的是: &quot;\&quot;&#123;&quot;name&quot;:&quot;张三&quot;&#125;\&quot;&quot;</span></span><br><span class="line"><span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> redisTemplate.opsForValue().get(<span class="string">&quot;user:1001&quot;</span>);</span><br><span class="line"><span class="comment">// json 的值是: &quot;&#123;&quot;name&quot;:&quot;张三&quot;&#125;&quot;  （带外层引号的字符串）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 直接反序列化会报错或得到错误结果</span></span><br><span class="line"><span class="type">User</span> <span class="variable">user</span> <span class="operator">=</span> objectMapper.readValue(json, User.class);</span><br><span class="line"><span class="comment">// JsonParseException: Unexpected character (&#x27;&quot;&#x27; ...)</span></span><br></pre></td></tr></table></figure>
+
+<p>你不得不先 <code>objectMapper.readValue(json, String.class)</code> 脱掉一层引号，再做一次反序列化——完全是多余的操作。</p>
+<hr>
+<h2 id="🔍-方案对比"><a href="#🔍-方案对比" class="headerlink" title="🔍 方案对比"></a>🔍 方案对比</h2><h3 id="序列化器全景对比"><a href="#序列化器全景对比" class="headerlink" title="序列化器全景对比"></a>序列化器全景对比</h3><table>
+<thead>
+<tr>
+<th>序列化器</th>
+<th>原理</th>
+<th>Key 可读</th>
+<th>Value 可读</th>
+<th>适用场景</th>
+<th>二次序列化风险</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>JdkSerializationRedisSerializer</code></td>
+<td>Java 原生序列化</td>
+<td>❌</td>
+<td>❌</td>
+<td>不推荐</td>
+<td>无（但有乱码）</td>
+</tr>
+<tr>
+<td><code>Jackson2JsonRedisSerializer</code></td>
+<td>Jackson ObjectMapper</td>
+<td>✅</td>
+<td>⚠️ 字符串被再包一层</td>
+<td>直接存 Java 对象</td>
+<td>⚠️ 高</td>
+</tr>
+<tr>
+<td><code>GenericJackson2JsonRedisSerializer</code></td>
+<td>Jackson + 类型信息</td>
+<td>✅</td>
+<td>⚠️ 同上 + <code>@class</code> 字段</td>
+<td>需要多态反序列化</td>
+<td>⚠️ 高</td>
+</tr>
+<tr>
+<td><code>StringRedisSerializer</code></td>
+<td>UTF-8 字节拷贝</td>
+<td>✅</td>
+<td>✅ 所见即所得</td>
+<td>业务层已有序列化</td>
+<td>❌ 无</td>
+</tr>
+</tbody></table>
+<h3 id="选择理由"><a href="#选择理由" class="headerlink" title="选择理由"></a>选择理由</h3><p>选择 <code>StringRedisSerializer</code>。在大多数项目中，业务层已经在用 <code>ObjectMapper</code> 做序列化，RedisTemplate 只需要做<strong>纯粹的字符串搬运</strong>。让序列化职责明确归属业务层，避免框架层的隐式二次序列化。</p>
+<hr>
+<h2 id="💡-核心实现"><a href="#💡-核心实现" class="headerlink" title="💡 核心实现"></a>💡 核心实现</h2><h3 id="方式一：自定义-RedisTemplate（完全控制）"><a href="#方式一：自定义-RedisTemplate（完全控制）" class="headerlink" title="方式一：自定义 RedisTemplate（完全控制）"></a>方式一：自定义 RedisTemplate（完全控制）</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.data.redis.connection.RedisConnectionFactory;</span><br><span class="line"><span class="keyword">import</span> org.springframework.data.redis.core.RedisTemplate;</span><br><span class="line"><span class="keyword">import</span> org.springframework.data.redis.serializer.StringRedisSerializer;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RedisConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RedisTemplate&lt;String, String&gt; <span class="title function_">redisTemplate</span><span class="params">(RedisConnectionFactory connectionFactory)</span> &#123;</span><br><span class="line">        RedisTemplate&lt;String, String&gt; template = <span class="keyword">new</span> <span class="title class_">RedisTemplate</span>&lt;&gt;();</span><br><span class="line">        template.setConnectionFactory(connectionFactory);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 统一使用 StringRedisSerializer</span></span><br><span class="line">        <span class="type">StringRedisSerializer</span> <span class="variable">serializer</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringRedisSerializer</span>();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// key 和 value</span></span><br><span class="line">        template.setKeySerializer(serializer);</span><br><span class="line">        template.setValueSerializer(serializer);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// hash 的 key 和 value —— 不要遗漏！</span></span><br><span class="line">        template.setHashKeySerializer(serializer);</span><br><span class="line">        template.setHashValueSerializer(serializer);</span><br><span class="line"></span><br><span class="line">        template.afterPropertiesSet();</span><br><span class="line">        <span class="keyword">return</span> template;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="方式二：直接使用-StringRedisTemplate（零配置）"><a href="#方式二：直接使用-StringRedisTemplate（零配置）" class="headerlink" title="方式二：直接使用 StringRedisTemplate（零配置）"></a>方式二：直接使用 StringRedisTemplate（零配置）</h3><p>Spring Boot 自动配置会注册一个 <code>StringRedisTemplate</code> Bean，它内部<strong>已经</strong>使用 <code>StringRedisSerializer</code> 配置了所有四个序列化器：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserCacheService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 直接注入，无需自定义 @Bean</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> StringRedisTemplate stringRedisTemplate;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ObjectMapper objectMapper;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">UserCacheService</span><span class="params">(StringRedisTemplate stringRedisTemplate,</span></span><br><span class="line"><span class="params">                            ObjectMapper objectMapper)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.stringRedisTemplate = stringRedisTemplate;</span><br><span class="line">        <span class="built_in">this</span>.objectMapper = objectMapper;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">cacheUser</span><span class="params">(String userId, User user)</span> <span class="keyword">throws</span> JsonProcessingException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> <span class="string">&quot;user:&quot;</span> + userId;</span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> objectMapper.writeValueAsString(user);</span><br><span class="line">        stringRedisTemplate.opsForValue().set(key, json, Duration.ofHours(<span class="number">1</span>));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> User <span class="title function_">getUser</span><span class="params">(String userId)</span> <span class="keyword">throws</span> JsonProcessingException &#123;</span><br><span class="line">        <span class="type">String</span> <span class="variable">key</span> <span class="operator">=</span> <span class="string">&quot;user:&quot;</span> + userId;</span><br><span class="line">        <span class="type">String</span> <span class="variable">json</span> <span class="operator">=</span> stringRedisTemplate.opsForValue().get(key);</span><br><span class="line">        <span class="keyword">if</span> (json == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> objectMapper.readValue(json, User.class);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="两种方式怎么选？"><a href="#两种方式怎么选？" class="headerlink" title="两种方式怎么选？"></a>两种方式怎么选？</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>纯字符串操作，无特殊需求</td>
+<td>方式二：直接注入 <code>StringRedisTemplate</code></td>
+</tr>
+<tr>
+<td>需要自定义连接池、超时、重试策略</td>
+<td>方式一：自定义 <code>RedisTemplate&lt;String, String&gt;</code></td>
+</tr>
+<tr>
+<td>部分操作存字符串，部分存对象</td>
+<td>声明两个 Bean，分别使用不同序列化器</td>
+</tr>
+</tbody></table>
+<h3 id="关键点说明"><a href="#关键点说明" class="headerlink" title="关键点说明"></a>关键点说明</h3><ul>
+<li><strong>泛型声明为 <code>&lt;String, String&gt;</code></strong>：编译期就能发现类型错误，避免运行时 <code>ClassCastException</code></li>
+<li><strong>四个序列化器全部设置</strong>：<code>keySerializer</code>、<code>valueSerializer</code>、<code>hashKeySerializer</code>、<code>hashValueSerializer</code> 缺一不可，遗漏的部分会回退到 JDK 默认序列化器</li>
+<li><strong>调用 <code>afterPropertiesSet()</code></strong>：触发 RedisTemplate 的初始化逻辑，确保所有配置生效</li>
+</ul>
+<hr>
+<h2 id="🚧-生产实践"><a href="#🚧-生产实践" class="headerlink" title="🚧 生产实践"></a>🚧 生产实践</h2><h3 id="效果对比"><a href="#效果对比" class="headerlink" title="效果对比"></a>效果对比</h3><p>在 <code>redis-cli</code> 中查看存储效果：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ❌ JDK 默认序列化器 —— 完全不可读</span></span><br><span class="line">127.0.0.1:6379&gt; KEYS *</span><br><span class="line">1) <span class="string">&quot;\xac\xed\x00\x05t\x00\x09user:1001&quot;</span></span><br><span class="line"></span><br><span class="line">127.0.0.1:6379&gt; GET <span class="string">&quot;\xac\xed\x00\x05t\x00\x09user:1001&quot;</span></span><br><span class="line"><span class="string">&quot;\xac\xed\x00\x05t\x00\x1b&#123;\&quot;name\&quot;:\&quot;\xe5\xbc\xa0\xe4\xb8\x89\&quot;&#125;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ⚠️ Jackson2JsonRedisSerializer —— Key 可读，Value 双重引号</span></span><br><span class="line">127.0.0.1:6379&gt; GET <span class="string">&quot;user:1001&quot;</span></span><br><span class="line"><span class="string">&quot;\&quot;&#123;\\\&quot;name\\\&quot;:\\\&quot;张三\\\&quot;,\\\&quot;age\\\&quot;:25&#125;\&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ✅ StringRedisSerializer —— 干净可读</span></span><br><span class="line">127.0.0.1:6379&gt; GET <span class="string">&quot;user:1001&quot;</span></span><br><span class="line"><span class="string">&quot;&#123;\&quot;name\&quot;:\&quot;张三\&quot;,\&quot;age\&quot;:25&#125;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Hash-操作示例"><a href="#Hash-操作示例" class="headerlink" title="Hash 操作示例"></a>Hash 操作示例</h3><p>Hash 结构也是重灾区，hashKey 和 hashValue 都可能被污染：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 使用 StringRedisSerializer 后，Hash 操作同样干净</span></span><br><span class="line">Map&lt;String, String&gt; userMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">userMap.put(<span class="string">&quot;name&quot;</span>, <span class="string">&quot;张三&quot;</span>);</span><br><span class="line">userMap.put(<span class="string">&quot;age&quot;</span>, <span class="string">&quot;25&quot;</span>);</span><br><span class="line">userMap.put(<span class="string">&quot;email&quot;</span>, <span class="string">&quot;zhangsan@example.com&quot;</span>);</span><br><span class="line"></span><br><span class="line">stringRedisTemplate.opsForHash().putAll(<span class="string">&quot;user:1001:info&quot;</span>, userMap);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># redis-cli 查看 —— field 和 value 都是可读字符串</span></span><br><span class="line">127.0.0.1:6379&gt; HGETALL <span class="string">&quot;user:1001:info&quot;</span></span><br><span class="line">1) <span class="string">&quot;name&quot;</span></span><br><span class="line">2) <span class="string">&quot;张三&quot;</span></span><br><span class="line">3) <span class="string">&quot;age&quot;</span></span><br><span class="line">4) <span class="string">&quot;25&quot;</span></span><br><span class="line">5) <span class="string">&quot;email&quot;</span></span><br><span class="line">6) <span class="string">&quot;zhangsan@example.com&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="常见坑点"><a href="#常见坑点" class="headerlink" title="常见坑点"></a>常见坑点</h3><ol>
+<li><p><strong>两个 Bean 冲突导致注入歧义</strong></p>
+<ul>
+<li><strong>现象</strong>：<code>NoUniqueBeanDefinitionException</code>，Spring 找到两个 <code>RedisTemplate</code> Bean</li>
+<li><strong>原因</strong>：自定义了 <code>RedisTemplate&lt;String, String&gt;</code>，同时 Spring Boot 自动配置也注册了 <code>StringRedisTemplate</code></li>
+<li><strong>解决</strong>：用 <code>@Qualifier</code> 指定，或干脆只用其中一个。推荐：如果不需要定制，直接用 <code>StringRedisTemplate</code>，删掉自定义 Bean</li>
+</ul>
+</li>
+<li><p><strong>存入非字符串类型编译报错</strong></p>
+<ul>
+<li><strong>现象</strong>：<code>redisTemplate.opsForValue().set(&quot;key&quot;, userObject)</code> 编译不通过</li>
+<li><strong>原因</strong>：泛型声明为 <code>&lt;String, String&gt;</code>，value 只接受 <code>String</code> 类型</li>
+<li><strong>解决</strong>：先用 <code>objectMapper.writeValueAsString()</code> 转为字符串再存入——这正是设计意图</li>
+</ul>
+</li>
+<li><p><strong>Hash 序列化器遗漏</strong></p>
+<ul>
+<li><strong>现象</strong>：<code>opsForValue()</code> 正常，但 <code>opsForHash()</code> 的 field 出现 <code>\xac\xed</code> 乱码前缀</li>
+<li><strong>原因</strong>：只设置了 <code>keySerializer</code> 和 <code>valueSerializer</code>，没有设置 <code>hashKeySerializer</code> 和 <code>hashValueSerializer</code></li>
+<li><strong>解决</strong>：四个序列化器必须全部显式设置</li>
+</ul>
+</li>
+<li><p><strong>RedisTemplate 和 StringRedisTemplate 混用</strong></p>
+<ul>
+<li><strong>现象</strong>：同一个 key，用 <code>RedisTemplate</code>（JDK 序列化）写入，用 <code>StringRedisTemplate</code> 读取，返回 <code>null</code></li>
+<li><strong>原因</strong>：两者的 key 序列化方式不同，<code>RedisTemplate</code> 写入的 key 带 JDK 前缀，<code>StringRedisTemplate</code> 按纯字符串查找</li>
+<li><strong>解决</strong>：项目中统一使用一种 Template，不要混用</li>
+</ul>
+</li>
+</ol>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><ul>
+<li><strong>统一入口</strong>：所有 Redis 操作封装到 Service 层，禁止在 Controller 或其他地方直接操作 Template</li>
+<li><strong>序列化职责分离</strong>：RedisTemplate 负责传输，<code>ObjectMapper</code> 负责序列化——各司其职</li>
+<li><strong>Key 命名规范</strong>：使用 <code>业务:模块:id</code> 格式，如 <code>user:cache:1001</code>、<code>order:lock:20001</code></li>
+<li><strong>加过期时间</strong>：永远不要写没有 TTL 的缓存，避免 Redis 内存无限增长</li>
+</ul>
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1：StringRedisTemplate-和自定义-RedisTemplate-有什么区别？"><a href="#Q1：StringRedisTemplate-和自定义-RedisTemplate-有什么区别？" class="headerlink" title="Q1：StringRedisTemplate 和自定义 RedisTemplate&lt;String, String&gt; 有什么区别？"></a>Q1：StringRedisTemplate 和自定义 RedisTemplate&lt;String, String&gt; 有什么区别？</h3><p>本质上没有区别。<code>StringRedisTemplate</code> 是 <code>RedisTemplate&lt;String, String&gt;</code> 的子类，构造函数里已经把四个序列化器设置为 <code>StringRedisSerializer</code>。如果不需要额外定制，直接用 <code>StringRedisTemplate</code> 更简洁。</p>
+<h3 id="Q2：如果项目中既要存字符串，又要直接存对象，怎么办？"><a href="#Q2：如果项目中既要存字符串，又要直接存对象，怎么办？" class="headerlink" title="Q2：如果项目中既要存字符串，又要直接存对象，怎么办？"></a>Q2：如果项目中既要存字符串，又要直接存对象，怎么办？</h3><p>声明两个 Bean：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="keyword">public</span> StringRedisTemplate <span class="title function_">stringRedisTemplate</span><span class="params">(RedisConnectionFactory factory)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">StringRedisTemplate</span>(factory);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Bean(&quot;jsonRedisTemplate&quot;)</span></span><br><span class="line"><span class="keyword">public</span> RedisTemplate&lt;String, Object&gt; <span class="title function_">jsonRedisTemplate</span><span class="params">(RedisConnectionFactory factory)</span> &#123;</span><br><span class="line">    RedisTemplate&lt;String, Object&gt; template = <span class="keyword">new</span> <span class="title class_">RedisTemplate</span>&lt;&gt;();</span><br><span class="line">    template.setConnectionFactory(factory);</span><br><span class="line">    template.setKeySerializer(<span class="keyword">new</span> <span class="title class_">StringRedisSerializer</span>());</span><br><span class="line">    template.setValueSerializer(<span class="keyword">new</span> <span class="title class_">Jackson2JsonRedisSerializer</span>&lt;&gt;(Object.class));</span><br><span class="line">    template.setHashKeySerializer(<span class="keyword">new</span> <span class="title class_">StringRedisSerializer</span>());</span><br><span class="line">    template.setHashValueSerializer(<span class="keyword">new</span> <span class="title class_">Jackson2JsonRedisSerializer</span>&lt;&gt;(Object.class));</span><br><span class="line">    template.afterPropertiesSet();</span><br><span class="line">    <span class="keyword">return</span> template;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用 <code>jsonRedisTemplate</code> 时，<strong>不要在业务层提前序列化</strong>，直接传对象即可。</p>
+<h3 id="Q3：GenericJackson2JsonRedisSerializer-存入的数据带-class-字段，很占空间怎么办？"><a href="#Q3：GenericJackson2JsonRedisSerializer-存入的数据带-class-字段，很占空间怎么办？" class="headerlink" title="Q3：GenericJackson2JsonRedisSerializer 存入的数据带 @class 字段，很占空间怎么办？"></a>Q3：GenericJackson2JsonRedisSerializer 存入的数据带 @class 字段，很占空间怎么办？</h3><p><code>GenericJackson2JsonRedisSerializer</code> 会在 JSON 中加入 <code>&quot;@class&quot;:&quot;com.example.User&quot;</code> 用于反序列化时定位类型。如果觉得冗余：</p>
+<ul>
+<li>改用 <code>StringRedisSerializer</code> + 业务层手动序列化（推荐）</li>
+<li>或使用指定类型的 <code>Jackson2JsonRedisSerializer&lt;&gt;(User.class)</code>，不带 <code>@class</code></li>
+</ul>
+<h3 id="Q4：从-JDK-序列化器迁移到-StringRedisSerializer，旧数据怎么办？"><a href="#Q4：从-JDK-序列化器迁移到-StringRedisSerializer，旧数据怎么办？" class="headerlink" title="Q4：从 JDK 序列化器迁移到 StringRedisSerializer，旧数据怎么办？"></a>Q4：从 JDK 序列化器迁移到 StringRedisSerializer，旧数据怎么办？</h3><p>旧数据的 key 和 value 都是 JDK 序列化格式，新序列化器无法读取。两种处理方式：</p>
+<ul>
+<li><strong>逐步淘汰</strong>：设置旧 key 的 TTL，等过期后自然切换</li>
+<li><strong>批量迁移</strong>：写脚本用旧序列化器读出、新序列化器写入，然后删除旧 key</li>
+</ul>
+<h3 id="Q5：序列化器的选择会影响-Redis-性能吗？"><a href="#Q5：序列化器的选择会影响-Redis-性能吗？" class="headerlink" title="Q5：序列化器的选择会影响 Redis 性能吗？"></a>Q5：序列化器的选择会影响 Redis 性能吗？</h3><p><code>StringRedisSerializer</code> 只做 UTF-8 字节转换，开销最小。<code>Jackson2JsonRedisSerializer</code> 需要走 ObjectMapper 反射+序列化流程，相对较慢。但在实际生产中，这个差异通常可以忽略——网络 IO 才是 Redis 操作的瓶颈。</p>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><code>Jackson2JsonRedisSerializer</code> 会把已经是 JSON 字符串的 value <strong>再序列化一次</strong>，产生 <code>&quot;&quot;&quot;&quot;</code> 双重引号</li>
+<li>统一使用 <code>StringRedisSerializer</code> 设置 key&#x2F;value&#x2F;hashKey&#x2F;hashValue <strong>四个序列化器</strong>，让 Redis 存取透明化</li>
+<li>序列化职责归业务层（<code>ObjectMapper</code>），RedisTemplate 只做字符串搬运工</li>
+<li>大多数场景下，直接注入 Spring Boot 自动配置的 <code>StringRedisTemplate</code> 就够了，无需自定义</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><p><strong>现在就可以做的</strong>：</p>
+<ul>
+<li>检查项目中 RedisTemplate 的序列化器配置，确认是否存在二次序列化风险</li>
+<li>用 <code>redis-cli</code> 检查线上 Redis 数据是否有乱码或双重引号</li>
+</ul>
+<p><strong>本周可以优化的</strong>：</p>
+<ul>
+<li>将散落在各处的 RedisTemplate 操作统一收拢到 Service 层</li>
+<li>制定 Redis Key 命名规范，避免 key 冲突</li>
+</ul>
+<blockquote>
+<p>记住一条原则：<strong>序列化只做一次，要么业务层做，要么框架做——永远不要叠加</strong>。</p>
+</blockquote>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-16</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-17</td>
+<td>增加 3 分钟速览版、FAQ、Hash 操作示例、迁移指南</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 2 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Redis/" rel="tag">Redis</a>, <a class="tag-none-link" href="/tags/RedisTemplate/" rel="tag">RedisTemplate</a>, <a class="tag-none-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a>, <a class="tag-none-link" href="/tags/StringRedisSerializer/" rel="tag">StringRedisSerializer</a>, <a class="tag-none-link" href="/tags/%E5%BA%8F%E5%88%97%E5%8C%96/" rel="tag">序列化</a>, <a class="tag-none-link" href="/tags/%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" rel="tag">踩坑记录</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" float[][] 矩阵序列化：用 Base64 二进制编码替代 JSON 文本，避免 OOM" href="/2026/03/15/tech/backend/2026-03-16-float-matrix-base64-encoding-avoid-oom/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 数据库迁移实战：Oracle → MySQL → 国产化数据库完整方案" href="/2026/03/22/tech/backend/2026-03-23-database-migration-oracle-mysql-domestic/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.1.</span> <span class="toc-text">问题一句话</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E9%80%89%E6%8B%A9%E5%86%B3%E7%AD%96"><span class="toc-number">1.2.</span> <span class="toc-text">序列化器选择决策</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">方案对比速查</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%8830-%E7%A7%92%E5%A4%8D%E5%88%B6%E5%8F%AF%E7%94%A8%EF%BC%89"><span class="toc-number">1.4.</span> <span class="toc-text">解决方案（30 秒复制可用）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">2.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">2.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">2.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">2.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E9%97%AE%E9%A2%98%E6%A0%B9%E5%9B%A0"><span class="toc-number">3.</span> <span class="toc-text">🔍 问题根因</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E6%AC%A1%E5%BA%8F%E5%88%97%E5%8C%96%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="toc-number">3.1.</span> <span class="toc-text">二次序列化的本质</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%97%B6%E7%9A%84%E8%BF%9E%E9%94%81%E5%8F%8D%E5%BA%94"><span class="toc-number">3.2.</span> <span class="toc-text">反序列化时的连锁反应</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">4.</span> <span class="toc-text">🔍 方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E5%85%A8%E6%99%AF%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">序列化器全景对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E6%8B%A9%E7%90%86%E7%94%B1"><span class="toc-number">4.2.</span> <span class="toc-text">选择理由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E6%A0%B8%E5%BF%83%E5%AE%9E%E7%8E%B0"><span class="toc-number">5.</span> <span class="toc-text">💡 核心实现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%B8%80%EF%BC%9A%E8%87%AA%E5%AE%9A%E4%B9%89-RedisTemplate%EF%BC%88%E5%AE%8C%E5%85%A8%E6%8E%A7%E5%88%B6%EF%BC%89"><span class="toc-number">5.1.</span> <span class="toc-text">方式一：自定义 RedisTemplate（完全控制）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E5%BC%8F%E4%BA%8C%EF%BC%9A%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8-StringRedisTemplate%EF%BC%88%E9%9B%B6%E9%85%8D%E7%BD%AE%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">方式二：直接使用 StringRedisTemplate（零配置）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%B9%E5%BC%8F%E6%80%8E%E4%B9%88%E9%80%89%EF%BC%9F"><span class="toc-number">5.3.</span> <span class="toc-text">两种方式怎么选？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E7%82%B9%E8%AF%B4%E6%98%8E"><span class="toc-number">5.4.</span> <span class="toc-text">关键点说明</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">6.1.</span> <span class="toc-text">效果对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Hash-%E6%93%8D%E4%BD%9C%E7%A4%BA%E4%BE%8B"><span class="toc-number">6.2.</span> <span class="toc-text">Hash 操作示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">6.3.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.4.</span> <span class="toc-text">最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">7.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1%EF%BC%9AStringRedisTemplate-%E5%92%8C%E8%87%AA%E5%AE%9A%E4%B9%89-RedisTemplate-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">7.1.</span> <span class="toc-text">Q1：StringRedisTemplate 和自定义 RedisTemplate&lt;String, String&gt; 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2%EF%BC%9A%E5%A6%82%E6%9E%9C%E9%A1%B9%E7%9B%AE%E4%B8%AD%E6%97%A2%E8%A6%81%E5%AD%98%E5%AD%97%E7%AC%A6%E4%B8%B2%EF%BC%8C%E5%8F%88%E8%A6%81%E7%9B%B4%E6%8E%A5%E5%AD%98%E5%AF%B9%E8%B1%A1%EF%BC%8C%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.2.</span> <span class="toc-text">Q2：如果项目中既要存字符串，又要直接存对象，怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3%EF%BC%9AGenericJackson2JsonRedisSerializer-%E5%AD%98%E5%85%A5%E7%9A%84%E6%95%B0%E6%8D%AE%E5%B8%A6-class-%E5%AD%97%E6%AE%B5%EF%BC%8C%E5%BE%88%E5%8D%A0%E7%A9%BA%E9%97%B4%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.3.</span> <span class="toc-text">Q3：GenericJackson2JsonRedisSerializer 存入的数据带 @class 字段，很占空间怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4%EF%BC%9A%E4%BB%8E-JDK-%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E8%BF%81%E7%A7%BB%E5%88%B0-StringRedisSerializer%EF%BC%8C%E6%97%A7%E6%95%B0%E6%8D%AE%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.4.</span> <span class="toc-text">Q4：从 JDK 序列化器迁移到 StringRedisSerializer，旧数据怎么办？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5%EF%BC%9A%E5%BA%8F%E5%88%97%E5%8C%96%E5%99%A8%E7%9A%84%E9%80%89%E6%8B%A9%E4%BC%9A%E5%BD%B1%E5%93%8D-Redis-%E6%80%A7%E8%83%BD%E5%90%97%EF%BC%9F"><span class="toc-number">7.5.</span> <span class="toc-text">Q5：序列化器的选择会影响 Redis 性能吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">8.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">8.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">8.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

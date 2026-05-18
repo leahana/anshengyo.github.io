@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>电梯底层代码如何判断该停哪一层：从请求表到方向切换的思考 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/25/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Python, SCAN, 状态机, 电梯系统, 群控, 调度算法" />
+  
+  <meta name="description" content="只回答一个问题：电梯控制代码到底如何判断“这一层要不要停， 下一步该继续上、继续下，还是反向”。从请求状态、停靠条件、 方向切换到群控分配，梳理电梯调度的代码视角。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="电梯底层代码如何判断该停哪一层：从请求表到方向切换的思考">
+<meta property="og:url" content="https://leahana.github.io/2026/03/25/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="只回答一个问题：电梯控制代码到底如何判断“这一层要不要停， 下一步该继续上、继续下，还是反向”。从请求状态、停靠条件、 方向切换到群控分配，梳理电梯调度的代码视角。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/diagram_20260417_083050_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/diagram_20260417_093139_00.webp">
+<meta property="article:published_time" content="2026-03-25T19:47:25.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.764Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Python">
+<meta property="article:tag" content="SCAN">
+<meta property="article:tag" content="状态机">
+<meta property="article:tag" content="电梯系统">
+<meta property="article:tag" content="群控">
+<meta property="article:tag" content="调度算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/diagram_20260417_083050_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"电梯底层代码如何判断该停哪一层：从请求表到方向切换的思考","description":"只回答一个问题：电梯控制代码到底如何判断“这一层要不要停， 下一步该继续上、继续下，还是反向”。从请求状态、停靠条件、 方向切换到群控分配，梳理电梯调度的代码视角。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-25T19:47:25.000Z","dateModified":"2026-05-18T05:47:58.764Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/25/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/25/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">电梯底层代码如何判断该停哪一层：从请求表到方向切换的思考</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-25T19:47:25.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-26</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~5.43K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%86%E8%A7%92%E9%87%8C%E7%9A%84%E5%86%B3%E7%AD%96%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.1.</span> <span class="toc-text">代码视角里的决策循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%B5%E6%A2%AF%E4%BB%A3%E7%A0%81%E6%89%8B%E9%87%8C%E7%9A%84%E5%85%B8%E5%9E%8B%E7%8A%B6%E6%80%81"><span class="toc-number">1.2.</span> <span class="toc-text">电梯代码手里的典型状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%88%A4%E6%96%AD%E8%A7%84%E5%88%99"><span class="toc-number">1.3.</span> <span class="toc-text">最小判断规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%8A%8A%E4%BA%BA%E7%9A%84%E9%97%AE%E9%A2%98%E7%BF%BB%E8%AF%91%E6%88%90%E4%BB%A3%E7%A0%81%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">1. 把人的问题翻译成代码问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%BA%95%E5%B1%82%E4%BB%A3%E7%A0%81%E5%88%B0%E5%BA%95%E7%BB%B4%E6%8A%A4%E4%BA%86%E5%93%AA%E4%BA%9B%E6%95%B0%E6%8D%AE"><span class="toc-number">3.</span> <span class="toc-text">2. 底层代码到底维护了哪些数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%9C%80%E5%B8%B8%E8%A7%81%E7%9A%84%E4%B8%89%E5%BC%A0%E8%AF%B7%E6%B1%82%E8%A1%A8"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 最常见的三张请求表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%BF%98%E8%A6%81%E9%85%8D%E5%93%AA%E4%BA%9B%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 还要配哪些运行状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%B0%E4%B8%80%E5%B1%82%E6%A5%BC%E6%97%B6%EF%BC%8C%E4%BB%A3%E7%A0%81%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%B3%E5%AE%9A%E5%81%9C"><span class="toc-number">4.</span> <span class="toc-text">3. 到一层楼时，代码为什么决定停</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%9C%80%E5%85%B8%E5%9E%8B%E7%9A%84%E5%81%9C%E9%9D%A0%E6%9D%A1%E4%BB%B6"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 最典型的停靠条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%80%E4%B8%AA%E6%9B%B4%E6%8E%A5%E8%BF%91%E4%BB%A3%E7%A0%81%E7%9A%84%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 一个更接近代码的伪代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%83%E6%80%8E%E4%B9%88%E5%88%A4%E6%96%AD%E2%80%9C%E5%89%8D%E6%96%B9%E8%BF%98%E6%9C%89%E6%B2%A1%E6%9C%89%E9%9C%80%E6%B1%82%E2%80%9D"><span class="toc-number">5.</span> <span class="toc-text">4. 它怎么判断“前方还有没有需求”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E8%BF%99%E4%B8%80%E6%AD%A5%E6%89%8D%E6%98%AF%E8%B0%83%E5%BA%A6%E6%A0%B8%E5%BF%83"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 这一步才是调度核心</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%80%E4%B8%AA%E6%9C%80%E5%B0%8F-Python-%E7%89%88%E6%9C%AC"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 一个最小 Python 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BE%88%E5%A4%9A%E5%AE%9E%E7%8E%B0%E6%9B%B4%E5%83%8F-LOOK%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E6%A0%87%E5%87%86-SCAN"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 为什么很多实现更像 LOOK，而不是标准 SCAN</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%80%E8%BF%91%E7%9A%84%E9%82%A3%E5%8F%B0%E7%94%B5%E6%A2%AF%E4%B8%8D%E4%B8%80%E5%AE%9A%E6%9D%A5%E6%8E%A5%E4%BD%A0"><span class="toc-number">6.</span> <span class="toc-text">5. 为什么最近的那台电梯不一定来接你</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8D%95%E6%A2%AF%E5%92%8C%E5%A4%9A%E6%A2%AF%E6%98%AF%E4%B8%A4%E5%B1%82%E4%B8%8D%E5%90%8C%E9%97%AE%E9%A2%98"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 单梯和多梯是两层不同问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%BE%A4%E6%8E%A7%E5%B8%B8%E7%9C%8B%E7%9A%84%E4%B8%8D%E6%98%AF%E8%B7%9D%E7%A6%BB%EF%BC%8C%E8%80%8C%E6%98%AF%E4%BB%A3%E4%BB%B7"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 群控常看的不是距离，而是代价</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%88%91%E7%8E%B0%E5%9C%A8%E4%BC%9A%E6%80%8E%E6%A0%B7%E7%90%86%E8%A7%A3%E2%80%9C%E7%94%B5%E6%A2%AF%E4%BB%A3%E7%A0%81%E5%88%A4%E6%96%AD%E5%8E%BB%E5%93%AA%E5%B1%82%E5%81%9C%E2%80%9D"><span class="toc-number">7.</span> <span class="toc-text">6. 我现在会怎样理解“电梯代码判断去哪层停”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%80%E4%B8%AA%E6%9B%B4%E5%AE%8C%E6%95%B4%E7%9A%84%E5%BF%83%E6%99%BA%E6%A8%A1%E5%9E%8B"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 一个更完整的心智模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B8%B8%E8%A7%81%E8%AF%AF%E8%A7%A3"><span class="toc-number">8.</span> <span class="toc-text">7. 常见误解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-FAQ"><span class="toc-number">9.</span> <span class="toc-text">8. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%BD%A6%E5%86%85%E9%80%89%E5%B1%82%E5%92%8C%E5%8E%85%E5%A4%96%E5%91%BC%E5%8F%AB%E8%B0%81%E4%BC%98%E5%85%88"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 车内选层和厅外呼叫谁优先</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BD%93%E5%89%8D%E5%B1%82%E6%98%8E%E6%98%8E%E6%9C%89%E4%BA%BA%E6%8C%89%E5%8F%8D%E6%96%B9%E5%90%91%E6%8C%89%E9%92%AE%EF%BC%8C%E5%AE%83%E5%8D%B4%E4%B8%8D%E5%81%9C"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 为什么当前层明明有人按反方向按钮，它却不停</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%A0%87%E5%87%86-SCAN-%E5%92%8C%E7%9C%9F%E5%AE%9E%E7%94%B5%E6%A2%AF%E6%9C%80%E5%85%B3%E9%94%AE%E7%9A%84%E5%B7%AE%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 标准 SCAN 和真实电梯最关键的差别是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E5%A6%82%E6%9E%9C%E6%BB%A1%E8%BD%BD%E4%BA%86%EF%BC%8C%E5%A4%96%E5%91%BC%E8%BF%98%E4%BC%9A%E5%81%9C%E5%90%97"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 如果满载了，外呼还会停吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-%E7%9C%9F%E6%AD%A3%E7%9A%84%E5%B7%A5%E4%B8%9A%E4%BB%A3%E7%A0%81%E4%BC%9A%E6%AF%94%E8%BF%99%E9%87%8C%E5%A4%8D%E6%9D%82%E5%A4%9A%E5%B0%91"><span class="toc-number">9.5.</span> <span class="toc-text">8.5 真正的工业代码会比这里复杂多少</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">9. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>一句话定位：这篇笔记只关心一件事，<br>电梯代码到底怎么判断该停哪一层。<br>核心理念：电梯不是“算出一个终点再一路开过去”，<br>而是在每一层都基于当前状态重新做一次局部决策。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary>点击展开核心概念</summary>
+
+<h3 id="代码视角里的决策循环"><a href="#代码视角里的决策循环" class="headerlink" title="代码视角里的决策循环"></a>代码视角里的决策循环</h3><pre class="mermaid">graph TD
+    A["读取当前状态"] --> B["当前层要不要停"]
+    B --> C{"停靠条件成立吗"}
+    C -->|是| D["开门 / 上下客 / 清除请求"]
+    C -->|否| E["保持运行"]
+    D --> F["判断前方还有没有需求"]
+    E --> F
+    F -->|有| G["保持当前方向"]
+    F -->|没有| H["反向或待机"]
+    G --> A
+    H --> A
+
+    style A fill:#bbdefb,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,color:#000
+    style F fill:#ffccbc,stroke:#333,color:#000
+    style H fill:#fff9c4,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/diagram_20260417_083050_00.webp" alt="代码视角里的决策循环图解：&quot;读取当前状态&quot;、&quot;当前层要不要停&quot;、停靠条件成立吗"></p>
+</details>
+
+<p>核心不是“先决定最终去哪”，<br>而是“每到一个决策点，重新判断当前层停不停、接下来往哪走”。</p>
+<h3 id="电梯代码手里的典型状态"><a href="#电梯代码手里的典型状态" class="headerlink" title="电梯代码手里的典型状态"></a>电梯代码手里的典型状态</h3><table>
+<thead>
+<tr>
+<th>状态</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>current_floor</code></td>
+<td>当前楼层</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td>当前方向，<code>up/down/idle</code></td>
+</tr>
+<tr>
+<td><code>car_calls</code></td>
+<td>轿厢内选层</td>
+</tr>
+<tr>
+<td><code>hall_up</code></td>
+<td>各层上行外呼</td>
+</tr>
+<tr>
+<td><code>hall_down</code></td>
+<td>各层下行外呼</td>
+</tr>
+<tr>
+<td><code>door_state</code></td>
+<td>门是否可开、是否已关严</td>
+</tr>
+<tr>
+<td><code>load_state</code></td>
+<td>是否满载，能否继续接人</td>
+</tr>
+</tbody></table>
+<h3 id="最小判断规则"><a href="#最小判断规则" class="headerlink" title="最小判断规则"></a>最小判断规则</h3><pre class="mermaid">graph TD
+    A["到达某层"] --> B{"车内有人选了这层吗"}
+    B -->|是| S["停"]
+    B -->|否| C{"当前方向的外呼在这层吗"}
+    C -->|是| S
+    C -->|否| D{"前方已无需求且需要反向吗"}
+    D -->|是| E{"这层正好有反向外呼吗"}
+    E -->|是| S
+    E -->|否| F["不停，改方向"]
+    D -->|否| G["不停，继续当前方向"]
+
+    style S fill:#c8e6c9,stroke:#333,color:#000
+    style F fill:#fff9c4,stroke:#333,color:#000
+    style G fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-26-elevator-scan-algorithm-python-simulation/diagram_20260417_093139_00.webp" alt="最小判断规则图解：&quot;到达某层&quot;、车内有人选了这层吗、&quot;停&quot;"></p>
+</details>
+
+<p>最重要的三句话：</p>
+<ul>
+<li>车内选层通常优先级最高，因为乘客已经在轿厢里。</li>
+<li>外呼通常优先服务“与当前方向一致”的请求。</li>
+<li>只有当前方没有需求时，代码才会考虑反向。</li>
+</ul>
+</details>
+
+<hr>
+<h2 id="1-把人的问题翻译成代码问题"><a href="#1-把人的问题翻译成代码问题" class="headerlink" title="1. 把人的问题翻译成代码问题"></a>1. 把人的问题翻译成代码问题</h2><p>人会问：</p>
+<ul>
+<li>我按了按钮，为什么它不停？</li>
+<li>它明明离我最近，为什么不上来接我？</li>
+<li>为什么它先到 8 楼，再回到 5 楼？</li>
+</ul>
+<p>代码不会这么问。<br>代码更像是在反复回答下面四个问题：</p>
+<ol>
+<li>当前层有没有必须停靠的理由？</li>
+<li>当前方向前方还有没有需求？</li>
+<li>如果没有，是否该反向？</li>
+<li>如果系统里有多台梯，这个外呼应该分给谁？</li>
+</ol>
+<p>这四个问题基本就覆盖了“它为什么停这里、不停那里”的大部分原因。</p>
+<hr>
+<h2 id="2-底层代码到底维护了哪些数据"><a href="#2-底层代码到底维护了哪些数据" class="headerlink" title="2. 底层代码到底维护了哪些数据"></a>2. 底层代码到底维护了哪些数据</h2><h3 id="2-1-最常见的三张请求表"><a href="#2-1-最常见的三张请求表" class="headerlink" title="2.1 最常见的三张请求表"></a>2.1 最常见的三张请求表</h3><p>把问题再压缩一点，<br>电梯控制里最核心的数据往往就是三类请求：</p>
+<table>
+<thead>
+<tr>
+<th>数据结构</th>
+<th>含义</th>
+<th>典型来源</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>car_calls[floor]</code></td>
+<td>轿厢内有人选了哪层</td>
+<td>轿厢按钮</td>
+</tr>
+<tr>
+<td><code>hall_up[floor]</code></td>
+<td>这一层有人要上行</td>
+<td>厅外上按钮</td>
+</tr>
+<tr>
+<td><code>hall_down[floor]</code></td>
+<td>这一层有人要下行</td>
+<td>厅外下按钮</td>
+</tr>
+</tbody></table>
+<p>如果是单梯系统，<br>光靠这三张表就已经能做出一个很像样的调度器。</p>
+<h3 id="2-2-还要配哪些运行状态"><a href="#2-2-还要配哪些运行状态" class="headerlink" title="2.2 还要配哪些运行状态"></a>2.2 还要配哪些运行状态</h3><p>除了请求表，代码还得知道系统现在处在什么状态：</p>
+<table>
+<thead>
+<tr>
+<th>状态</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>current_floor</code></td>
+<td>决定当前检查的是哪一层</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td>决定优先处理哪一侧请求</td>
+</tr>
+<tr>
+<td><code>moving</code></td>
+<td>当前是否在运动中</td>
+</tr>
+<tr>
+<td><code>door_closed</code></td>
+<td>门没关好时通常不能启动</td>
+</tr>
+<tr>
+<td><code>full_load</code></td>
+<td>满载时可能跳过某些外呼</td>
+</tr>
+<tr>
+<td><code>fault</code></td>
+<td>故障态下进入特殊逻辑</td>
+</tr>
+</tbody></table>
+<p>也就是说，<br>“停不停”从来都不是只看一个按钮亮没亮，<br>而是请求状态和运行状态一起判断。</p>
+<hr>
+<h2 id="3-到一层楼时，代码为什么决定停"><a href="#3-到一层楼时，代码为什么决定停" class="headerlink" title="3. 到一层楼时，代码为什么决定停"></a>3. 到一层楼时，代码为什么决定停</h2><h3 id="3-1-最典型的停靠条件"><a href="#3-1-最典型的停靠条件" class="headerlink" title="3.1 最典型的停靠条件"></a>3.1 最典型的停靠条件</h3><p>如果先不考虑故障、消防、满载这些特殊模式，<br>单梯集选控制的停靠判断可以先理解成下面这张表：</p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>一般会不会停</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>当前层有车内选层</td>
+<td>会</td>
+<td>乘客已在轿厢内，优先兑现</td>
+</tr>
+<tr>
+<td>当前层有同向外呼</td>
+<td>会</td>
+<td>顺路接人，代价低</td>
+</tr>
+<tr>
+<td>当前层只有反向外呼，前方仍有需求</td>
+<td>通常不停</td>
+<td>保持方向纪律</td>
+</tr>
+<tr>
+<td>当前层只有反向外呼，前方已无需求</td>
+<td>可能会停</td>
+<td>常作为反向前的最后一次停靠</td>
+</tr>
+</tbody></table>
+<p>这张表就是很多人感受到“电梯怎么这么倔”的根源：<br>它不是没看见反向按钮，<br>而是当前策略不允许它为了这个按钮立刻打断方向。</p>
+<h3 id="3-2-一个更接近代码的伪代码"><a href="#3-2-一个更接近代码的伪代码" class="headerlink" title="3.2 一个更接近代码的伪代码"></a>3.2 一个更接近代码的伪代码</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">if car_calls[current_floor]:</span><br><span class="line">    stop()</span><br><span class="line">elif direction == UP and hall_up[current_floor]:</span><br><span class="line">    stop()</span><br><span class="line">elif direction == DOWN and hall_down[current_floor]:</span><br><span class="line">    stop()</span><br><span class="line">elif no_request_ahead(direction):</span><br><span class="line">    if direction == UP and hall_down[current_floor]:</span><br><span class="line">        stop_and_reverse()</span><br><span class="line">    elif direction == DOWN and hall_up[current_floor]:</span><br><span class="line">        stop_and_reverse()</span><br><span class="line">    else:</span><br><span class="line">        reverse_direction()</span><br><span class="line">else:</span><br><span class="line">    pass_current_floor()</span><br></pre></td></tr></table></figure>
+
+<p>这段逻辑里，真正关键的是 <code>no_request_ahead(direction)</code>。<br>因为它决定了系统什么时候允许打破当前方向。</p>
+<hr>
+<h2 id="4-它怎么判断“前方还有没有需求”"><a href="#4-它怎么判断“前方还有没有需求”" class="headerlink" title="4. 它怎么判断“前方还有没有需求”"></a>4. 它怎么判断“前方还有没有需求”</h2><h3 id="4-1-这一步才是调度核心"><a href="#4-1-这一步才是调度核心" class="headerlink" title="4.1 这一步才是调度核心"></a>4.1 这一步才是调度核心</h3><p>很多人会把注意力放在“当前层停不停”，<br>但更核心的其实是：<br>代码怎么判断当前方向还值不值得继续走。</p>
+<p>比如电梯向上时，<br>它通常会检查上方还有没有这些东西：</p>
+<ul>
+<li>更高楼层的车内选层</li>
+<li>更高楼层的上行外呼</li>
+<li>某些实现里，也会看更高楼层是否有任意待处理请求</li>
+</ul>
+<p>如果这些都没了，<br>代码就会认为“当前方向扫描完成”，<br>然后准备反向。</p>
+<h3 id="4-2-一个最小-Python-版本"><a href="#4-2-一个最小-Python-版本" class="headerlink" title="4.2 一个最小 Python 版本"></a>4.2 一个最小 Python 版本</h3><p>下面这段代码不追求工业完整度，<br>只想把“前方是否还有需求”的判断讲清楚。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">has_request_ahead</span>(<span class="params">current_floor, direction, car_calls,</span></span><br><span class="line"><span class="params">                      hall_up, hall_down</span>):</span><br><span class="line">    <span class="keyword">if</span> direction == <span class="string">&quot;up&quot;</span>:</span><br><span class="line">        above = <span class="built_in">range</span>(current_floor + <span class="number">1</span>, <span class="built_in">len</span>(car_calls))</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">any</span>(car_calls[f] <span class="keyword">for</span> f <span class="keyword">in</span> above) <span class="keyword">or</span> <span class="built_in">any</span>(</span><br><span class="line">            hall_up[f] <span class="keyword">or</span> hall_down[f] <span class="keyword">for</span> f <span class="keyword">in</span> above</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> direction == <span class="string">&quot;down&quot;</span>:</span><br><span class="line">        below = <span class="built_in">range</span>(<span class="number">0</span>, current_floor)</span><br><span class="line">        <span class="keyword">return</span> <span class="built_in">any</span>(car_calls[f] <span class="keyword">for</span> f <span class="keyword">in</span> below) <span class="keyword">or</span> <span class="built_in">any</span>(</span><br><span class="line">            hall_up[f] <span class="keyword">or</span> hall_down[f] <span class="keyword">for</span> f <span class="keyword">in</span> below</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">car_calls = [<span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">True</span>, <span class="literal">False</span>, <span class="literal">False</span>]</span><br><span class="line">hall_up =   [<span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">True</span>,  <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>]</span><br><span class="line">hall_down = [<span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">False</span>, <span class="literal">True</span>,  <span class="literal">False</span>]</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(has_request_ahead(<span class="number">3</span>, <span class="string">&quot;up&quot;</span>, car_calls, hall_up, hall_down))</span><br><span class="line"><span class="built_in">print</span>(has_request_ahead(<span class="number">6</span>, <span class="string">&quot;up&quot;</span>, car_calls, hall_up, hall_down))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="literal">True</span></span><br><span class="line"><span class="literal">False</span></span><br></pre></td></tr></table></figure>
+
+<p>它表达的意思很简单：</p>
+<ul>
+<li>电梯在 3 楼向上时，上方还有请求，所以继续上。</li>
+<li>电梯在 6 楼向上时，上方没有请求，就该考虑反向。</li>
+</ul>
+<h3 id="4-3-为什么很多实现更像-LOOK，而不是标准-SCAN"><a href="#4-3-为什么很多实现更像-LOOK，而不是标准-SCAN" class="headerlink" title="4.3 为什么很多实现更像 LOOK，而不是标准 SCAN"></a>4.3 为什么很多实现更像 LOOK，而不是标准 SCAN</h3><p>如果代码写成“前方没有请求就反向”，<br>那它更接近 LOOK。</p>
+<p>如果代码写成“即使前方没请求，也要扫到边界楼层再回头”，<br>那才更接近教材里的标准 SCAN。</p>
+<p>真实电梯更常见的是前者，<br>因为没必要为了形式上的完整扫描去空跑。</p>
+<hr>
+<h2 id="5-为什么最近的那台电梯不一定来接你"><a href="#5-为什么最近的那台电梯不一定来接你" class="headerlink" title="5. 为什么最近的那台电梯不一定来接你"></a>5. 为什么最近的那台电梯不一定来接你</h2><h3 id="5-1-单梯和多梯是两层不同问题"><a href="#5-1-单梯和多梯是两层不同问题" class="headerlink" title="5.1 单梯和多梯是两层不同问题"></a>5.1 单梯和多梯是两层不同问题</h3><p>单梯逻辑关心的是：<br>当前这台梯下一步怎么走。</p>
+<p>多梯群控关心的是：<br>这个厅外呼叫应该分给哪一台梯。</p>
+<p>所以“最近的电梯没来”往往不是停靠逻辑的问题，<br>而是分配逻辑的问题。</p>
+<h3 id="5-2-群控常看的不是距离，而是代价"><a href="#5-2-群控常看的不是距离，而是代价" class="headerlink" title="5.2 群控常看的不是距离，而是代价"></a>5.2 群控常看的不是距离，而是代价</h3><p>群控系统常见的想法不是“谁最近谁去”，<br>而是“谁去的总代价最低”。<br>这个代价可能综合了：</p>
+<ul>
+<li>预计到达时间</li>
+<li>当前方向是否一致</li>
+<li>车内已有任务数量</li>
+<li>是否满载</li>
+<li>会不会破坏已有乘客的等待体验</li>
+</ul>
+<p>于是就会出现一个很常见的现象：<br>A 梯离你更近，<br>但 B 梯方向更顺、代价更低，<br>系统最后把你的外呼分给了 B。</p>
+<hr>
+<h2 id="6-我现在会怎样理解“电梯代码判断去哪层停”"><a href="#6-我现在会怎样理解“电梯代码判断去哪层停”" class="headerlink" title="6. 我现在会怎样理解“电梯代码判断去哪层停”"></a>6. 我现在会怎样理解“电梯代码判断去哪层停”</h2><p>如果用一句更像程序员的话来总结，<br>我会写成这样：</p>
+<blockquote>
+<p>电梯不是维护“唯一目标楼层”，<br>而是维护一组待处理请求，并在每个决策点根据方向、<br>前方需求和当前层请求来决定停、行、反向。</p>
+</blockquote>
+<p>也就是说，它更像一个持续运行的状态机，<br>而不是一个简单导航器。</p>
+<h3 id="6-1-一个更完整的心智模型"><a href="#6-1-一个更完整的心智模型" class="headerlink" title="6.1 一个更完整的心智模型"></a>6.1 一个更完整的心智模型</h3><p>我现在会把停靠判断拆成三层：</p>
+<ol>
+<li>当前层是否满足停靠条件。</li>
+<li>当前方向前方是否还有需求。</li>
+<li>如果是多梯，外呼最初是分配给谁的。</li>
+</ol>
+<p>只要这三层分开，<br>很多“它为什么不来接我”的问题就会突然变清楚。</p>
+<hr>
+<h2 id="7-常见误解"><a href="#7-常见误解" class="headerlink" title="7. 常见误解"></a>7. 常见误解</h2><table>
+<thead>
+<tr>
+<th>误解</th>
+<th>更接近真实的说法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>电梯先算出终点，再一路开过去</td>
+<td>它会在运行中不断重算局部决策</td>
+</tr>
+<tr>
+<td>只要这层有人按按钮，就一定会停</td>
+<td>还要看方向、前方需求和运行状态</td>
+</tr>
+<tr>
+<td>最近的那台一定来接我</td>
+<td>群控常按总代价分配，不只看距离</td>
+</tr>
+<tr>
+<td>电梯调度就是一个 SCAN 算法</td>
+<td>SCAN 只是理解单梯逻辑的好模型</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="8-FAQ"><a href="#8-FAQ" class="headerlink" title="8. FAQ"></a>8. FAQ</h2><h3 id="8-1-车内选层和厅外呼叫谁优先"><a href="#8-1-车内选层和厅外呼叫谁优先" class="headerlink" title="8.1 车内选层和厅外呼叫谁优先"></a>8.1 车内选层和厅外呼叫谁优先</h3><p>通常车内选层更强一些，<br>因为乘客已经在轿厢里了。<br>但具体实现仍会受群控和特殊模式影响。</p>
+<h3 id="8-2-为什么当前层明明有人按反方向按钮，它却不停"><a href="#8-2-为什么当前层明明有人按反方向按钮，它却不停" class="headerlink" title="8.2 为什么当前层明明有人按反方向按钮，它却不停"></a>8.2 为什么当前层明明有人按反方向按钮，它却不停</h3><p>因为当前系统还在完成本方向扫描。<br>只要前方还有需求，<br>很多实现都会先保持方向，不立即接反向外呼。</p>
+<h3 id="8-3-标准-SCAN-和真实电梯最关键的差别是什么"><a href="#8-3-标准-SCAN-和真实电梯最关键的差别是什么" class="headerlink" title="8.3 标准 SCAN 和真实电梯最关键的差别是什么"></a>8.3 标准 SCAN 和真实电梯最关键的差别是什么</h3><p>标准 SCAN 更像“扫到边界再回头”，<br>真实电梯常更接近 LOOK，<br>也就是“前方没需求就回头”，减少空跑。</p>
+<h3 id="8-4-如果满载了，外呼还会停吗"><a href="#8-4-如果满载了，外呼还会停吗" class="headerlink" title="8.4 如果满载了，外呼还会停吗"></a>8.4 如果满载了，外呼还会停吗</h3><p>很多实现会调整策略，<br>例如减少无意义停靠，优先把车内乘客送完，<br>再回来处理厅外请求。</p>
+<h3 id="8-5-真正的工业代码会比这里复杂多少"><a href="#8-5-真正的工业代码会比这里复杂多少" class="headerlink" title="8.5 真正的工业代码会比这里复杂多少"></a>8.5 真正的工业代码会比这里复杂多少</h3><p>复杂得多。<br>因为还要考虑门控、安全链、故障模式、消防模式、<br>VIP 服务、群控通信和时间优化。<br>但“请求表 + 状态机 + 方向纪律”仍是核心骨架。</p>
+<hr>
+<h2 id="9-总结"><a href="#9-总结" class="headerlink" title="9. 总结"></a>9. 总结</h2><p>如果只回答“电梯底层代码怎么判断该停哪一层”，<br>我觉得最短的答案就是：</p>
+<ol>
+<li>先看当前层有没有必须停的请求。</li>
+<li>再看当前方向前方还有没有需求。</li>
+<li>前方有需求就继续，没有就反向或待机。</li>
+<li>如果是多梯系统，先前那次外呼可能就没分给这台梯。</li>
+</ol>
+<p>所以电梯看上去像是在“选楼层”，<br>其实代码真正做的是一连串持续的状态判断。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-26</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-26</td>
+<td>改写为停靠判断逻辑导向</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-17</td>
+<td>为 2 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Python/" rel="tag">Python</a>, <a class="tag-none-link" href="/tags/SCAN/" rel="tag">SCAN</a>, <a class="tag-none-link" href="/tags/%E7%8A%B6%E6%80%81%E6%9C%BA/" rel="tag">状态机</a>, <a class="tag-none-link" href="/tags/%E7%94%B5%E6%A2%AF%E7%B3%BB%E7%BB%9F/" rel="tag">电梯系统</a>, <a class="tag-none-link" href="/tags/%E7%BE%A4%E6%8E%A7/" rel="tag">群控</a>, <a class="tag-none-link" href="/tags/%E8%B0%83%E5%BA%A6%E7%AE%97%E6%B3%95/" rel="tag">调度算法</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.764Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型" href="/2026/03/25/tech/ai/2026-03-25-from-openspec-to-demand-complexity-model/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" RESTful API 设计规范：返回值、状态码与响应结构" href="/2026/03/26/tech/backend/2026-03-27-restful-api-design-conventions/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%86%E8%A7%92%E9%87%8C%E7%9A%84%E5%86%B3%E7%AD%96%E5%BE%AA%E7%8E%AF"><span class="toc-number">1.1.</span> <span class="toc-text">代码视角里的决策循环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%B5%E6%A2%AF%E4%BB%A3%E7%A0%81%E6%89%8B%E9%87%8C%E7%9A%84%E5%85%B8%E5%9E%8B%E7%8A%B6%E6%80%81"><span class="toc-number">1.2.</span> <span class="toc-text">电梯代码手里的典型状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E5%B0%8F%E5%88%A4%E6%96%AD%E8%A7%84%E5%88%99"><span class="toc-number">1.3.</span> <span class="toc-text">最小判断规则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%8A%8A%E4%BA%BA%E7%9A%84%E9%97%AE%E9%A2%98%E7%BF%BB%E8%AF%91%E6%88%90%E4%BB%A3%E7%A0%81%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">1. 把人的问题翻译成代码问题</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%BA%95%E5%B1%82%E4%BB%A3%E7%A0%81%E5%88%B0%E5%BA%95%E7%BB%B4%E6%8A%A4%E4%BA%86%E5%93%AA%E4%BA%9B%E6%95%B0%E6%8D%AE"><span class="toc-number">3.</span> <span class="toc-text">2. 底层代码到底维护了哪些数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E6%9C%80%E5%B8%B8%E8%A7%81%E7%9A%84%E4%B8%89%E5%BC%A0%E8%AF%B7%E6%B1%82%E8%A1%A8"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 最常见的三张请求表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%BF%98%E8%A6%81%E9%85%8D%E5%93%AA%E4%BA%9B%E8%BF%90%E8%A1%8C%E7%8A%B6%E6%80%81"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 还要配哪些运行状态</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%B0%E4%B8%80%E5%B1%82%E6%A5%BC%E6%97%B6%EF%BC%8C%E4%BB%A3%E7%A0%81%E4%B8%BA%E4%BB%80%E4%B9%88%E5%86%B3%E5%AE%9A%E5%81%9C"><span class="toc-number">4.</span> <span class="toc-text">3. 到一层楼时，代码为什么决定停</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%9C%80%E5%85%B8%E5%9E%8B%E7%9A%84%E5%81%9C%E9%9D%A0%E6%9D%A1%E4%BB%B6"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 最典型的停靠条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E4%B8%80%E4%B8%AA%E6%9B%B4%E6%8E%A5%E8%BF%91%E4%BB%A3%E7%A0%81%E7%9A%84%E4%BC%AA%E4%BB%A3%E7%A0%81"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 一个更接近代码的伪代码</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E5%AE%83%E6%80%8E%E4%B9%88%E5%88%A4%E6%96%AD%E2%80%9C%E5%89%8D%E6%96%B9%E8%BF%98%E6%9C%89%E6%B2%A1%E6%9C%89%E9%9C%80%E6%B1%82%E2%80%9D"><span class="toc-number">5.</span> <span class="toc-text">4. 它怎么判断“前方还有没有需求”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E8%BF%99%E4%B8%80%E6%AD%A5%E6%89%8D%E6%98%AF%E8%B0%83%E5%BA%A6%E6%A0%B8%E5%BF%83"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 这一步才是调度核心</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E4%B8%80%E4%B8%AA%E6%9C%80%E5%B0%8F-Python-%E7%89%88%E6%9C%AC"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 一个最小 Python 版本</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BE%88%E5%A4%9A%E5%AE%9E%E7%8E%B0%E6%9B%B4%E5%83%8F-LOOK%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E6%A0%87%E5%87%86-SCAN"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 为什么很多实现更像 LOOK，而不是标准 SCAN</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%80%E8%BF%91%E7%9A%84%E9%82%A3%E5%8F%B0%E7%94%B5%E6%A2%AF%E4%B8%8D%E4%B8%80%E5%AE%9A%E6%9D%A5%E6%8E%A5%E4%BD%A0"><span class="toc-number">6.</span> <span class="toc-text">5. 为什么最近的那台电梯不一定来接你</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%8D%95%E6%A2%AF%E5%92%8C%E5%A4%9A%E6%A2%AF%E6%98%AF%E4%B8%A4%E5%B1%82%E4%B8%8D%E5%90%8C%E9%97%AE%E9%A2%98"><span class="toc-number">6.1.</span> <span class="toc-text">5.1 单梯和多梯是两层不同问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E7%BE%A4%E6%8E%A7%E5%B8%B8%E7%9C%8B%E7%9A%84%E4%B8%8D%E6%98%AF%E8%B7%9D%E7%A6%BB%EF%BC%8C%E8%80%8C%E6%98%AF%E4%BB%A3%E4%BB%B7"><span class="toc-number">6.2.</span> <span class="toc-text">5.2 群控常看的不是距离，而是代价</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%88%91%E7%8E%B0%E5%9C%A8%E4%BC%9A%E6%80%8E%E6%A0%B7%E7%90%86%E8%A7%A3%E2%80%9C%E7%94%B5%E6%A2%AF%E4%BB%A3%E7%A0%81%E5%88%A4%E6%96%AD%E5%8E%BB%E5%93%AA%E5%B1%82%E5%81%9C%E2%80%9D"><span class="toc-number">7.</span> <span class="toc-text">6. 我现在会怎样理解“电梯代码判断去哪层停”</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E4%B8%80%E4%B8%AA%E6%9B%B4%E5%AE%8C%E6%95%B4%E7%9A%84%E5%BF%83%E6%99%BA%E6%A8%A1%E5%9E%8B"><span class="toc-number">7.1.</span> <span class="toc-text">6.1 一个更完整的心智模型</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B8%B8%E8%A7%81%E8%AF%AF%E8%A7%A3"><span class="toc-number">8.</span> <span class="toc-text">7. 常见误解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-FAQ"><span class="toc-number">9.</span> <span class="toc-text">8. FAQ</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#8-1-%E8%BD%A6%E5%86%85%E9%80%89%E5%B1%82%E5%92%8C%E5%8E%85%E5%A4%96%E5%91%BC%E5%8F%AB%E8%B0%81%E4%BC%98%E5%85%88"><span class="toc-number">9.1.</span> <span class="toc-text">8.1 车内选层和厅外呼叫谁优先</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%BD%93%E5%89%8D%E5%B1%82%E6%98%8E%E6%98%8E%E6%9C%89%E4%BA%BA%E6%8C%89%E5%8F%8D%E6%96%B9%E5%90%91%E6%8C%89%E9%92%AE%EF%BC%8C%E5%AE%83%E5%8D%B4%E4%B8%8D%E5%81%9C"><span class="toc-number">9.2.</span> <span class="toc-text">8.2 为什么当前层明明有人按反方向按钮，它却不停</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-3-%E6%A0%87%E5%87%86-SCAN-%E5%92%8C%E7%9C%9F%E5%AE%9E%E7%94%B5%E6%A2%AF%E6%9C%80%E5%85%B3%E9%94%AE%E7%9A%84%E5%B7%AE%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">9.3.</span> <span class="toc-text">8.3 标准 SCAN 和真实电梯最关键的差别是什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-4-%E5%A6%82%E6%9E%9C%E6%BB%A1%E8%BD%BD%E4%BA%86%EF%BC%8C%E5%A4%96%E5%91%BC%E8%BF%98%E4%BC%9A%E5%81%9C%E5%90%97"><span class="toc-number">9.4.</span> <span class="toc-text">8.4 如果满载了，外呼还会停吗</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8-5-%E7%9C%9F%E6%AD%A3%E7%9A%84%E5%B7%A5%E4%B8%9A%E4%BB%A3%E7%A0%81%E4%BC%9A%E6%AF%94%E8%BF%99%E9%87%8C%E5%A4%8D%E6%9D%82%E5%A4%9A%E5%B0%91"><span class="toc-number">9.5.</span> <span class="toc-text">8.5 真正的工业代码会比这里复杂多少</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#9-%E6%80%BB%E7%BB%93"><span class="toc-number">10.</span> <span class="toc-text">9. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">11.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>博客安全检查方案优化——从 Git Hooks 到 AI 审查的多层防护 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/12/tech/tools/2026-03-13-blog-security-check-optimization/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="CI/CD, Claude Code, Git Hooks, 博客优化, 安全" />
+  
+  <meta name="description" content="对 Hexo 博客的安全检查方案进行系统优化，包括 Hooks 版本控制化、密钥检测模式扩展、CI 安全扫描集成，以及 AI 驱动的安全审查命令">
+<meta property="og:type" content="article">
+<meta property="og:title" content="博客安全检查方案优化——从 Git Hooks 到 AI 审查的多层防护">
+<meta property="og:url" content="https://leahana.github.io/2026/03/12/tech/tools/2026-03-13-blog-security-check-optimization/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="对 Hexo 博客的安全检查方案进行系统优化，包括 Hooks 版本控制化、密钥检测模式扩展、CI 安全扫描集成，以及 AI 驱动的安全审查命令">
+<meta property="og:locale">
+<meta property="article:published_time" content="2026-03-12T08:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.765Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="CI&#x2F;CD">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="Git Hooks">
+<meta property="article:tag" content="博客优化">
+<meta property="article:tag" content="安全">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"博客安全检查方案优化——从 Git Hooks 到 AI 审查的多层防护","description":"对 Hexo 博客的安全检查方案进行系统优化，包括 Hooks 版本控制化、密钥检测模式扩展、CI 安全扫描集成，以及 AI 驱动的安全审查命令","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-12T08:00:00.000Z","dateModified":"2026-05-18T05:47:58.765Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/12/tech/tools/2026-03-13-blog-security-check-optimization/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/12/tech/tools/2026-03-13-blog-security-check-optimization/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">博客安全检查方案优化——从 Git Hooks 到 AI 审查的多层防护</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-12T08:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-12</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~3.58K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">两种方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%B0%E6%9C%89%E6%96%B9%E6%A1%88%EF%BC%9AGit-Hooks-Bash-%E6%AD%A3%E5%88%99"><span class="toc-number">2.1.</span> <span class="toc-text">现有方案：Git Hooks + Bash 正则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AI-%E6%96%B9%E6%A1%88%EF%BC%9AClaude-Code-Security-Review"><span class="toc-number">2.2.</span> <span class="toc-text">AI 方案：Claude Code Security Review</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-number">2.3.</span> <span class="toc-text">结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E5%86%85%E5%AE%B9"><span class="toc-number">3.</span> <span class="toc-text">优化内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Hooks-%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%8C%96"><span class="toc-number">3.1.</span> <span class="toc-text">1. Hooks 版本控制化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%89%A9%E5%B1%95%E5%AF%86%E9%92%A5%E6%A3%80%E6%B5%8B%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.2.</span> <span class="toc-text">2. 扩展密钥检测模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B7%BB%E5%8A%A0-AI-%E5%AE%89%E5%85%A8%E5%AE%A1%E6%9F%A5%E5%91%BD%E4%BB%A4"><span class="toc-number">3.3.</span> <span class="toc-text">3. 添加 AI 安全审查命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%BF%AE%E5%A4%8D%E5%9B%BE%E7%89%87%E6%A3%80%E6%9F%A5-jsDelivr-%E8%AF%AF%E6%8A%A5-400"><span class="toc-number">3.4.</span> <span class="toc-text">4. 修复图片检查 jsDelivr 误报 400</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-CI-%E6%B7%BB%E5%8A%A0%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E6%AD%A5%E9%AA%A4"><span class="toc-number">3.5.</span> <span class="toc-text">5. CI 添加安全检查步骤</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81"><span class="toc-number">4.</span> <span class="toc-text">验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>个人博客用 Git Hooks + Bash 正则做密钥泄露检测已经跑了一段时间，基本够用。但遇到几个痛点：</p>
+<ol>
+<li><code>.git/hooks/</code> 不受版本控制，换环境要手动装</li>
+<li>检测模式不够全，缺少 Google、Slack、JWT 等常见格式</li>
+<li>CI 部署流水线零安全检查，本地漏了就直接上线</li>
+<li>缺少 AI 级别的语义安全扫描能力</li>
+</ol>
+<p>正好 Anthropic 发布了 Claude Code Security Review 工具，研究了一下，决定把两种方案结合起来做一轮优化。</p>
+<h2 id="两种方案对比"><a href="#两种方案对比" class="headerlink" title="两种方案对比"></a>两种方案对比</h2><h3 id="现有方案：Git-Hooks-Bash-正则"><a href="#现有方案：Git-Hooks-Bash-正则" class="headerlink" title="现有方案：Git Hooks + Bash 正则"></a>现有方案：Git Hooks + Bash 正则</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>检测方式</td>
+<td>22 条正则表达式匹配</td>
+</tr>
+<tr>
+<td>检测范围</td>
+<td>密钥&#x2F;Token&#x2F;数据库连接串 + CDN 图片 URL</td>
+</tr>
+<tr>
+<td>触发时机</td>
+<td>pre-commit（暂存文件）、pre-push（全量）</td>
+</tr>
+<tr>
+<td>优点</td>
+<td>零延迟、离线可用、无需 API Key、简单可控</td>
+</tr>
+<tr>
+<td>缺点</td>
+<td>纯文本匹配无语义理解、模式覆盖有限</td>
+</tr>
+</tbody></table>
+<h3 id="AI-方案：Claude-Code-Security-Review"><a href="#AI-方案：Claude-Code-Security-Review" class="headerlink" title="AI 方案：Claude Code Security Review"></a>AI 方案：Claude Code Security Review</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>评价</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>检测方式</td>
+<td>AI 驱动，上下文语义分析</td>
+</tr>
+<tr>
+<td>检测范围</td>
+<td>注入攻击、认证&#x2F;授权、数据泄露、XSS、业务逻辑等</td>
+</tr>
+<tr>
+<td>触发时机</td>
+<td>PR 提交时（GitHub Action）或本地命令</td>
+</tr>
+<tr>
+<td>优点</td>
+<td>深度语义理解、覆盖 OWASP Top 10、自动假阳性过滤</td>
+</tr>
+<tr>
+<td>缺点</td>
+<td>需要 API Key（计费）、需网络、扫描耗时较长</td>
+</tr>
+</tbody></table>
+<h3 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h3><p>两者<strong>互补而非替代</strong>：</p>
+<ul>
+<li>Bash 正则 → <strong>快速拦截</strong>明显的密钥泄露（第一道防线，毫秒级）</li>
+<li>AI Review → <strong>深度扫描</strong>代码逻辑漏洞（第二道防线，按需触发）</li>
+</ul>
+<p>对于 Hexo 博客，代码变更少、安全风险主要是密钥泄露，正则方案已足够。AI 方案作为补充在需要时手动触发。</p>
+<h2 id="优化内容"><a href="#优化内容" class="headerlink" title="优化内容"></a>优化内容</h2><h3 id="1-Hooks-版本控制化"><a href="#1-Hooks-版本控制化" class="headerlink" title="1. Hooks 版本控制化"></a>1. Hooks 版本控制化</h3><p><strong>问题</strong>：hooks 在 <code>.git/hooks/</code> 目录下，不受版本控制，新环境需手动安装。</p>
+<p><strong>方案</strong>：将 hooks 移到 <code>.githooks/</code> 目录，通过 Git 的 <code>core.hooksPath</code> 配置指向。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">.githooks/</span><br><span class="line">├── pre-commit    # 提交前：密钥扫描（暂存文件）</span><br><span class="line">└── pre-push      # 推送前：全量密钥扫描 + 图片 URL 检查</span><br></pre></td></tr></table></figure>
+
+<p>安装方式从”生成 hooks 文件”变为”指向 hooks 目录”：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 旧方式：复制内容到 .git/hooks/</span></span><br><span class="line"><span class="built_in">cat</span> &gt; <span class="string">&quot;<span class="variable">$HOOKS_DIR</span>/pre-commit&quot;</span> &lt;&lt; <span class="string">&#x27;EOF&#x27;</span> ...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 新方式：指向版本控制的目录</span></span><br><span class="line">git config core.hooksPath .githooks</span><br></pre></td></tr></table></figure>
+
+<p>好处：hooks 代码跟随仓库，<code>git clone</code> 后只需 <code>pnpm hooks:install</code> 即可。</p>
+<h3 id="2-扩展密钥检测模式"><a href="#2-扩展密钥检测模式" class="headerlink" title="2. 扩展密钥检测模式"></a>2. 扩展密钥检测模式</h3><p>原有 22 条正则缺少一些常见服务的密钥格式，新增 4 条：</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>说明</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>AIza[0-9A-Za-z_-]{35}</code></td>
+<td>Google API Key</td>
+<td><code>AIzaSyA...</code></td>
+</tr>
+<tr>
+<td><code>xox[bpors]-[0-9a-zA-Z-]{10,}</code></td>
+<td>Slack Token</td>
+<td><code>xoxb-...</code></td>
+</tr>
+<tr>
+<td><code>SG\.[a-zA-Z0-9_-]{22}\.[a-zA-Z0-9_-]{43}</code></td>
+<td>SendGrid API Key</td>
+<td><code>SG.xxx...</code></td>
+</tr>
+<tr>
+<td><code>eyJ...\.eyJ...\.xxx</code></td>
+<td>JWT Token</td>
+<td><code>eyJhbG...</code></td>
+</tr>
+</tbody></table>
+<p>现在共 26 条模式，覆盖主流云服务和认证协议。</p>
+<h3 id="3-添加-AI-安全审查命令"><a href="#3-添加-AI-安全审查命令" class="headerlink" title="3. 添加 AI 安全审查命令"></a>3. 添加 AI 安全审查命令</h3><p>新建 <code>.claude/commands/security-review.md</code>，在 Claude Code 中通过 <code>/security-review</code> 触发。</p>
+<p>扫描范围：</p>
+<ol>
+<li><strong>密钥与凭证</strong>：全文件扫描，弥补正则遗漏</li>
+<li><strong>配置安全</strong>：<code>_config.yml</code> 中的敏感设置</li>
+<li><strong>脚本注入</strong>：<code>bin/</code> 和 <code>.githooks/</code> 中的命令注入风险</li>
+<li><strong>GitHub Actions</strong>：action 版本锁定、权限范围、日志泄露</li>
+<li><strong>依赖风险</strong>：<code>package.json</code> 中的已知漏洞包</li>
+<li><strong>内容安全</strong>：Markdown 中的内部 URL、邮箱等信息</li>
+</ol>
+<p>输出分三级：Critical &#x2F; Warning &#x2F; Info，每项附文件路径和修复建议。</p>
+<h3 id="4-修复图片检查-jsDelivr-误报-400"><a href="#4-修复图片检查-jsDelivr-误报-400" class="headerlink" title="4. 修复图片检查 jsDelivr 误报 400"></a>4. 修复图片检查 jsDelivr 误报 400</h3><p><strong>问题</strong>：<code>check-images.sh</code> 用 curl 检查 CDN 图片 URL 时，jsDelivr 对无 User-Agent 的请求返回 400，导致有效图片被误判为警告，hook 形同虚设。</p>
+<p><strong>现象对比</strong>：</p>
+<table>
+<thead>
+<tr>
+<th>请求方</th>
+<th>返回码</th>
+<th>实际图片状态</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>curl（无 UA）</td>
+<td>400</td>
+<td>图片存在</td>
+</tr>
+<tr>
+<td>浏览器</td>
+<td>200</td>
+<td>图片存在</td>
+</tr>
+<tr>
+<td>curl（无 UA）</td>
+<td>400</td>
+<td>图片不存在</td>
+</tr>
+</tbody></table>
+<p>两种情况 hook 行为相同，无法区分真假报错，<strong>丧失预警能力</strong>。</p>
+<p><strong>修复</strong>：curl 加上浏览器 User-Agent：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修复前</span></span><br><span class="line">STATUS=$(curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> --max-time 5 <span class="string">&quot;<span class="variable">$url</span>&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 修复后</span></span><br><span class="line">STATUS=$(curl -s -o /dev/null -w <span class="string">&quot;%&#123;http_code&#125;&quot;</span> --max-time 5 \</span><br><span class="line">    -A <span class="string">&quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36&quot;</span> \</span><br><span class="line">    <span class="string">&quot;<span class="variable">$url</span>&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>修复后效果：图片存在返回 200 通过，图片不存在返回 404 阻断推送，push 前即可验证，无需等待 CI 完成。</p>
+<h3 id="5-CI-添加安全检查步骤"><a href="#5-CI-添加安全检查步骤" class="headerlink" title="5. CI 添加安全检查步骤"></a>5. CI 添加安全检查步骤</h3><p>在 <code>.github/workflows/deploy.yml</code> 的 <code>hexo generate</code> 前插入密钥扫描：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Security</span> <span class="string">check</span> <span class="bullet">-</span> <span class="string">scan</span> <span class="string">for</span> <span class="string">secrets</span></span><br><span class="line">  <span class="attr">run:</span> <span class="string">pnpm</span> <span class="string">run</span> <span class="string">check:secrets</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> <span class="attr">name:</span> <span class="string">Generate</span> <span class="string">static</span> <span class="string">site</span></span><br><span class="line">  <span class="attr">run:</span> <span class="string">pnpm</span> <span class="string">run</span> <span class="string">build</span></span><br></pre></td></tr></table></figure>
+
+<p>即使本地 hooks 被跳过（<code>--no-verify</code>），CI 也会拦截。形成完整防护链：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">本地提交 → pre-commit（暂存文件扫描）</span><br><span class="line">本地推送 → pre-push（全量扫描 + 图片检查）</span><br><span class="line">CI 部署  → check:secrets（部署前兜底扫描）</span><br><span class="line">按需触发 → /security-review（AI 深度审查）</span><br></pre></td></tr></table></figure>
+
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 安装 hooks</span></span><br><span class="line">pnpm hooks:install</span><br><span class="line"><span class="comment"># ✅ Git Hooks 安装完成！（使用 .githooks/ 目录）</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 运行密钥扫描（新模式无误报）</span></span><br><span class="line">pnpm check:secrets</span><br><span class="line"><span class="comment"># ✅ 未发现敏感信息</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. AI 安全审查（在 Claude Code 中）</span></span><br><span class="line">/security-review</span><br><span class="line"><span class="comment"># → 输出结构化安全报告</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 4. CI 推送后查看 GitHub Actions</span></span><br><span class="line"><span class="comment"># → Security check 步骤通过</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><table>
+<thead>
+<tr>
+<th>优化项</th>
+<th>改动</th>
+<th>效果</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hooks 版本控制化</td>
+<td><code>.git/hooks/</code> → <code>.githooks/</code> + <code>core.hooksPath</code></td>
+<td>新环境开箱即用</td>
+</tr>
+<tr>
+<td>扩展检测模式</td>
+<td>22 → 26 条正则</td>
+<td>覆盖 Google&#x2F;Slack&#x2F;SendGrid&#x2F;JWT</td>
+</tr>
+<tr>
+<td>AI 安全审查</td>
+<td>新建 <code>/security-review</code> 命令</td>
+<td>按需深度扫描</td>
+</tr>
+<tr>
+<td>CI 安全检查</td>
+<td><code>deploy.yml</code> 加 <code>check:secrets</code> 步骤</td>
+<td>部署前兜底防护</td>
+</tr>
+<tr>
+<td>修复图片 URL 误报</td>
+<td>curl 加浏览器 UA</td>
+<td>jsDelivr 400 误报消除，push 前可准确验证图片</td>
+</tr>
+</tbody></table>
+<p>四层防护体系：<strong>本地提交 → 本地推送 → CI 部署 → AI 审查</strong>，从快速拦截到深度分析，层层递进。</p>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-13</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-16</td>
+<td>补充图片检查 jsDelivr 误报 400 修复方案</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/CI-CD/" rel="tag">CI/CD</a>, <a class="tag-none-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a>, <a class="tag-none-link" href="/tags/Git-Hooks/" rel="tag">Git Hooks</a>, <a class="tag-none-link" href="/tags/%E5%8D%9A%E5%AE%A2%E4%BC%98%E5%8C%96/" rel="tag">博客优化</a>, <a class="tag-none-link" href="/tags/%E5%AE%89%E5%85%A8/" rel="tag">安全</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.765Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 用 Map&lt;Class&lt;?&gt;, Field[]&gt; 缓存优化 Java 反射：从慢 10 倍到接近原生性能" href="/2026/03/11/tech/backend/2026-03-12-java-reflection-field-cache/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Vibecoding 实践指南：用 Claude Code CLI 重新定义编程工作流" href="/2026/03/12/tech/ai/2026-03-13-claude-code-cli-vibecoding-guide/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%A4%E7%A7%8D%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">2.</span> <span class="toc-text">两种方案对比</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%8E%B0%E6%9C%89%E6%96%B9%E6%A1%88%EF%BC%9AGit-Hooks-Bash-%E6%AD%A3%E5%88%99"><span class="toc-number">2.1.</span> <span class="toc-text">现有方案：Git Hooks + Bash 正则</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#AI-%E6%96%B9%E6%A1%88%EF%BC%9AClaude-Code-Security-Review"><span class="toc-number">2.2.</span> <span class="toc-text">AI 方案：Claude Code Security Review</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-number">2.3.</span> <span class="toc-text">结论</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E5%86%85%E5%AE%B9"><span class="toc-number">3.</span> <span class="toc-text">优化内容</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Hooks-%E7%89%88%E6%9C%AC%E6%8E%A7%E5%88%B6%E5%8C%96"><span class="toc-number">3.1.</span> <span class="toc-text">1. Hooks 版本控制化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%89%A9%E5%B1%95%E5%AF%86%E9%92%A5%E6%A3%80%E6%B5%8B%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.2.</span> <span class="toc-text">2. 扩展密钥检测模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B7%BB%E5%8A%A0-AI-%E5%AE%89%E5%85%A8%E5%AE%A1%E6%9F%A5%E5%91%BD%E4%BB%A4"><span class="toc-number">3.3.</span> <span class="toc-text">3. 添加 AI 安全审查命令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%BF%AE%E5%A4%8D%E5%9B%BE%E7%89%87%E6%A3%80%E6%9F%A5-jsDelivr-%E8%AF%AF%E6%8A%A5-400"><span class="toc-number">3.4.</span> <span class="toc-text">4. 修复图片检查 jsDelivr 误报 400</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-CI-%E6%B7%BB%E5%8A%A0%E5%AE%89%E5%85%A8%E6%A3%80%E6%9F%A5%E6%AD%A5%E9%AA%A4"><span class="toc-number">3.5.</span> <span class="toc-text">5. CI 添加安全检查步骤</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81"><span class="toc-number">4.</span> <span class="toc-text">验证</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

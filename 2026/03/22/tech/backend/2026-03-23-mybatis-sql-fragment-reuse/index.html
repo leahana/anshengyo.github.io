@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>MyBatis sql 标签实战：构建可复用 SQL 片段的最佳实践 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="java, mybatis, mybatis-plus, sql, xml, 代码复用" />
+  
+  <meta name="description" content="深度解析 MyBatis sql 标签的使用场景与最佳实践，从基础的字段过滤片段到动态条件组合、跨 Mapper 复用，结合 MyBatis Plus 的扩展用法，帮助你消灭 Mapper XML 中的重复 SQL。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MyBatis sql 标签实战：构建可复用 SQL 片段的最佳实践">
+<meta property="og:url" content="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="深度解析 MyBatis sql 标签的使用场景与最佳实践，从基础的字段过滤片段到动态条件组合、跨 Mapper 复用，结合 MyBatis Plus 的扩展用法，帮助你消灭 Mapper XML 中的重复 SQL。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/diagram_20260417_082844_00.webp">
+<meta property="article:published_time" content="2026-03-22T19:30:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.764Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="java">
+<meta property="article:tag" content="mybatis">
+<meta property="article:tag" content="mybatis-plus">
+<meta property="article:tag" content="sql">
+<meta property="article:tag" content="xml">
+<meta property="article:tag" content="代码复用">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/diagram_20260417_082844_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"MyBatis sql 标签实战：构建可复用 SQL 片段的最佳实践","description":"深度解析 MyBatis sql 标签的使用场景与最佳实践，从基础的字段过滤片段到动态条件组合、跨 Mapper 复用，结合 MyBatis Plus 的扩展用法，帮助你消灭 Mapper XML 中的重复 SQL。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-22T19:30:00.000Z","dateModified":"2026-05-18T05:47:58.764Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/22/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">MyBatis sql 标签实战：构建可复用 SQL 片段的最佳实践</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-22T19:30:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-23</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~16.61K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84-3-%E4%B8%AA%E5%9C%BA%E6%99%AF"><span class="toc-number">1.2.</span> <span class="toc-text">💎 最常用的 3 个场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 注意事项速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-sql-%E6%A0%87%E7%AD%BE"><span class="toc-number">3.</span> <span class="toc-text">1. 为什么需要 sql 标签</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E9%97%AE%E9%A2%98%EF%BC%9AMapper-XML-%E4%B8%AD%E7%9A%84%E9%87%8D%E5%A4%8D%E5%9C%B0%E7%8B%B1"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 问题：Mapper XML 中的重复地狱</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%A7%A3%E5%86%B3%EF%BC%9ADRY-%E5%8E%9F%E5%88%99"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 解决：DRY 原则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95"><span class="toc-number">4.</span> <span class="toc-text">2. 基础语法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%BC%95%E7%94%A8"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 定义与引用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%A0%B8%E5%BF%83%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%AD%97%E6%AE%B5%E8%BF%87%E6%BB%A4"><span class="toc-number">5.</span> <span class="toc-text">3. 核心场景一：字段过滤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%97%E8%A1%A8%E9%A1%B5-vs-%E8%AF%A6%E6%83%85%E9%A1%B5%E4%BD%BF%E7%94%A8%E4%B8%8D%E5%90%8C%E5%AD%97%E6%AE%B5"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 列表页 vs 详情页使用不同字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%BF%87%E6%BB%A4%E8%BD%AF%E5%88%A0%E9%99%A4%E6%9D%A1%E4%BB%B6"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 过滤软删除条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BF%87%E6%BB%A4%E7%89%B9%E5%AE%9A%E7%8A%B6%E6%80%81%E5%80%BC"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 过滤特定状态值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%A0%B8%E5%BF%83%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E5%8A%A8%E6%80%81%E6%9D%A1%E4%BB%B6%E7%89%87%E6%AE%B5"><span class="toc-number">6.</span> <span class="toc-text">4. 核心场景二：动态条件片段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%BB%93%E5%90%88-if-%E6%A0%87%E7%AD%BE"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 结合 if 标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BB%93%E5%90%88-choose-%E6%A0%87%E7%AD%BE"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 结合 choose 标签</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%A0%B8%E5%BF%83%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84-sql-%E7%89%87%E6%AE%B5"><span class="toc-number">7.</span> <span class="toc-text">5. 核心场景三：带参数的 sql 片段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%BD%BF%E7%94%A8-property-%E4%BC%A0%E5%8F%82"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 使用 property 传参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%AE%89%E5%85%A8%E8%AD%A6%E5%91%8A%EF%BC%9A-vs"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 安全警告：${} vs #{}</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%B7%A8-Namespace-%E5%BC%95%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">6. 跨 Namespace 引用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%AE%9A%E4%B9%89%E5%85%AC%E5%85%B1-Mapper"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 定义公共 Mapper</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%9C%A8%E5%85%B6%E4%BB%96-Mapper-%E4%B8%AD%E5%BC%95%E7%94%A8"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 在其他 Mapper 中引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E4%B8%8E-MyBatis-Plus-%E7%BB%93%E5%90%88"><span class="toc-number">9.</span> <span class="toc-text">7. 与 MyBatis Plus 结合</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8-xml-sql-%E6%A0%87%E7%AD%BE"><span class="toc-number">9.1.</span> <span class="toc-text">7.1 什么时候用 xml sql 标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Wrapper-%E4%B8%8E-XML-%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">9.2.</span> <span class="toc-text">7.2 Wrapper 与 XML 的协作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%AE%8C%E6%95%B4-Mapper-%E7%A4%BA%E4%BE%8B"><span class="toc-number">10.</span> <span class="toc-text">8. 完整 Mapper 示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-sql-%E7%89%87%E6%AE%B5%E5%86%85%E5%8F%AF%E4%BB%A5%E5%86%99-if-%E5%8A%A8%E6%80%81%E6%A0%87%E7%AD%BE%E5%90%97%EF%BC%9F"><span class="toc-number">11.1.</span> <span class="toc-text">Q1: sql 片段内可以写 if 动态标签吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-%E5%A6%82%E4%BD%95%E5%9C%A8%E6%B3%A8%E8%A7%A3%E6%96%B9%E5%BC%8F%EF%BC%88-Select%EF%BC%89%E4%B8%AD%E5%AE%9E%E7%8E%B0%E7%B1%BB%E4%BC%BC%E7%9A%84%E5%A4%8D%E7%94%A8%EF%BC%9F"><span class="toc-number">11.2.</span> <span class="toc-text">Q2: 如何在注解方式（@Select）中实现类似的复用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E7%89%87%E6%AE%B5-id-%E5%91%BD%E5%90%8D%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8E%A8%E8%8D%90%E8%A7%84%E8%8C%83%EF%BC%9F"><span class="toc-number">11.3.</span> <span class="toc-text">Q3: 片段 id 命名有没有推荐规范？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-include-%E4%B8%AD%E7%9A%84-property-%E5%8F%82%E6%95%B0%E5%A6%82%E4%BD%95%E5%9C%A8%E7%89%87%E6%AE%B5%E5%86%85%E5%BC%95%E7%94%A8%EF%BC%9F"><span class="toc-number">11.4.</span> <span class="toc-text">Q4: include 中的 property 参数如何在片段内引用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-sql-%E6%A0%87%E7%AD%BE%E6%94%AF%E6%8C%81%E5%B5%8C%E5%A5%97%E5%BC%95%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-number">11.5.</span> <span class="toc-text">Q5: sql 标签支持嵌套引用吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-MyBatis-Plus-%E7%9A%84-TableField-exist-false-%E5%92%8C%E5%AD%97%E6%AE%B5%E8%BF%87%E6%BB%A4%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">11.6.</span> <span class="toc-text">Q6: MyBatis Plus 的 @TableField(exist &#x3D; false) 和字段过滤有什么关系？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">12.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">12.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：用 <code>&lt;sql&gt;</code> + <code>&lt;include&gt;</code> 实现 Mapper XML 中的 DRY 原则，告别复制粘贴式的 SQL 维护。</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>核心理念</strong>：重复的 SQL 片段不是小问题——当字段名变更时，遗漏一处就是一个线上 bug。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开核心用法</strong></summary>
+
+<h3 id="🔌-工作原理"><a href="#🔌-工作原理" class="headerlink" title="🔌 工作原理"></a>🔌 工作原理</h3><pre class="mermaid">graph LR
+    A["sql id=Base_Column"] --> B["include refid"]
+    B --> C[selectAll]
+    B --> D[selectById]
+    B --> E[selectByCondition]
+
+    style A fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#bbdefb,stroke:#333,color:#000
+    style D fill:#bbdefb,stroke:#333,color:#000
+    style E fill:#bbdefb,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/backend/2026-03-23-mybatis-sql-fragment-reuse/diagram_20260417_082844_00.webp" alt="工作原理关系图：&quot;sql id&#x3D;BaseColumn&quot;"></p>
+</details>
+
+<h3 id="💎-最常用的-3-个场景"><a href="#💎-最常用的-3-个场景" class="headerlink" title="💎 最常用的 3 个场景"></a>💎 最常用的 3 个场景</h3><ol>
+<li><strong>字段列表复用</strong>：定义一次列名，所有 SELECT 语句共享</li>
+<li><strong>条件过滤复用</strong>：软删除、状态过滤等通用 WHERE 条件</li>
+<li><strong>动态条件组合</strong>：<code>&lt;sql&gt;</code> 内嵌 <code>&lt;if&gt;</code> 标签，按需拼接查询条件</li>
+</ol>
+<h3 id="🎯-注意事项速查"><a href="#🎯-注意事项速查" class="headerlink" title="🎯 注意事项速查"></a>🎯 注意事项速查</h3><table>
+<thead>
+<tr>
+<th>事项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>片段内可以用动态标签</td>
+<td><code>&lt;if&gt;</code>、<code>&lt;where&gt;</code>、<code>&lt;choose&gt;</code> 都可以</td>
+</tr>
+<tr>
+<td><code>${}</code> 有 SQL 注入风险</td>
+<td>只用于列名&#x2F;表名，不要用于值</td>
+</tr>
+<tr>
+<td>跨 Namespace 引用</td>
+<td>使用完整路径 <code>com.example.mapper.CommonMapper.片段id</code></td>
+</tr>
+<tr>
+<td>每篇文章 Mermaid ≤ 3 张</td>
+<td>遵循博客可视化规范</td>
+</tr>
+</tbody></table>
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-为什么需要-sql-标签"><a href="#1-为什么需要-sql-标签" class="headerlink" title="1. 为什么需要 sql 标签"></a>1. 为什么需要 sql 标签</h2><h3 id="1-1-问题：Mapper-XML-中的重复地狱"><a href="#1-1-问题：Mapper-XML-中的重复地狱" class="headerlink" title="1.1 问题：Mapper XML 中的重复地狱"></a>1.1 问题：Mapper XML 中的重复地狱</h3><p>一个典型的 <code>UserMapper.xml</code> 中，以下 SQL 片段会反复出现：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 查询列表 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectList&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT id, name, email, status, created_at, updated_at</span><br><span class="line">    FROM t_user</span><br><span class="line">    WHERE deleted = 0</span><br><span class="line">    ORDER BY created_at DESC</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 按 ID 查询 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectById&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT id, name, email, status, created_at, updated_at</span><br><span class="line">    FROM t_user</span><br><span class="line">    WHERE id = #&#123;id&#125; AND deleted = 0</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 按条件查询 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectByCondition&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT id, name, email, status, created_at, updated_at</span><br><span class="line">    FROM t_user</span><br><span class="line">    WHERE deleted = 0</span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;status != null&quot;</span>&gt;</span></span><br><span class="line">        AND status = #&#123;status&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>问题</strong>：字段列表 <code>id, name, email, status, created_at, updated_at</code> 和 <code>deleted = 0</code> 重复了 3 次。当新增字段 <code>phone</code> 时，需要改 3 处，遗漏一处就是 bug。</p>
+<h3 id="1-2-解决：DRY-原则"><a href="#1-2-解决：DRY-原则" class="headerlink" title="1.2 解决：DRY 原则"></a>1.2 解决：DRY 原则</h3><p><code>&lt;sql&gt;</code> 标签定义可复用片段，<code>&lt;include&gt;</code> 引用——这就是 MyBatis XML 版的”提取方法”重构。</p>
+<hr>
+<h2 id="2-基础语法"><a href="#2-基础语法" class="headerlink" title="2. 基础语法"></a>2. 基础语法</h2><h3 id="2-1-定义与引用"><a href="#2-1-定义与引用" class="headerlink" title="2.1 定义与引用"></a>2.1 定义与引用</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 定义可复用 SQL 片段 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Base_Column_List&quot;</span>&gt;</span></span><br><span class="line">    id, name, email, status, created_at, updated_at</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 在 SELECT 中引用 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectAll&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_user</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 多处复用同一片段 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectById&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_user</span><br><span class="line">    WHERE id = #&#123;id&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>生成的 SQL</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> id, name, email, status, created_at, updated_at <span class="keyword">FROM</span> t_user</span><br><span class="line"><span class="keyword">SELECT</span> id, name, email, status, created_at, updated_at <span class="keyword">FROM</span> t_user <span class="keyword">WHERE</span> id <span class="operator">=</span> ?</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-核心场景一：字段过滤"><a href="#3-核心场景一：字段过滤" class="headerlink" title="3. 核心场景一：字段过滤"></a>3. 核心场景一：字段过滤</h2><h3 id="3-1-列表页-vs-详情页使用不同字段"><a href="#3-1-列表页-vs-详情页使用不同字段" class="headerlink" title="3.1 列表页 vs 详情页使用不同字段"></a>3.1 列表页 vs 详情页使用不同字段</h3><p>场景：<code>t_article</code> 表有一个 <code>content</code> 大字段（LONGTEXT），列表页不需要加载它。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 列表页字段：不含大字段 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;List_Column_List&quot;</span>&gt;</span></span><br><span class="line">    id, title, author, status, summary, view_count, created_at</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 详情页字段：包含全部 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Detail_Column_List&quot;</span>&gt;</span></span><br><span class="line">    id, title, author, status, summary, content,</span><br><span class="line">    view_count, created_at, updated_at</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 列表查询 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;listArticles&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;ListResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;List_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_article</span><br><span class="line">    WHERE deleted = 0</span><br><span class="line">    ORDER BY created_at DESC</span><br><span class="line">    LIMIT #&#123;offset&#125;, #&#123;limit&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 详情查询 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;getArticleDetail&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;DetailResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Detail_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_article</span><br><span class="line">    WHERE id = #&#123;id&#125; AND deleted = 0</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-过滤软删除条件"><a href="#3-2-过滤软删除条件" class="headerlink" title="3.2 过滤软删除条件"></a>3.2 过滤软删除条件</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 通用软删除过滤 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Not_Deleted&quot;</span>&gt;</span></span><br><span class="line">    AND deleted = 0</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 使用 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectActiveUsers&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_user</span><br><span class="line">    WHERE 1 = 1</span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Not_Deleted&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-过滤特定状态值"><a href="#3-3-过滤特定状态值" class="headerlink" title="3.3 过滤特定状态值"></a>3.3 过滤特定状态值</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 过滤指定状态 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Active_Status_Filter&quot;</span>&gt;</span></span><br><span class="line">    AND status IN (&#x27;ACTIVE&#x27;, &#x27;VERIFIED&#x27;)</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Exclude_Test_Data&quot;</span>&gt;</span></span><br><span class="line">    AND email NOT LIKE &#x27;%@test.com&#x27;</span><br><span class="line">    AND name NOT LIKE &#x27;test_%&#x27;</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 组合使用 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectRealActiveUsers&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_user</span><br><span class="line">    WHERE 1 = 1</span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Not_Deleted&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Active_Status_Filter&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Exclude_Test_Data&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-核心场景二：动态条件片段"><a href="#4-核心场景二：动态条件片段" class="headerlink" title="4. 核心场景二：动态条件片段"></a>4. 核心场景二：动态条件片段</h2><h3 id="4-1-结合-if-标签"><a href="#4-1-结合-if-标签" class="headerlink" title="4.1 结合 if 标签"></a>4.1 结合 if 标签</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Base_Where&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;name != null and name != &#x27;&#x27;&quot;</span>&gt;</span></span><br><span class="line">        AND name LIKE CONCAT(&#x27;%&#x27;, #&#123;name&#125;, &#x27;%&#x27;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;status != null&quot;</span>&gt;</span></span><br><span class="line">        AND status = #&#123;status&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;startDate != null&quot;</span>&gt;</span></span><br><span class="line">        AND created_at <span class="symbol">&amp;gt;</span>= #&#123;startDate&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;endDate != null&quot;</span>&gt;</span></span><br><span class="line">        AND created_at <span class="symbol">&amp;lt;</span>= #&#123;endDate&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">    AND deleted = 0</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;queryByCondition&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_user</span><br><span class="line">    <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line">    ORDER BY created_at DESC</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 同样的条件用于计数 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;countByCondition&quot;</span> <span class="attr">resultType</span>=<span class="string">&quot;long&quot;</span>&gt;</span></span><br><span class="line">    SELECT COUNT(*)</span><br><span class="line">    FROM t_user</span><br><span class="line">    <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>注意 XML 中的特殊字符转义：<code>&lt;</code> 写作 <code>&amp;lt;</code>，<code>&gt;</code> 写作 <code>&amp;gt;</code>，<code>&amp;</code> 写作 <code>&amp;amp;</code>。</p>
+<h3 id="4-2-结合-choose-标签"><a href="#4-2-结合-choose-标签" class="headerlink" title="4.2 结合 choose 标签"></a>4.2 结合 choose 标签</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Order_Clause&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">choose</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">when</span> <span class="attr">test</span>=<span class="string">&quot;orderBy == &#x27;name&#x27;&quot;</span>&gt;</span></span><br><span class="line">            ORDER BY name</span><br><span class="line">        <span class="tag">&lt;/<span class="name">when</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">when</span> <span class="attr">test</span>=<span class="string">&quot;orderBy == &#x27;date&#x27;&quot;</span>&gt;</span></span><br><span class="line">            ORDER BY created_at</span><br><span class="line">        <span class="tag">&lt;/<span class="name">when</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">otherwise</span>&gt;</span></span><br><span class="line">            ORDER BY id</span><br><span class="line">        <span class="tag">&lt;/<span class="name">otherwise</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">choose</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;orderDir == &#x27;ASC&#x27;&quot;</span>&gt;</span>ASC<span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;orderDir != &#x27;ASC&#x27;&quot;</span>&gt;</span>DESC<span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-核心场景三：带参数的-sql-片段"><a href="#5-核心场景三：带参数的-sql-片段" class="headerlink" title="5. 核心场景三：带参数的 sql 片段"></a>5. 核心场景三：带参数的 sql 片段</h2><h3 id="5-1-使用-property-传参"><a href="#5-1-使用-property-传参" class="headerlink" title="5.1 使用 property 传参"></a>5.1 使用 property 传参</h3><p><code>&lt;include&gt;</code> 可以通过 <code>&lt;property&gt;</code> 向片段传递参数，片段内用 <code>${propertyName}</code> 引用。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 定义通用分页排序片段 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Pagination&quot;</span>&gt;</span></span><br><span class="line">    ORDER BY $&#123;orderColumn&#125; $&#123;orderDirection&#125;</span><br><span class="line">    LIMIT #&#123;offset&#125;, #&#123;pageSize&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 使用时传入参数 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;listUsers&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_user</span><br><span class="line">    <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Pagination&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;orderColumn&quot;</span> <span class="attr">value</span>=<span class="string">&quot;created_at&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;orderDirection&quot;</span> <span class="attr">value</span>=<span class="string">&quot;DESC&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;listArticles&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;ArticleResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;List_Column_List&quot;</span>/&gt;</span></span><br><span class="line">    FROM t_article</span><br><span class="line">    WHERE deleted = 0</span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Pagination&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;orderColumn&quot;</span> <span class="attr">value</span>=<span class="string">&quot;view_count&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;orderDirection&quot;</span> <span class="attr">value</span>=<span class="string">&quot;DESC&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-安全警告：-vs"><a href="#5-2-安全警告：-vs" class="headerlink" title="5.2 安全警告：${} vs #{}"></a>5.2 安全警告：${} vs #{}</h3><p>在 <code>&lt;property&gt;</code> 中传递的值只能用 <code>${}</code> 引用（字符串替换），不能用 <code>#{}</code>（预编译参数）。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- ⚠️ 列名/表名用 $&#123;&#125;（不可避免） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;DynamicOrder&quot;</span>&gt;</span></span><br><span class="line">    ORDER BY $&#123;column&#125; $&#123;direction&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- ✅ 值参数用 #&#123;&#125;（防 SQL 注入） --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;StatusFilter&quot;</span>&gt;</span></span><br><span class="line">    AND status = #&#123;status&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>安全原则</strong>：<code>${}</code> 只用于列名、表名等结构性元素，且必须确保值来源可控（枚举白名单校验），绝不能直接接收用户输入。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Java 层做白名单校验</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Set&lt;String&gt; ALLOWED_COLUMNS =</span><br><span class="line">    Set.of(<span class="string">&quot;id&quot;</span>, <span class="string">&quot;name&quot;</span>, <span class="string">&quot;created_at&quot;</span>, <span class="string">&quot;status&quot;</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">validateOrderColumn</span><span class="params">(String column)</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (!ALLOWED_COLUMNS.contains(column)) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(</span><br><span class="line">            <span class="string">&quot;Invalid order column: &quot;</span> + column);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-跨-Namespace-引用"><a href="#6-跨-Namespace-引用" class="headerlink" title="6. 跨 Namespace 引用"></a>6. 跨 Namespace 引用</h2><h3 id="6-1-定义公共-Mapper"><a href="#6-1-定义公共-Mapper" class="headerlink" title="6.1 定义公共 Mapper"></a>6.1 定义公共 Mapper</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- CommonMapper.xml --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">&quot;com.example.mapper.CommonMapper&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;soft_delete_condition&quot;</span>&gt;</span></span><br><span class="line">        AND deleted = 0</span><br><span class="line">    <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;audit_columns&quot;</span>&gt;</span></span><br><span class="line">        created_by, created_at, updated_by, updated_at</span><br><span class="line">    <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;tenant_filter&quot;</span>&gt;</span></span><br><span class="line">        AND tenant_id = #&#123;tenantId&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-2-在其他-Mapper-中引用"><a href="#6-2-在其他-Mapper-中引用" class="headerlink" title="6.2 在其他 Mapper 中引用"></a>6.2 在其他 Mapper 中引用</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- UserMapper.xml --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">&quot;com.example.mapper.UserMapper&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectActiveUsers&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;BaseResultMap&quot;</span>&gt;</span></span><br><span class="line">        SELECT id, name, email,</span><br><span class="line">            <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;com.example.mapper.CommonMapper.audit_columns&quot;</span>/&gt;</span></span><br><span class="line">        FROM t_user</span><br><span class="line">        WHERE 1 = 1</span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;com.example.mapper.CommonMapper.soft_delete_condition&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;com.example.mapper.CommonMapper.tenant_filter&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-最佳实践"><a href="#6-3-最佳实践" class="headerlink" title="6.3 最佳实践"></a>6.3 最佳实践</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">src/main/resources/mapper/</span><br><span class="line">├── CommonMapper.xml       ← 公共 SQL 片段</span><br><span class="line">├── UserMapper.xml</span><br><span class="line">├── ArticleMapper.xml</span><br><span class="line">└── OrderMapper.xml</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>CommonMapper</code> 只定义 <code>&lt;sql&gt;</code> 片段，不定义查询语句</li>
+<li>对应的 <code>CommonMapper.java</code> 接口可以为空（仅为了让 MyBatis 扫描到 XML）</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 空接口，仅为了让 MyBatis 加载 CommonMapper.xml</span></span><br><span class="line"><span class="meta">@Mapper</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">CommonMapper</span> &#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="7-与-MyBatis-Plus-结合"><a href="#7-与-MyBatis-Plus-结合" class="headerlink" title="7. 与 MyBatis Plus 结合"></a>7. 与 MyBatis Plus 结合</h2><h3 id="7-1-什么时候用-xml-sql-标签"><a href="#7-1-什么时候用-xml-sql-标签" class="headerlink" title="7.1 什么时候用 xml sql 标签"></a>7.1 什么时候用 xml sql 标签</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>推荐方式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>简单 CRUD</td>
+<td>MyBatis Plus BaseMapper</td>
+<td>零 XML</td>
+</tr>
+<tr>
+<td>单表条件查询</td>
+<td>LambdaQueryWrapper</td>
+<td>类型安全</td>
+</tr>
+<tr>
+<td>复杂多表 JOIN</td>
+<td>XML + sql 标签</td>
+<td>灵活度高</td>
+</tr>
+<tr>
+<td>报表统计 SQL</td>
+<td>XML + sql 标签</td>
+<td>SQL 可读性好</td>
+</tr>
+<tr>
+<td>通用过滤条件</td>
+<td>XML sql 标签</td>
+<td>跨查询复用</td>
+</tr>
+</tbody></table>
+<h3 id="7-2-Wrapper-与-XML-的协作"><a href="#7-2-Wrapper-与-XML-的协作" class="headerlink" title="7.2 Wrapper 与 XML 的协作"></a>7.2 Wrapper 与 XML 的协作</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Wrapper 方式：简单查询</span></span><br><span class="line">List&lt;User&gt; users = userMapper.selectList(</span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">LambdaQueryWrapper</span>&lt;User&gt;()</span><br><span class="line">        .eq(User::getStatus, <span class="string">&quot;ACTIVE&quot;</span>)</span><br><span class="line">        .orderByDesc(User::getCreatedAt)</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="comment">// XML 方式：复杂查询（复用 sql 片段）</span></span><br><span class="line">List&lt;UserDTO&gt; users = userMapper.selectWithDepartment(params);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 复杂查询用 XML，复用公共片段 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectWithDepartment&quot;</span> <span class="attr">resultMap</span>=<span class="string">&quot;UserDeptResultMap&quot;</span>&gt;</span></span><br><span class="line">    SELECT</span><br><span class="line">        u.id, u.name, u.email,</span><br><span class="line">        d.name AS dept_name</span><br><span class="line">    FROM t_user u</span><br><span class="line">    LEFT JOIN t_department d ON u.dept_id = d.id</span><br><span class="line">    <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;com.example.mapper.CommonMapper.soft_delete_condition&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line">    ORDER BY u.created_at DESC</span><br><span class="line"><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="8-完整-Mapper-示例"><a href="#8-完整-Mapper-示例" class="headerlink" title="8. 完整 Mapper 示例"></a>8. 完整 Mapper 示例</h2><p>综合运用所有技巧的 <code>UserMapper.xml</code>：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">mapper</span> <span class="keyword">PUBLIC</span> <span class="string">&quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;</span></span></span><br><span class="line"><span class="meta">    <span class="string">&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">&quot;com.example.mapper.UserMapper&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- ==================== SQL 片段定义 ==================== --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 基础字段列表 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Base_Column_List&quot;</span>&gt;</span></span><br><span class="line">        id, name, email, phone, status, created_at, updated_at</span><br><span class="line">    <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 列表字段（排除大字段） --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;List_Column_List&quot;</span>&gt;</span></span><br><span class="line">        id, name, email, status, created_at</span><br><span class="line">    <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 通用查询条件 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;Base_Where&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;name != null and name != &#x27;&#x27;&quot;</span>&gt;</span></span><br><span class="line">            AND name LIKE CONCAT(&#x27;%&#x27;, #&#123;name&#125;, &#x27;%&#x27;)</span><br><span class="line">        <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;email != null and email != &#x27;&#x27;&quot;</span>&gt;</span></span><br><span class="line">            AND email = #&#123;email&#125;</span><br><span class="line">        <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;status != null&quot;</span>&gt;</span></span><br><span class="line">            AND status = #&#123;status&#125;</span><br><span class="line">        <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;startDate != null&quot;</span>&gt;</span></span><br><span class="line">            AND created_at <span class="symbol">&amp;gt;</span>= #&#123;startDate&#125;</span><br><span class="line">        <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">if</span> <span class="attr">test</span>=<span class="string">&quot;endDate != null&quot;</span>&gt;</span></span><br><span class="line">            AND created_at <span class="symbol">&amp;lt;</span>= #&#123;endDate&#125;</span><br><span class="line">        <span class="tag">&lt;/<span class="name">if</span>&gt;</span></span><br><span class="line">        AND deleted = 0</span><br><span class="line">    <span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- ==================== 查询语句 ==================== --&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 列表查询 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectUserList&quot;</span> <span class="attr">resultType</span>=<span class="string">&quot;com.example.dto.UserListDTO&quot;</span>&gt;</span></span><br><span class="line">        SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;List_Column_List&quot;</span>/&gt;</span></span><br><span class="line">        FROM t_user</span><br><span class="line">        <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line">        ORDER BY created_at DESC</span><br><span class="line">        LIMIT #&#123;offset&#125;, #&#123;pageSize&#125;</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 详情查询 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectUserDetail&quot;</span> <span class="attr">resultType</span>=<span class="string">&quot;com.example.dto.UserDetailDTO&quot;</span>&gt;</span></span><br><span class="line">        SELECT <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Column_List&quot;</span>/&gt;</span></span><br><span class="line">        FROM t_user</span><br><span class="line">        WHERE id = #&#123;id&#125; AND deleted = 0</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 条件计数 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;countByCondition&quot;</span> <span class="attr">resultType</span>=<span class="string">&quot;long&quot;</span>&gt;</span></span><br><span class="line">        SELECT COUNT(*)</span><br><span class="line">        FROM t_user</span><br><span class="line">        <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 导出查询（带关联） --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;selectForExport&quot;</span> <span class="attr">resultType</span>=<span class="string">&quot;com.example.dto.UserExportDTO&quot;</span>&gt;</span></span><br><span class="line">        SELECT</span><br><span class="line">            u.id, u.name, u.email, u.phone, u.status,</span><br><span class="line">            d.name AS dept_name,</span><br><span class="line">            u.created_at</span><br><span class="line">        FROM t_user u</span><br><span class="line">        LEFT JOIN t_department d ON u.dept_id = d.id</span><br><span class="line">        <span class="tag">&lt;<span class="name">where</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;Base_Where&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">where</span>&gt;</span></span><br><span class="line">        ORDER BY u.created_at DESC</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-sql-片段内可以写-if-动态标签吗？"><a href="#Q1-sql-片段内可以写-if-动态标签吗？" class="headerlink" title="Q1: sql 片段内可以写 if 动态标签吗？"></a>Q1: sql 片段内可以写 if 动态标签吗？</h3><p>可以。<code>&lt;sql&gt;</code> 片段内可以使用所有 MyBatis 动态 SQL 标签：<code>&lt;if&gt;</code>、<code>&lt;where&gt;</code>、<code>&lt;choose&gt;</code>、<code>&lt;foreach&gt;</code>、<code>&lt;trim&gt;</code> 等。片段在被 <code>&lt;include&gt;</code> 引用时，动态标签会正常解析执行。</p>
+<h3 id="Q2-如何在注解方式（-Select）中实现类似的复用？"><a href="#Q2-如何在注解方式（-Select）中实现类似的复用？" class="headerlink" title="Q2: 如何在注解方式（@Select）中实现类似的复用？"></a>Q2: 如何在注解方式（@Select）中实现类似的复用？</h3><p>注解方式不支持 <code>&lt;sql&gt;</code> &#x2F; <code>&lt;include&gt;</code> 机制。替代方案：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 方式 1：定义常量</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SqlConstants</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">BASE_COLUMNS</span> <span class="operator">=</span></span><br><span class="line">        <span class="string">&quot;id, name, email, status, created_at, updated_at&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 方式 2：使用 @SelectProvider 动态拼接</span></span><br><span class="line"><span class="meta">@SelectProvider(type = UserSqlProvider.class, method = &quot;selectByCondition&quot;)</span></span><br><span class="line">List&lt;User&gt; <span class="title function_">selectByCondition</span><span class="params">(UserQuery query)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>建议</strong>：涉及复用的 SQL 优先使用 XML 方式。</p>
+<h3 id="Q3-片段-id-命名有没有推荐规范？"><a href="#Q3-片段-id-命名有没有推荐规范？" class="headerlink" title="Q3: 片段 id 命名有没有推荐规范？"></a>Q3: 片段 id 命名有没有推荐规范？</h3><p>推荐命名约定：</p>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>命名模式</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>字段列表</td>
+<td><code>Xxx_Column_List</code></td>
+<td><code>Base_Column_List</code>, <code>List_Column_List</code></td>
+</tr>
+<tr>
+<td>WHERE 条件</td>
+<td><code>Xxx_Where</code> &#x2F; <code>Xxx_Filter</code></td>
+<td><code>Base_Where</code>, <code>Status_Filter</code></td>
+</tr>
+<tr>
+<td>排序规则</td>
+<td><code>Xxx_Order</code></td>
+<td><code>Default_Order</code></td>
+</tr>
+<tr>
+<td>通用片段</td>
+<td>小写下划线</td>
+<td><code>soft_delete_condition</code></td>
+</tr>
+</tbody></table>
+<h3 id="Q4-include-中的-property-参数如何在片段内引用？"><a href="#Q4-include-中的-property-参数如何在片段内引用？" class="headerlink" title="Q4: include 中的 property 参数如何在片段内引用？"></a>Q4: include 中的 property 参数如何在片段内引用？</h3><p>使用 <code>${propertyName}</code>（字符串替换），不能用 <code>#{}</code>。这是因为 <code>&lt;property&gt;</code> 是在 XML 解析阶段进行替换，早于 SQL 预编译阶段。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;OrderBy&quot;</span>&gt;</span></span><br><span class="line">    ORDER BY $&#123;column&#125; $&#123;direction&#125;</span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;OrderBy&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;column&quot;</span> <span class="attr">value</span>=<span class="string">&quot;created_at&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;direction&quot;</span> <span class="attr">value</span>=<span class="string">&quot;DESC&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">include</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Q5-sql-标签支持嵌套引用吗？"><a href="#Q5-sql-标签支持嵌套引用吗？" class="headerlink" title="Q5: sql 标签支持嵌套引用吗？"></a>Q5: sql 标签支持嵌套引用吗？</h3><p>支持。<code>&lt;sql&gt;</code> 内部可以 <code>&lt;include&gt;</code> 其他 <code>&lt;sql&gt;</code> 片段：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;soft_delete&quot;</span>&gt;</span>AND deleted = 0<span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">sql</span> <span class="attr">id</span>=<span class="string">&quot;active_user_filter&quot;</span>&gt;</span></span><br><span class="line">    AND status = &#x27;ACTIVE&#x27;</span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">refid</span>=<span class="string">&quot;soft_delete&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">sql</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>但要避免循环引用（A include B, B include A），MyBatis 会抛出 <code>IncompleteElementException</code>。</p>
+<h3 id="Q6-MyBatis-Plus-的-TableField-exist-false-和字段过滤有什么关系？"><a href="#Q6-MyBatis-Plus-的-TableField-exist-false-和字段过滤有什么关系？" class="headerlink" title="Q6: MyBatis Plus 的 @TableField(exist &#x3D; false) 和字段过滤有什么关系？"></a>Q6: MyBatis Plus 的 @TableField(exist &#x3D; false) 和字段过滤有什么关系？</h3><p><code>@TableField(exist = false)</code> 标记的字段不参与 MyBatis Plus <strong>自动生成的 SQL</strong>（如 <code>selectById</code>），但与 XML 中的 <code>&lt;sql&gt;</code> 字段列表无关。XML 中的字段列表完全由开发者手动控制。两者是独立的机制，分别作用于自动 SQL 和手写 SQL。</p>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong><code>&lt;sql&gt;</code> + <code>&lt;include&gt;</code> 是 Mapper XML 中消灭重复 SQL 的标准手段</strong>，字段列表和通用条件是最高频的复用场景</li>
+<li><strong><code>&lt;sql&gt;</code> 片段内可以使用动态标签</strong>（<code>&lt;if&gt;</code>, <code>&lt;where&gt;</code> 等），这使得条件复用成为可能</li>
+<li><strong>跨 Namespace 引用需要完整路径</strong>，适合抽取租户过滤、软删除等全局通用条件</li>
+</ol>
+<h3 id="行动建议"><a href="#行动建议" class="headerlink" title="行动建议"></a>行动建议</h3><p><strong>今天就可以做的</strong>：</p>
+<ul>
+<li>检查项目中的 Mapper XML，找出重复出现 3 次以上的 SQL 片段</li>
+<li>将字段列表和软删除条件抽取为 <code>&lt;sql&gt;</code> 片段</li>
+</ul>
+<p><strong>本周可以完成的</strong>：</p>
+<ul>
+<li>创建 <code>CommonMapper.xml</code>，将跨 Mapper 的公共条件（租户过滤、软删除等）统一管理</li>
+<li>建立团队的 <code>&lt;sql&gt;</code> 片段命名规范</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-23</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 1 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/java/" rel="tag">java</a>, <a class="tag-none-link" href="/tags/mybatis/" rel="tag">mybatis</a>, <a class="tag-none-link" href="/tags/mybatis-plus/" rel="tag">mybatis-plus</a>, <a class="tag-none-link" href="/tags/sql/" rel="tag">sql</a>, <a class="tag-none-link" href="/tags/xml/" rel="tag">xml</a>, <a class="tag-none-link" href="/tags/%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%94%A8/" rel="tag">代码复用</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.764Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" MyBatis Plus 手动注册 LocalDateTime TypeHandler：@PostConstruct 实战" href="/2026/03/22/tech/backend/2026-03-23-mybatis-localdatetime-typehandler-register/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 手动实现 SFTP/FTP 连接池，引发的深思" href="/2026/03/22/tech/backend/2026-03-23-sftp-ftp-connection-pool-deep-dive/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 工作原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84-3-%E4%B8%AA%E5%9C%BA%E6%99%AF"><span class="toc-number">1.2.</span> <span class="toc-text">💎 最常用的 3 个场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 注意事项速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-sql-%E6%A0%87%E7%AD%BE"><span class="toc-number">3.</span> <span class="toc-text">1. 为什么需要 sql 标签</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E9%97%AE%E9%A2%98%EF%BC%9AMapper-XML-%E4%B8%AD%E7%9A%84%E9%87%8D%E5%A4%8D%E5%9C%B0%E7%8B%B1"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 问题：Mapper XML 中的重复地狱</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E8%A7%A3%E5%86%B3%EF%BC%9ADRY-%E5%8E%9F%E5%88%99"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 解决：DRY 原则</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95"><span class="toc-number">4.</span> <span class="toc-text">2. 基础语法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%BC%95%E7%94%A8"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 定义与引用</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%A0%B8%E5%BF%83%E5%9C%BA%E6%99%AF%E4%B8%80%EF%BC%9A%E5%AD%97%E6%AE%B5%E8%BF%87%E6%BB%A4"><span class="toc-number">5.</span> <span class="toc-text">3. 核心场景一：字段过滤</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%97%E8%A1%A8%E9%A1%B5-vs-%E8%AF%A6%E6%83%85%E9%A1%B5%E4%BD%BF%E7%94%A8%E4%B8%8D%E5%90%8C%E5%AD%97%E6%AE%B5"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 列表页 vs 详情页使用不同字段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E8%BF%87%E6%BB%A4%E8%BD%AF%E5%88%A0%E9%99%A4%E6%9D%A1%E4%BB%B6"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 过滤软删除条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E8%BF%87%E6%BB%A4%E7%89%B9%E5%AE%9A%E7%8A%B6%E6%80%81%E5%80%BC"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 过滤特定状态值</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%A0%B8%E5%BF%83%E5%9C%BA%E6%99%AF%E4%BA%8C%EF%BC%9A%E5%8A%A8%E6%80%81%E6%9D%A1%E4%BB%B6%E7%89%87%E6%AE%B5"><span class="toc-number">6.</span> <span class="toc-text">4. 核心场景二：动态条件片段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E7%BB%93%E5%90%88-if-%E6%A0%87%E7%AD%BE"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 结合 if 标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%BB%93%E5%90%88-choose-%E6%A0%87%E7%AD%BE"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 结合 choose 标签</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%A0%B8%E5%BF%83%E5%9C%BA%E6%99%AF%E4%B8%89%EF%BC%9A%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84-sql-%E7%89%87%E6%AE%B5"><span class="toc-number">7.</span> <span class="toc-text">5. 核心场景三：带参数的 sql 片段</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E4%BD%BF%E7%94%A8-property-%E4%BC%A0%E5%8F%82"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 使用 property 传参</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%AE%89%E5%85%A8%E8%AD%A6%E5%91%8A%EF%BC%9A-vs"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 安全警告：${} vs #{}</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E8%B7%A8-Namespace-%E5%BC%95%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">6. 跨 Namespace 引用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-%E5%AE%9A%E4%B9%89%E5%85%AC%E5%85%B1-Mapper"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 定义公共 Mapper</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E5%9C%A8%E5%85%B6%E4%BB%96-Mapper-%E4%B8%AD%E5%BC%95%E7%94%A8"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 在其他 Mapper 中引用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E4%B8%8E-MyBatis-Plus-%E7%BB%93%E5%90%88"><span class="toc-number">9.</span> <span class="toc-text">7. 与 MyBatis Plus 结合</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#7-1-%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E7%94%A8-xml-sql-%E6%A0%87%E7%AD%BE"><span class="toc-number">9.1.</span> <span class="toc-text">7.1 什么时候用 xml sql 标签</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-2-Wrapper-%E4%B8%8E-XML-%E7%9A%84%E5%8D%8F%E4%BD%9C"><span class="toc-number">9.2.</span> <span class="toc-text">7.2 Wrapper 与 XML 的协作</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#8-%E5%AE%8C%E6%95%B4-Mapper-%E7%A4%BA%E4%BE%8B"><span class="toc-number">10.</span> <span class="toc-text">8. 完整 Mapper 示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">11.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-sql-%E7%89%87%E6%AE%B5%E5%86%85%E5%8F%AF%E4%BB%A5%E5%86%99-if-%E5%8A%A8%E6%80%81%E6%A0%87%E7%AD%BE%E5%90%97%EF%BC%9F"><span class="toc-number">11.1.</span> <span class="toc-text">Q1: sql 片段内可以写 if 动态标签吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-%E5%A6%82%E4%BD%95%E5%9C%A8%E6%B3%A8%E8%A7%A3%E6%96%B9%E5%BC%8F%EF%BC%88-Select%EF%BC%89%E4%B8%AD%E5%AE%9E%E7%8E%B0%E7%B1%BB%E4%BC%BC%E7%9A%84%E5%A4%8D%E7%94%A8%EF%BC%9F"><span class="toc-number">11.2.</span> <span class="toc-text">Q2: 如何在注解方式（@Select）中实现类似的复用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E7%89%87%E6%AE%B5-id-%E5%91%BD%E5%90%8D%E6%9C%89%E6%B2%A1%E6%9C%89%E6%8E%A8%E8%8D%90%E8%A7%84%E8%8C%83%EF%BC%9F"><span class="toc-number">11.3.</span> <span class="toc-text">Q3: 片段 id 命名有没有推荐规范？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-include-%E4%B8%AD%E7%9A%84-property-%E5%8F%82%E6%95%B0%E5%A6%82%E4%BD%95%E5%9C%A8%E7%89%87%E6%AE%B5%E5%86%85%E5%BC%95%E7%94%A8%EF%BC%9F"><span class="toc-number">11.4.</span> <span class="toc-text">Q4: include 中的 property 参数如何在片段内引用？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-sql-%E6%A0%87%E7%AD%BE%E6%94%AF%E6%8C%81%E5%B5%8C%E5%A5%97%E5%BC%95%E7%94%A8%E5%90%97%EF%BC%9F"><span class="toc-number">11.5.</span> <span class="toc-text">Q5: sql 标签支持嵌套引用吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q6-MyBatis-Plus-%E7%9A%84-TableField-exist-false-%E5%92%8C%E5%AD%97%E6%AE%B5%E8%BF%87%E6%BB%A4%E6%9C%89%E4%BB%80%E4%B9%88%E5%85%B3%E7%B3%BB%EF%BC%9F"><span class="toc-number">11.6.</span> <span class="toc-text">Q6: MyBatis Plus 的 @TableField(exist &#x3D; false) 和字段过滤有什么关系？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">12.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">12.2.</span> <span class="toc-text">行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

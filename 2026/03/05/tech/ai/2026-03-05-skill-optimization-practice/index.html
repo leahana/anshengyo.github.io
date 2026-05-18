@@ -1,0 +1,1458 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Claude Code Skill 设计与优化实践：用多模型协作迭代 optimize-doc | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/03/05/tech/ai/2026-03-05-skill-optimization-practice/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="claude-code, multi-model, prompt-engineering, skill" />
+  
+  <meta name="description" content="以 optimize-doc Skill 的多轮优化为线索，记录 Skill 三层加载模型、多模型协作（Haiku 提案 &#x2F; Opus 审核 &#x2F; Sonnet 执行）、验证脚本迭代（v2.1-v2.4）和 Skill 边界重构的完整实践。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Claude Code Skill 设计与优化实践：用多模型协作迭代 optimize-doc">
+<meta property="og:url" content="https://leahana.github.io/2026/03/05/tech/ai/2026-03-05-skill-optimization-practice/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="以 optimize-doc Skill 的多轮优化为线索，记录 Skill 三层加载模型、多模型协作（Haiku 提案 &#x2F; Opus 审核 &#x2F; Sonnet 执行）、验证脚本迭代（v2.1-v2.4）和 Skill 边界重构的完整实践。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-05-skill-optimization-practice/diagram_20260417_022905_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-05-skill-optimization-practice/diagram_20260417_022905_01.webp">
+<meta property="article:published_time" content="2026-03-05T04:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="claude-code">
+<meta property="article:tag" content="multi-model">
+<meta property="article:tag" content="prompt-engineering">
+<meta property="article:tag" content="skill">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-05-skill-optimization-practice/diagram_20260417_022905_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Claude Code Skill 设计与优化实践：用多模型协作迭代 optimize-doc","description":"以 optimize-doc Skill 的多轮优化为线索，记录 Skill 三层加载模型、多模型协作（Haiku 提案 / Opus 审核 / Sonnet 执行）、验证脚本迭代（v2.1-v2.4）和 Skill 边界重构的完整实践。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-03-05T04:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/03/05/tech/ai/2026-03-05-skill-optimization-practice/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/03/05/tech/ai/2026-03-05-skill-optimization-practice/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Claude Code Skill 设计与优化实践：用多模型协作迭代 optimize-doc</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-03-05T04:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-03-05</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~23.22K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Skill-%E4%B8%89%E5%B1%82%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.1.</span> <span class="toc-text">Skill 三层加载模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimize-doc-%E4%BC%98%E5%8C%96%E5%89%8D%E5%90%8E%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">optimize-doc 优化前后对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%88%86%E5%B7%A5"><span class="toc-number">1.3.</span> <span class="toc-text">多模型分工</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Skill-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">1. Skill 核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF-Skill"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 什么是 Skill</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Skill-%E4%B8%8E%E4%BC%A0%E7%BB%9F%E5%B7%A5%E5%85%B7%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 Skill 与传统工具的区别</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Skill-%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="toc-number">4.</span> <span class="toc-text">2. Skill 设计理念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Progressive-Disclosure-%E5%8E%9F%E5%88%99"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 Progressive Disclosure 原则</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E5%B1%82%EF%BC%9A%E5%85%83%E6%95%B0%E6%8D%AE%EF%BC%88%E7%BA%A6-100-words%EF%BC%8C%E5%A7%8B%E7%BB%88%E5%AD%98%E5%9C%A8%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">第一层：元数据（约 100 words，始终存在）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E5%B1%82%EF%BC%9ASKILL-md-%E6%AD%A3%E6%96%87%EF%BC%88%E8%A7%A6%E5%8F%91%E6%97%B6%E5%8A%A0%E8%BD%BD%EF%BC%8C%E5%BB%BA%E8%AE%AE-5000-words%EF%BC%89"><span class="toc-number">4.1.2.</span> <span class="toc-text">第二层：SKILL.md 正文（触发时加载，建议 &lt; 5000 words）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E5%B1%82%EF%BC%9A%E6%8D%86%E7%BB%91%E8%B5%84%E6%BA%90%EF%BC%88%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%EF%BC%8C%E4%B8%8D%E9%99%90%E5%AE%B9%E9%87%8F%EF%BC%89"><span class="toc-number">4.1.3.</span> <span class="toc-text">第三层：捆绑资源（按需加载，不限容量）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%A7%A6%E5%8F%91%E6%8F%8F%E8%BF%B0%E7%9A%84%E7%BC%96%E5%86%99"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 触发描述的编写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%BB%84%E7%BB%87%E7%BB%93%E6%9E%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 组织结构最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-optimize-doc-Skill-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">3. optimize-doc Skill 设计实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%9D%E5%A7%8B%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 初始设计思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-YAML-Frontmatter-%E9%85%8D%E7%BD%AE"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 YAML Frontmatter 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 工作流程设计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Skill-%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88%EF%BC%9A%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C%E5%AE%9E%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">4. Skill 优化方案：多模型协作实录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Haiku-4-5-%E7%9A%84%E5%88%9D%E6%AD%A5%E6%96%B9%E6%A1%88"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 Haiku 4.5 的初步方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Opus-4-6-%E7%9A%84%E5%AE%A1%E6%A0%B8%E4%B8%8E%E4%BF%AE%E6%AD%A3"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 Opus 4.6 的审核与修正</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%EF%BC%9A%E6%9C%AA%E8%AF%BB%E5%AE%8C%E5%B0%B1%E4%B8%8B%E7%BB%93%E8%AE%BA"><span class="toc-number">6.2.1.</span> <span class="toc-text">问题 1：未读完就下结论</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%EF%BC%9A%E8%BF%87%E5%BA%A6%E5%B7%A5%E7%A8%8B"><span class="toc-number">6.2.2.</span> <span class="toc-text">问题 2：过度工程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%EF%BC%9A%E7%9B%AE%E6%A0%87%E8%A1%8C%E6%95%B0%E8%BF%87%E6%BF%80"><span class="toc-number">6.2.3.</span> <span class="toc-text">问题 3：目标行数过激</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%EF%BC%9A%E9%81%97%E6%BC%8F%E4%BA%86%E7%9C%9F%E6%AD%A3%E7%9A%84-bug"><span class="toc-number">6.2.4.</span> <span class="toc-text">问题 4：遗漏了真正的 bug</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-5%EF%BC%9A%E5%86%85%E5%AE%B9%E9%87%8D%E5%A4%8D"><span class="toc-number">6.2.5.</span> <span class="toc-text">问题 5：内容重复</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Sonnet-4-6-%E7%9A%84%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 Sonnet 4.6 的执行结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E4%B8%80%E4%B8%AA%E6%84%8F%E5%A4%96%E6%8F%92%E6%9B%B2%EF%BC%9Acc-switch-%E5%AF%BC%E8%87%B4%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1"><span class="toc-number">6.4.</span> <span class="toc-text">4.4 一个意外插曲：cc-switch 导致文件丢失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%A1%88%E4%BE%8B%EF%BC%9A%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E6%9C%AA%E5%8A%A0%E8%BD%BD%E5%AF%BC%E8%87%B4%E6%A0%BC%E5%BC%8F%E9%94%99%E8%AF%AF%EF%BC%88auto-post-v1-2-0%EF%BC%89"><span class="toc-number">6.5.</span> <span class="toc-text">4.5 案例：资源文件未加载导致格式错误（auto-post v1.2.0）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E7%8E%B0%E8%B1%A1"><span class="toc-number">6.5.1.</span> <span class="toc-text">问题现象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E4%B8%89%E5%A4%84%E7%BC%BA%E9%99%B7%E7%9A%84%E5%8F%A0%E5%8A%A0"><span class="toc-number">6.5.2.</span> <span class="toc-text">根因分析：三处缺陷的叠加</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88"><span class="toc-number">6.5.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99"><span class="toc-number">6.5.4.</span> <span class="toc-text">Agent 可靠性原则</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-v2-2-%E8%BF%AD%E4%BB%A3%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%9D%97%E8%B7%B3%E8%BF%87%E4%B8%8E-MD018-%E6%A3%80%E6%B5%8B"><span class="toc-number">6.6.</span> <span class="toc-text">4.6 v2.2 迭代：代码块跳过与 MD018 检测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B-1%EF%BC%9A%E9%A2%84%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81%E5%9D%97%E6%98%A0%E5%B0%84%EF%BC%8C%E6%B6%88%E9%99%A4%E8%AF%AF%E6%8A%A5"><span class="toc-number">6.6.1.</span> <span class="toc-text">改进 1：预计算代码块映射，消除误报</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B-2%EF%BC%9A%E6%96%B0%E5%A2%9E-MD018-%E6%A0%87%E9%A2%98%E6%A0%BC%E5%BC%8F%E6%A3%80%E6%B5%8B"><span class="toc-number">6.6.2.</span> <span class="toc-text">改进 2：新增 MD018 标题格式检测</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-v2-3-%E8%BF%AD%E4%BB%A3%EF%BC%9AFrontmatter-%E8%AF%AF%E6%8A%A5%E4%BF%AE%E5%A4%8D"><span class="toc-number">6.7.</span> <span class="toc-text">4.7 v2.3 迭代：Frontmatter 误报修复</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0"><span class="toc-number">6.7.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90"><span class="toc-number">6.7.2.</span> <span class="toc-text">根因分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-1"><span class="toc-number">6.7.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81"><span class="toc-number">6.7.4.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%8D%E7%9B%98%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-v2-2-%E6%B2%A1%E5%8F%91%E7%8E%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-number">6.7.5.</span> <span class="toc-text">复盘：为什么 v2.2 没发现这个问题</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-8-v2-4-%E8%BF%AD%E4%BB%A3%EF%BC%9A%E6%A8%A1%E6%9D%BF-%E7%B2%97%E4%BD%93-%E8%AF%B1%E5%AF%BC-MD036-%E8%BF%9D%E8%A7%84"><span class="toc-number">6.8.</span> <span class="toc-text">4.8 v2.4 迭代：模板 **粗体** 诱导 MD036 违规</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-1"><span class="toc-number">6.8.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E6%A8%A1%E6%9D%BF%E6%95%99%E5%9D%8F%E4%BA%86-AI"><span class="toc-number">6.8.2.</span> <span class="toc-text">根因分析：模板教坏了 AI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-2"><span class="toc-number">6.8.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81-1"><span class="toc-number">6.8.4.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%8D%E7%9B%98%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B9%8B%E5%89%8D%E6%B2%A1%E5%8F%91%E7%8E%B0"><span class="toc-number">6.8.5.</span> <span class="toc-text">复盘：为什么之前没发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85"><span class="toc-number">6.8.6.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8C%E4%B8%80%E6%9C%BA%E5%88%B6%E7%9A%84%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%AE%9E%E4%BE%8B%EF%BC%9Atags-%E6%A0%BC%E5%BC%8F%E7%9F%9B%E7%9B%BE"><span class="toc-number">6.8.7.</span> <span class="toc-text">同一机制的第二个实例：tags 格式矛盾</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-9-v2-5-%E8%BF%AD%E4%BB%A3%EF%BC%9AMermaid-subgraph-%E8%AF%AD%E6%B3%95%E8%A7%84%E8%8C%83%E7%BC%BA%E5%A4%B1"><span class="toc-number">6.9.</span> <span class="toc-text">4.9 v2.5 迭代：Mermaid subgraph 语法规范缺失</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-2"><span class="toc-number">6.9.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90-1"><span class="toc-number">6.9.2.</span> <span class="toc-text">根因分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-3"><span class="toc-number">6.9.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85-1"><span class="toc-number">6.9.4.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-10-v2-6-%E8%BF%AD%E4%BB%A3%EF%BC%9ASKILL-md-%E5%86%85%E8%81%94%E6%8F%90%E9%86%92%E7%BC%BA%E5%A4%B1%E5%AF%BC%E8%87%B4-MD036-%E5%A4%8D%E5%8F%91"><span class="toc-number">6.10.</span> <span class="toc-text">4.10 v2.6 迭代：SKILL.md 内联提醒缺失导致 MD036 复发</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-3"><span class="toc-number">6.10.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8E-4-8-%E8%8A%82%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">6.10.2.</span> <span class="toc-text">与 4.8 节的区别</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E8%A7%84%E5%88%99%E5%A3%B0%E6%98%8E%E4%B8%8E%E8%A7%A6%E5%8F%91%E7%82%B9%E8%B7%9D%E7%A6%BB%E8%BF%87%E8%BF%9C"><span class="toc-number">6.10.3.</span> <span class="toc-text">根因分析：规则声明与触发点距离过远</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-4"><span class="toc-number">6.10.4.</span> <span class="toc-text">修复方案</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-1%EF%BC%9ASKILL-md-%E6%AD%A5%E9%AA%A4-4-%E6%9C%AB%E5%B0%BE%E5%A2%9E%E5%8A%A0%E4%B8%80%E5%8F%A5%E8%AF%9D%E5%86%85%E8%81%94%E6%8F%90%E9%86%92"><span class="toc-number">6.10.4.1.</span> <span class="toc-text">改动 1：SKILL.md 步骤 4 末尾增加一句话内联提醒</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-2%EF%BC%9Areferences-markdown-rules-md-%E8%A1%A5%E5%85%85%E2%80%9D%E6%80%BB%E7%BB%93-%E7%BB%93%E8%AE%BA%E5%9C%BA%E6%99%AF%E2%80%9D%E6%AD%A3%E5%8F%8D%E4%BE%8B"><span class="toc-number">6.10.4.2.</span> <span class="toc-text">改动 2：references&#x2F;markdown-rules.md 补充”总结&#x2F;结论场景”正反例</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-3%EF%BC%9A%E5%85%AC%E5%85%B1%E6%A0%BC%E5%BC%8F%E6%96%87%E6%A1%A3-source-docs-markdown-format-check-md-%E8%A1%A5%E5%85%85-MD036"><span class="toc-number">6.10.4.3.</span> <span class="toc-text">改动 3：公共格式文档 source&#x2F;docs&#x2F;markdown-format-check.md 补充 MD036</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81-2"><span class="toc-number">6.10.5.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85-2"><span class="toc-number">6.10.6.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-11-v2-7-%E8%BF%AD%E4%BB%A3%EF%BC%9A%E7%BB%AD%E8%A1%8C%E8%AF%AF%E5%88%A4-MD032-%E5%81%87%E9%98%B3%E6%80%A7-Plan-%E6%A8%A1%E5%BC%8F%E4%B8%8B%E6%A0%BC%E5%BC%8F%E7%BA%A6%E6%9D%9F%E6%97%81%E8%B7%AF"><span class="toc-number">6.11.</span> <span class="toc-text">4.11 v2.7 迭代：续行误判 MD032 假阳性 + Plan 模式下格式约束旁路</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-4"><span class="toc-number">6.11.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E4%B8%A4%E4%B8%AA%E7%8B%AC%E7%AB%8B%E9%97%AE%E9%A2%98"><span class="toc-number">6.11.2.</span> <span class="toc-text">根因分析：两个独立问题</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-A%EF%BC%9A%E9%AA%8C%E8%AF%81%E8%84%9A%E6%9C%AC%E7%9A%84%E5%81%87%E9%98%B3%E6%80%A7"><span class="toc-number">6.11.2.1.</span> <span class="toc-text">问题 A：验证脚本的假阳性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-B%EF%BC%9APlan-%E6%A8%A1%E5%BC%8F%E4%B8%8B-SKILL-md-%E6%A0%BC%E5%BC%8F%E7%BA%A6%E6%9D%9F%E8%A2%AB%E6%97%81%E8%B7%AF"><span class="toc-number">6.11.2.2.</span> <span class="toc-text">问题 B：Plan 模式下 SKILL.md 格式约束被旁路</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-5"><span class="toc-number">6.11.3.</span> <span class="toc-text">修复方案</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-1%EF%BC%9Avalidate-markdown-py-%E6%96%B0%E5%A2%9E%E7%BB%AD%E8%A1%8C%E8%AF%86%E5%88%AB"><span class="toc-number">6.11.3.1.</span> <span class="toc-text">改动 1：validate_markdown.py 新增续行识别</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-2%EF%BC%9Avalidate-markdown-py-%E6%96%B0%E5%A2%9E-%E5%9D%97%E8%B1%81%E5%85%8D"><span class="toc-number">6.11.3.2.</span> <span class="toc-text">改动 2：validate_markdown.py 新增 &lt;details&gt; 块豁免</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-3%EF%BC%9ASKILL-md-%E6%AD%A5%E9%AA%A4-4-%E6%9C%AB%E5%B0%BE%E5%A2%9E%E5%8A%A0-write-time-checklist"><span class="toc-number">6.11.3.3.</span> <span class="toc-text">改动 3：SKILL.md 步骤 4 末尾增加 write-time checklist</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81-3"><span class="toc-number">6.11.4.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85-3"><span class="toc-number">6.11.5.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%AE%9E%E6%96%BD%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">5. 实施建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Skill-%E5%88%9B%E5%BB%BA%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 Skill 创建检查清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E5%B1%82"><span class="toc-number">7.1.1.</span> <span class="toc-text">元数据层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SKILL-md-%E5%B1%82"><span class="toc-number">7.1.2.</span> <span class="toc-text">SKILL.md 层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B5%84%E6%BA%90%E5%B1%82"><span class="toc-number">7.1.3.</span> <span class="toc-text">资源层</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 常见问题与解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Q1%EF%BC%9ASKILL-md-%E5%86%99%E5%A4%9A%E9%95%BF%E5%90%88%E9%80%82%EF%BC%9F"><span class="toc-number">7.2.1.</span> <span class="toc-text">Q1：SKILL.md 写多长合适？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q2%EF%BC%9Ascripts-%E5%92%8C-SKILL-md-%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">7.2.2.</span> <span class="toc-text">Q2：scripts 和 SKILL.md 中的代码示例有什么区别？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q3%EF%BC%9A%E5%A6%82%E4%BD%95%E9%AA%8C%E8%AF%81-Skill-%E4%BC%98%E5%8C%96%E5%90%8E%E6%B2%A1%E6%9C%89%E2%80%9D%E8%BF%87%E5%BA%A6%E7%B2%BE%E7%AE%80%E2%80%9D%EF%BC%9F"><span class="toc-number">7.2.3.</span> <span class="toc-text">Q3：如何验证 Skill 优化后没有”过度精简”？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q4%EF%BC%9A%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-number">7.2.4.</span> <span class="toc-text">Q4：多模型协作适合什么场景？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q5%EF%BC%9A%E6%96%87%E4%BB%B6%E8%A2%AB-cc-switch-%E8%A6%86%E7%9B%96%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.2.5.</span> <span class="toc-text">Q5：文件被 cc-switch 覆盖怎么办？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%90%8E%E7%BB%AD%E8%BF%AD%E4%BB%A3%E6%96%B9%E5%90%91"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 后续迭代方向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E4%BB%8E%E4%B8%80%E6%AC%A1%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98%E5%88%B0-Skill-%E8%BE%B9%E7%95%8C%E9%87%8D%E6%9E%84"><span class="toc-number">8.</span> <span class="toc-text">6. 从一次优化复盘到 Skill 边界重构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-optimize-doc-%E5%BD%93%E5%89%8D%E7%9C%9F%E6%AD%A3%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 optimize-doc 当前真正适合什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%BB%A7%E7%BB%AD%E5%8A%A0%E8%A7%84%E5%88%99%E4%BC%9A%E5%A4%B1%E6%95%88"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 为什么继续加规则会失效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%89%E7%A7%8D%E6%BC%94%E5%8C%96%E6%96%B9%E5%90%91%E7%9A%84%E5%8F%96%E8%88%8D"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 三种演化方向的取舍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E6%8E%A8%E8%8D%90%E8%B7%AF%E5%BE%84%EF%BC%9A%E5%85%88%E6%8B%86%E8%BE%B9%E7%95%8C%EF%BC%8C%E5%86%8D%E8%80%83%E8%99%91%E7%BB%9F%E4%B8%80%E5%85%A5%E5%8F%A3"><span class="toc-number">8.4.</span> <span class="toc-text">6.4 推荐路径：先拆边界，再考虑统一入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E6%80%8E%E6%A0%B7%E9%AA%8C%E8%AF%81-skill-%E7%9C%9F%E7%9A%84%E5%8F%98%E5%A5%BD"><span class="toc-number">8.5.</span> <span class="toc-text">6.5 怎样验证 skill 真的变好</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>一句话定位：Skill 是 Claude Code 的”领域专家模块”——把隐性的工作流知识固化成可复用的显性指令。</p>
+</blockquote>
+<blockquote>
+<p>核心理念：好的 Skill 不靠堆砌信息，而是把正确的内容放在正确的层级，让 AI 按需加载、精准执行。</p>
+</blockquote>
+<hr>
+<h2 id="3-分钟速览版"><a href="#3-分钟速览版" class="headerlink" title="3 分钟速览版"></a>3 分钟速览版</h2><details>
+<summary><strong>点击展开核心概念</strong></summary>
+
+<h3 id="Skill-三层加载模型"><a href="#Skill-三层加载模型" class="headerlink" title="Skill 三层加载模型"></a>Skill 三层加载模型</h3><pre class="mermaid">graph TB
+    A["元数据层<br/>name + description<br/>始终在上下文"]
+    B["指令层<br/>SKILL.md 正文<br/>触发时加载"]
+    C["资源层<br/>scripts / references / assets<br/>按需加载"]
+
+    A -->|"触发 Skill"| B
+    B -->|"执行时参考"| C
+
+    style A fill:#bbdefb,stroke:#333,color:#000
+    style B fill:#c8e6c9,stroke:#333,color:#000
+    style C fill:#ffccbc,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-05-skill-optimization-practice/diagram_20260417_022905_00.webp" alt="Skill 三层加载模型：元数据层、指令层、资源层的触发与加载关系"></p>
+</details>
+
+<h3 id="optimize-doc-优化前后对比"><a href="#optimize-doc-优化前后对比" class="headerlink" title="optimize-doc 优化前后对比"></a>optimize-doc 优化前后对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>v2.0（优化前）</th>
+<th>v2.1（优化后）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SKILL.md 行数</td>
+<td>541 行</td>
+<td>319 行（-41%）</td>
+</tr>
+<tr>
+<td>可视化决策逻辑</td>
+<td>内联在 SKILL.md</td>
+<td>拆到 references&#x2F;</td>
+</tr>
+<tr>
+<td>格式规则</td>
+<td>两处重复</td>
+<td>仅 markdown-rules.md</td>
+</tr>
+<tr>
+<td>验证脚本 bug</td>
+<td>代码块检测有歧义</td>
+<td>状态机修复</td>
+</tr>
+<tr>
+<td>步骤数量</td>
+<td>10 步（5+6 重复）</td>
+<td>9 步（合并可视化）</td>
+</tr>
+</tbody></table>
+<h3 id="多模型分工"><a href="#多模型分工" class="headerlink" title="多模型分工"></a>多模型分工</h3><table>
+<thead>
+<tr>
+<th>角色</th>
+<th>模型</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>提案</td>
+<td>Haiku 4.5</td>
+<td>快速识别问题，输出初步方案</td>
+</tr>
+<tr>
+<td>审核</td>
+<td>Opus 4.6</td>
+<td>深度推理，发现遗漏和错误</td>
+</tr>
+<tr>
+<td>执行</td>
+<td>Sonnet 4.6</td>
+<td>高效编辑，精准落地</td>
+</tr>
+</tbody></table>
+</details>
+
+<hr>
+<h2 id="深度剖析版"><a href="#深度剖析版" class="headerlink" title="深度剖析版"></a>深度剖析版</h2><h2 id="1-Skill-核心概念"><a href="#1-Skill-核心概念" class="headerlink" title="1. Skill 核心概念"></a>1. Skill 核心概念</h2><h3 id="1-1-什么是-Skill"><a href="#1-1-什么是-Skill" class="headerlink" title="1.1 什么是 Skill"></a>1.1 什么是 Skill</h3><p>Skill 是 Claude Code 的模块化能力扩展包。它通过结构化文件（指令 + 脚本 + 参考文档 + 资产模板），为 Claude 注入特定领域的程序化知识，使其能够执行原本需要大量上下文和多轮对话才能完成的复杂任务。</p>
+<p>一个 Skill 本质上回答三个问题：</p>
+<ul>
+<li><strong>何时激活</strong>：通过 <code>name</code> + <code>description</code> 让 Claude 识别触发时机</li>
+<li><strong>如何执行</strong>：通过 SKILL.md 提供工作流程和决策规则</li>
+<li><strong>用什么资源</strong>：通过 <code>scripts/</code>、<code>references/</code>、<code>assets/</code> 提供可复用工具</li>
+</ul>
+<h3 id="1-2-Skill-与传统工具的区别"><a href="#1-2-Skill-与传统工具的区别" class="headerlink" title="1.2 Skill 与传统工具的区别"></a>1.2 Skill 与传统工具的区别</h3><p>传统工具（CLI、API）是<strong>单一操作</strong>的封装：输入参数，返回结果。</p>
+<p>Skill 是<strong>完整工作流</strong>的封装，包含决策逻辑、质量标准、错误处理和资源引用：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">传统工具：markdownlint file.md  →  返回格式错误列表</span><br><span class="line"></span><br><span class="line">Skill：读取文档 → 分析受众 → 设计结构 → 重写内容</span><br><span class="line">       → 选择可视化 → 补充实战 → 验证格式 → 保存输出</span><br></pre></td></tr></table></figure>
+
+<p>关键差异在于 Skill 赋予 Claude <strong>判断力</strong>——理解目标、选择策略、评估质量，而非机械执行命令。</p>
+<h2 id="2-Skill-设计理念"><a href="#2-Skill-设计理念" class="headerlink" title="2. Skill 设计理念"></a>2. Skill 设计理念</h2><h3 id="2-1-Progressive-Disclosure-原则"><a href="#2-1-Progressive-Disclosure-原则" class="headerlink" title="2.1 Progressive Disclosure 原则"></a>2.1 Progressive Disclosure 原则</h3><p>Skill 采用三层渐进加载，核心是<strong>按需加载，避免上下文污染</strong>：</p>
+<h4 id="第一层：元数据（约-100-words，始终存在）"><a href="#第一层：元数据（约-100-words，始终存在）" class="headerlink" title="第一层：元数据（约 100 words，始终存在）"></a>第一层：元数据（约 100 words，始终存在）</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">optimize-doc</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">优化</span> <span class="string">Markdown</span> <span class="string">博客文档...</span></span><br><span class="line">  <span class="string">This</span> <span class="string">skill</span> <span class="string">should</span> <span class="string">be</span> <span class="string">used</span> <span class="string">when</span> <span class="string">a</span> <span class="string">user</span> <span class="string">asks</span> <span class="string">to</span> <span class="string">optimize...</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></table></figure>
+
+<p>这层的唯一职责是让 Claude 判断”是否需要激活这个 Skill”。<code>description</code> 写得好不好，直接决定触发准确率。</p>
+<h4 id="第二层：SKILL-md-正文（触发时加载，建议-5000-words）"><a href="#第二层：SKILL-md-正文（触发时加载，建议-5000-words）" class="headerlink" title="第二层：SKILL.md 正文（触发时加载，建议 &lt; 5000 words）"></a>第二层：SKILL.md 正文（触发时加载，建议 &lt; 5000 words）</h4><p>包含核心工作流程、决策规则、资源索引。不该塞入大段参考材料——那是第三层的职责。</p>
+<h4 id="第三层：捆绑资源（按需加载，不限容量）"><a href="#第三层：捆绑资源（按需加载，不限容量）" class="headerlink" title="第三层：捆绑资源（按需加载，不限容量）"></a>第三层：捆绑资源（按需加载，不限容量）</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">scripts/      →  可直接运行的脚本，无需读入上下文</span><br><span class="line">references/   →  参考文档，Claude 需要时才读取</span><br><span class="line">assets/       →  模板和素材，直接用于输出</span><br></pre></td></tr></table></figure>
+
+<p><strong>实践案例</strong>：optimize-doc v2.0 把 160 行可视化选择指南写在 SKILL.md 里，每次触发都占用上下文。v2.1 把它移到 <code>references/visualization-guide.md</code>，只有执行到”添加可视化”步骤时才加载。</p>
+<h3 id="2-2-触发描述的编写"><a href="#2-2-触发描述的编写" class="headerlink" title="2.2 触发描述的编写"></a>2.2 触发描述的编写</h3><p>触发描述（description）决定 Skill 能否被正确激活。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 好的描述：what + when，双语关键词</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">&gt;</span></span><br><span class="line"><span class="string">  优化 Markdown 博客文档，按照专业标准改进内容结构、可读性和实用性。</span></span><br><span class="line"><span class="string">  This skill should be used when a user asks to optimize, improve, or</span></span><br><span class="line"><span class="string">  rewrite markdown documentation for blog posts or technical articles.</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="comment"># 差的描述：模糊，缺少触发条件</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">A</span> <span class="string">tool</span> <span class="string">for</span> <span class="string">working</span> <span class="string">with</span> <span class="string">markdown</span> <span class="string">files.</span></span><br></pre></td></tr></table></figure>
+
+<p>有效描述的四要素：</p>
+<ul>
+<li>使用第三人称（”This skill should be used when…”）</li>
+<li>中英文关键词并存（提高匹配率）</li>
+<li>明确触发动词（optimize &#x2F; improve &#x2F; rewrite）</li>
+<li>指定适用范围（blog posts &#x2F; technical articles）</li>
+</ul>
+<h3 id="2-3-组织结构最佳实践"><a href="#2-3-组织结构最佳实践" class="headerlink" title="2.3 组织结构最佳实践"></a>2.3 组织结构最佳实践</h3><p>内容放置的核心判断依据：<strong>这段内容在 10 次执行中会被用到几次？</strong></p>
+<table>
+<thead>
+<tr>
+<th>使用频率</th>
+<th>放置位置</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>10&#x2F;10 次</td>
+<td>SKILL.md 正文</td>
+</tr>
+<tr>
+<td>3-7&#x2F;10 次</td>
+<td>SKILL.md 简述 + references&#x2F; 详细展开</td>
+</tr>
+<tr>
+<td>1-2&#x2F;10 次</td>
+<td>仅 references&#x2F;，SKILL.md 只写引用指示</td>
+</tr>
+<tr>
+<td>反复执行的代码</td>
+<td>scripts&#x2F;（确定性执行，节省 token）</td>
+</tr>
+<tr>
+<td>输出模板</td>
+<td>assets&#x2F;（直接复制使用）</td>
+</tr>
+</tbody></table>
+<h2 id="3-optimize-doc-Skill-设计实践"><a href="#3-optimize-doc-Skill-设计实践" class="headerlink" title="3. optimize-doc Skill 设计实践"></a>3. optimize-doc Skill 设计实践</h2><h3 id="3-1-初始设计思路"><a href="#3-1-初始设计思路" class="headerlink" title="3.1 初始设计思路"></a>3.1 初始设计思路</h3><p>optimize-doc 解决的核心问题是：<strong>每次手动优化博客文档，都要重复相同的决策</strong>——选结构、加可视化、验格式、补实战案例。</p>
+<p>Skill 把这些隐性知识固化为显性流程：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">输入：一篇原始 Markdown 文档</span><br><span class="line">输出：双版本结构 + Mermaid 图表 + 实战案例 + FAQ + 格式验证通过的专业文档</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-2-YAML-Frontmatter-配置"><a href="#3-2-YAML-Frontmatter-配置" class="headerlink" title="3.2 YAML Frontmatter 配置"></a>3.2 YAML Frontmatter 配置</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">name:</span> <span class="string">optimize-doc</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">优化</span> <span class="string">Markdown</span> <span class="string">博客文档，按照专业标准改进内容结构、可读性和实用性。</span></span><br><span class="line">  <span class="string">This</span> <span class="string">skill</span> <span class="string">should</span> <span class="string">be</span> <span class="string">used</span> <span class="string">when</span> <span class="string">a</span> <span class="string">user</span> <span class="string">asks</span> <span class="string">to</span> <span class="string">optimize,</span> <span class="string">improve,</span> <span class="string">or</span> <span class="string">rewrite</span></span><br><span class="line">  <span class="string">markdown</span> <span class="string">documentation</span> <span class="string">for</span> <span class="string">blog</span> <span class="string">posts,</span> <span class="string">technical</span> <span class="string">articles,</span> <span class="string">or</span> <span class="string">other</span></span><br><span class="line">  <span class="string">markdown-based</span> <span class="string">content.</span></span><br><span class="line"><span class="attr">arguments:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">file</span></span><br><span class="line">    <span class="attr">description:</span> <span class="string">要优化的</span> <span class="string">Markdown</span> <span class="string">文件路径（绝对路径）</span></span><br><span class="line">    <span class="attr">required:</span> <span class="literal">true</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">type</span></span><br><span class="line">    <span class="attr">description:</span> <span class="string">文章类型</span> <span class="string">(mindset/tech/tools/gaming/anime)</span></span><br><span class="line">    <span class="attr">required:</span> <span class="literal">false</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">output_path</span></span><br><span class="line">    <span class="attr">description:</span> <span class="string">输出文件路径（绝对路径，默认：桌面）</span></span><br><span class="line">    <span class="attr">required:</span> <span class="literal">false</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></table></figure>
+
+<p>只有 <code>file</code> 标记为 <code>required</code>——其余参数有合理默认值，降低使用门槛。</p>
+<h3 id="3-3-工作流程设计"><a href="#3-3-工作流程设计" class="headerlink" title="3.3 工作流程设计"></a>3.3 工作流程设计</h3><p>v2.1 的工作流包含 9 个步骤，核心逻辑：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">分析原文 → 确定路径 → 设计结构 → 重写内容 → 添加可视化</span><br><span class="line">→ 补充实战 → 格式验证 → 保存文档 → 反馈结果</span><br></pre></td></tr></table></figure>
+
+<p>每步都有明确的输入、输出和质量标准。例如”添加可视化”步骤：</p>
+<ul>
+<li>决策依据：<code>references/visualization-guide.md</code> 中的决策树</li>
+<li>硬约束：Mermaid 图 ≤ 3 张，节点数 ≤ 8，超出改用 CDN 图片</li>
+<li>验证项：PJAX 兼容、链接可访问、颜色与博客风格协调</li>
+</ul>
+<h2 id="4-Skill-优化方案：多模型协作实录"><a href="#4-Skill-优化方案：多模型协作实录" class="headerlink" title="4. Skill 优化方案：多模型协作实录"></a>4. Skill 优化方案：多模型协作实录</h2><h3 id="4-1-Haiku-4-5-的初步方案"><a href="#4-1-Haiku-4-5-的初步方案" class="headerlink" title="4.1 Haiku 4.5 的初步方案"></a>4.1 Haiku 4.5 的初步方案</h3><p>Haiku 快速扫描 Skill 文件后，提出 5 项建议：</p>
+<ol>
+<li>重构 SKILL.md（541 → 200 行）</li>
+<li>创建 <code>references/visualization-guide.md</code></li>
+<li>完善 <code>document-template.md</code>（”只有前 100 行，不完整”）</li>
+<li>新增 <code>scripts/init_output_path.py</code></li>
+<li>改进 arguments 说明</li>
+</ol>
+<h3 id="4-2-Opus-4-6-的审核与修正"><a href="#4-2-Opus-4-6-的审核与修正" class="headerlink" title="4.2 Opus 4.6 的审核与修正"></a>4.2 Opus 4.6 的审核与修正</h3><p>Opus 逐条审核后发现 5 个问题：</p>
+<h4 id="问题-1：未读完就下结论"><a href="#问题-1：未读完就下结论" class="headerlink" title="问题 1：未读完就下结论"></a>问题 1：未读完就下结论</h4><p>Haiku 读 <code>document-template.md</code> 时设了 <code>limit=100</code>，只看开头就判断”不完整”。实际该文件有 586 行，是完整模板。</p>
+<p>教训：审查文件前必须完整读取，或先检查总行数。</p>
+<h4 id="问题-2：过度工程"><a href="#问题-2：过度工程" class="headerlink" title="问题 2：过度工程"></a>问题 2：过度工程</h4><p>建议新增 <code>init_output_path.py</code>——但这个逻辑只有 5 行（有指定用指定，没有存桌面），不满足 scripts 收录标准：”被反复重写”或”需要确定性执行”。</p>
+<h4 id="问题-3：目标行数过激"><a href="#问题-3：目标行数过激" class="headerlink" title="问题 3：目标行数过激"></a>问题 3：目标行数过激</h4><p>541 → 200 行意味着砍掉 63%，可能丢失关键程序化知识。合理目标是 ~320 行（移走参考性内容）。</p>
+<h4 id="问题-4：遗漏了真正的-bug"><a href="#问题-4：遗漏了真正的-bug" class="headerlink" title="问题 4：遗漏了真正的 bug"></a>问题 4：遗漏了真正的 bug</h4><p><code>validate_markdown.py</code> 中代码块检测有歧义：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 旧代码（有 bug）</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">is_code_block_start</span>(<span class="params">self, line</span>):</span><br><span class="line">    <span class="comment"># \w* 允许零字符，导致结束标记 ``` 也被匹配为&quot;开始&quot;</span></span><br><span class="line">    <span class="keyword">return</span> re.<span class="keyword">match</span>(<span class="string">r&#x27;^```\w*\s*$&#x27;</span>, line) <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">is_code_block_end</span>(<span class="params">self, line</span>):</span><br><span class="line">    <span class="keyword">return</span> re.<span class="keyword">match</span>(<span class="string">r&#x27;^```\s*$&#x27;</span>, line) <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 修复后：用状态机区分开始/结束</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">is_code_fence</span>(<span class="params">self, line</span>):</span><br><span class="line">    <span class="keyword">return</span> re.<span class="keyword">match</span>(<span class="string">r&#x27;^```&#x27;</span>, line) <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">check_code_blocks</span>(<span class="params">self</span>):</span><br><span class="line">    in_code_block = <span class="literal">False</span></span><br><span class="line">    <span class="keyword">for</span> i, line <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="variable language_">self</span>.lines):</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable language_">self</span>.is_code_fence(line):</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> in_code_block:</span><br><span class="line">            in_code_block = <span class="literal">True</span>   <span class="comment"># 开始</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            in_code_block = <span class="literal">False</span>  <span class="comment"># 结束</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="问题-5：内容重复"><a href="#问题-5：内容重复" class="headerlink" title="问题 5：内容重复"></a>问题 5：内容重复</h4><p>SKILL.md 和 <code>references/markdown-rules.md</code> 都列出了 MD022&#x2F;MD032&#x2F;MD036 的说明，违反 single source of truth 原则。</p>
+<h3 id="4-3-Sonnet-4-6-的执行结果"><a href="#4-3-Sonnet-4-6-的执行结果" class="headerlink" title="4.3 Sonnet 4.6 的执行结果"></a>4.3 Sonnet 4.6 的执行结果</h3><p>按优先级执行所有修改：</p>
+<ul>
+<li><strong>P0</strong>：创建 <code>references/visualization-guide.md</code>，移入约 160 行可视化逻辑</li>
+<li><strong>P1</strong>：精简步骤 2（删除伪代码）、合并步骤 5+6、删除重复格式规则、删除 emoji 堆砌的示例输出</li>
+<li><strong>P2</strong>：用状态机修复 <code>validate_markdown.py</code> 的代码块检测 bug</li>
+</ul>
+<p>最终结果：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>变化</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SKILL.md 行数</td>
+<td>541 → 319（-41%）</td>
+</tr>
+<tr>
+<td>references 文件数</td>
+<td>1 → 2</td>
+</tr>
+<tr>
+<td>重复内容处</td>
+<td>3 → 0</td>
+</tr>
+<tr>
+<td>脚本 bug</td>
+<td>1 → 0</td>
+</tr>
+</tbody></table>
+<h3 id="4-4-一个意外插曲：cc-switch-导致文件丢失"><a href="#4-4-一个意外插曲：cc-switch-导致文件丢失" class="headerlink" title="4.4 一个意外插曲：cc-switch 导致文件丢失"></a>4.4 一个意外插曲：cc-switch 导致文件丢失</h3><p>本次优化过程中发现了一个值得注意的问题：<strong>cc-switch 的 symlink 管理机制在会话切换后会覆盖文件</strong>。</p>
+<p>具体表现：Sonnet 创建了 <code>visualization-guide.md</code> 并编辑了 SKILL.md，但在切换模型（Haiku → Opus → Sonnet）之后，这些文件的修改时间恢复到了原始版本（2月9日）。</p>
+<p>排查过程：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查两个路径的文件状态</span></span><br><span class="line"><span class="built_in">ls</span> -lah ~/.claude/skills/optimize-doc/references/</span><br><span class="line"><span class="built_in">ls</span> -lah ~/.cc-switch/skills/optimize-doc/references/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 结果：visualization-guide.md 不存在，SKILL.md 时间戳回退</span></span><br></pre></td></tr></table></figure>
+
+<p>解决方案：手动重新写入所有丢失的修改，并验证两个路径的同步状态。</p>
+<p>防范建议：在使用 cc-switch 切换模型前，确保关键文件已写入磁盘并验证时间戳。</p>
+<h3 id="4-5-案例：资源文件未加载导致格式错误（auto-post-v1-2-0）"><a href="#4-5-案例：资源文件未加载导致格式错误（auto-post-v1-2-0）" class="headerlink" title="4.5 案例：资源文件未加载导致格式错误（auto-post v1.2.0）"></a>4.5 案例：资源文件未加载导致格式错误（auto-post v1.2.0）</h3><p>这是一个典型的 Agent 可靠性问题——Skill 的 references&#x2F; 中有正确的规范，但 Agent 执行时跳过了加载，导致输出不符合规范。</p>
+<h4 id="问题现象"><a href="#问题现象" class="headerlink" title="问题现象"></a>问题现象</h4><p>使用 <code>/auto-post</code> 生成文章后，更新记录使用了列表格式：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## 版本历史示例</span></span><br><span class="line"></span><br><span class="line"><span class="bullet">-</span> 2025-05-22：初始版本</span><br></pre></td></tr></table></figure>
+
+<p>但 <code>references/format-rules.md</code> 明确要求表格 + 版本号格式：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">## 版本历史示例</span></span><br><span class="line"></span><br><span class="line">| 版本 | 日期 | 说明 |</span><br><span class="line">|------|------|------|</span><br><span class="line">| v1.0 | 2025-05-22 | 初始版本 |</span><br></pre></td></tr></table></figure>
+
+<h4 id="根因分析：三处缺陷的叠加"><a href="#根因分析：三处缺陷的叠加" class="headerlink" title="根因分析：三处缺陷的叠加"></a>根因分析：三处缺陷的叠加</h4><table>
+<thead>
+<tr>
+<th>#</th>
+<th>缺陷位置</th>
+<th>具体问题</th>
+<th>严重度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>SKILL.md 自检清单</td>
+<td>写的是旧列表格式 <code>- YYYY-MM-DD：初始版本</code>，与 format-rules.md <strong>直接矛盾</strong></td>
+<td>根因</td>
+</tr>
+<tr>
+<td>2</td>
+<td>参考资源 section 标题</td>
+<td>标题为”按需加载”，暗示所有资源可跳过，削弱了 format-rules.md 的强制性</td>
+<td>助因</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Step 4 无硬前置</td>
+<td>仅写”对照 format-rules.md 自检”，未要求必须先 Read 该文件</td>
+<td>助因</td>
+</tr>
+</tbody></table>
+<p>Agent 执行时的决策链：看到标题”按需加载” → 判断 format-rules.md 不是必需的 → 依赖 SKILL.md 内的自检清单 → 清单写的是列表格式 → 输出列表格式。</p>
+<p><strong>根因不是 Agent 没读文件，而是 SKILL.md 自检清单本身就写错了。</strong> 即使 Agent 读了 format-rules.md，面对两处矛盾的指令也可能随机选择其一。</p>
+<h4 id="修复方案"><a href="#修复方案" class="headerlink" title="修复方案"></a>修复方案</h4><p>三处同时修复，消除矛盾源：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">修复 1：自检清单 — 删除内联的错误格式描述，改为引用 format-rules.md</span><br><span class="line">  旧：- [ ] 更新记录存在，格式为 `- YYYY-MM-DD：初始版本`</span><br><span class="line">  新：- [ ] 更新记录使用表格格式，含版本号（参见 format-rules.md §更新记录规范）</span><br><span class="line"></span><br><span class="line">修复 2：参考资源 — 去掉&quot;按需加载&quot;标题，改为表格明确区分必须/按需</span><br><span class="line">  format-rules.md 标注为：是，禁止跳过</span><br><span class="line"></span><br><span class="line">修复 3：Step 3 并行加载 — format-rules.md 与模板文件同时 Read，Step 4 设兜底检查</span><br></pre></td></tr></table></figure>
+
+<h4 id="Agent-可靠性原则"><a href="#Agent-可靠性原则" class="headerlink" title="Agent 可靠性原则"></a>Agent 可靠性原则</h4><p>这个案例验证了 Google&#x2F;Kaggle Agent 白皮书中的两条核心原则：</p>
+<p><strong>1. Single Source of Truth</strong>：同一规则不要在两处维护不同描述。SKILL.md 的自检清单和 format-rules.md 对更新记录格式的描述矛盾了，Agent 无法判断哪个是权威的。修复方式是清单只引用，不内联。</p>
+<p><strong>2. Reproducibility</strong>：Agent 的错误必须能够复现和防止。仅靠”提醒 Agent 下次记得读文件”是不可靠的——每次会话是独立的，Agent 没有跨会话记忆。必须在 Skill 结构层面消除错误的可能性：将强制加载写入工作流步骤，而非依赖 Agent 的自主判断。</p>
+<h3 id="4-6-v2-2-迭代：代码块跳过与-MD018-检测"><a href="#4-6-v2-2-迭代：代码块跳过与-MD018-检测" class="headerlink" title="4.6 v2.2 迭代：代码块跳过与 MD018 检测"></a>4.6 v2.2 迭代：代码块跳过与 MD018 检测</h3><p>基于 5.3 节列出的迭代方向，v2.2 完成了两项改进。</p>
+<h4 id="改进-1：预计算代码块映射，消除误报"><a href="#改进-1：预计算代码块映射，消除误报" class="headerlink" title="改进 1：预计算代码块映射，消除误报"></a>改进 1：预计算代码块映射，消除误报</h4><p>v2.1 的状态机修复仅应用于 <code>check_code_blocks()</code>，其余 5 个 check 方法（<code>check_headings</code>、<code>check_lists</code>、<code>check_tables</code>、<code>check_horizontal_rules</code>、<code>check_emphasis_as_heading</code>）仍会检测代码块内部的内容，产生大量误报。</p>
+<p>v2.2 引入 <code>_build_code_block_map()</code>，在验证开始时一次性预计算所有代码块的行范围：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_build_code_block_map</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;预计算每行是否在代码块内部，供所有 check 方法共享&quot;&quot;&quot;</span></span><br><span class="line">    <span class="variable language_">self</span>._in_code_block = <span class="built_in">set</span>()</span><br><span class="line">    <span class="variable language_">self</span>._code_fence_lines = <span class="built_in">set</span>()</span><br><span class="line">    <span class="variable language_">self</span>._code_fence_open = <span class="built_in">set</span>()   <span class="comment"># 开启围栏行号</span></span><br><span class="line">    <span class="variable language_">self</span>._code_fence_close = <span class="built_in">set</span>()  <span class="comment"># 关闭围栏行号</span></span><br><span class="line">    in_block = <span class="literal">False</span></span><br><span class="line">    <span class="keyword">for</span> i, line <span class="keyword">in</span> <span class="built_in">enumerate</span>(<span class="variable language_">self</span>.lines):</span><br><span class="line">        <span class="keyword">if</span> line.strip().startswith(<span class="string">&#x27;```&#x27;</span>):</span><br><span class="line">            <span class="variable language_">self</span>._code_fence_lines.add(i)</span><br><span class="line">            <span class="keyword">if</span> <span class="keyword">not</span> in_block:</span><br><span class="line">                <span class="variable language_">self</span>._code_fence_open.add(i)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                <span class="variable language_">self</span>._code_fence_close.add(i)</span><br><span class="line">            in_block = <span class="keyword">not</span> in_block</span><br><span class="line">            <span class="keyword">continue</span></span><br><span class="line">        <span class="keyword">if</span> in_block:</span><br><span class="line">            <span class="variable language_">self</span>._in_code_block.add(i)</span><br></pre></td></tr></table></figure>
+
+<p>所有 6 个 check 方法通过共享的 <code>_is_inside_code_block()</code> &#x2F; <code>_is_code_fence()</code> 统一跳过代码块内容。<code>check_code_blocks()</code> 也改用 <code>_code_fence_open</code> &#x2F; <code>_code_fence_close</code> 集合，不再需要独立的开闭判断逻辑，废弃的 <code>is_code_block_start()</code> &#x2F; <code>is_code_block_end()</code> 被彻底删除。</p>
+<h4 id="改进-2：新增-MD018-标题格式检测"><a href="#改进-2：新增-MD018-标题格式检测" class="headerlink" title="改进 2：新增 MD018 标题格式检测"></a>改进 2：新增 MD018 标题格式检测</h4><p>新增 <code>is_heading_no_space()</code> 检测 <code>##标题</code> 这类 <code>#</code> 后缺空格的常见错误：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">is_heading_no_space</span>(<span class="params">self, line: <span class="built_in">str</span></span>) -&gt; <span class="built_in">bool</span>:</span><br><span class="line">    <span class="comment"># 匹配 # 后直接跟非空格非 # 非数字字符，排除 #123 等 issue 引用</span></span><br><span class="line">    <span class="keyword">return</span> re.<span class="keyword">match</span>(<span class="string">r&#x27;^#&#123;1,6&#125;[^\s#\d]&#x27;</span>, line) <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br></pre></td></tr></table></figure>
+
+<p>正则设计要点：<code>[^\s#\d]</code> 排除了三种合法场景——空格（正确格式）、<code>#</code>（连续 <code>#</code> 号）、数字（<code>#123</code> issue 引用）。</p>
+<p>同步更新了 Skill 的规范文档：</p>
+<ul>
+<li><strong>SKILL.md</strong>：「严格格式规范」中 MD018 升为第一条规则并加粗，新增「特别注意」段落给出正反例</li>
+<li><strong>markdown-rules.md</strong>：在 MD022 之前新增完整的「标题 <code>#</code> 后必须有空格 (MD018)」章节，含正确&#x2F;错误示例</li>
+</ul>
+<h3 id="4-7-v2-3-迭代：Frontmatter-误报修复"><a href="#4-7-v2-3-迭代：Frontmatter-误报修复" class="headerlink" title="4.7 v2.3 迭代：Frontmatter 误报修复"></a>4.7 v2.3 迭代：Frontmatter 误报修复</h3><h4 id="问题发现"><a href="#问题发现" class="headerlink" title="问题发现"></a>问题发现</h4><p>使用 <code>/optimize-doc</code> 生成一篇新文章后，运行 <code>validate_markdown.py</code> 验证格式，每次都报两个”错误”：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">❌ 发现 2 个错误:</span><br><span class="line">  - 第 1 行: 分隔线后需要空行</span><br><span class="line">  - 第 9 行: 分隔线前需要空行</span><br></pre></td></tr></table></figure>
+
+<p>第 1 行和第 9 行正是 YAML frontmatter 的 <code>---</code> 分隔符：</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">---</span>          <span class="string">←</span> <span class="string">第</span> <span class="number">1</span> <span class="string">行，被误判为分隔线</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">post</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">...</span></span><br><span class="line"><span class="attr">date:</span> <span class="string">...</span></span><br><span class="line"><span class="attr">toc:</span> <span class="literal">true</span></span><br><span class="line"><span class="string">---</span>          <span class="string">←</span> <span class="string">第</span> <span class="number">9</span> <span class="string">行，被误判为分隔线</span></span><br></pre></td></tr></table></figure>
+
+<p>这不是真正的格式错误——每篇博客文章都以 frontmatter 开头，是 Hexo 的标准格式。但 <code>check_horizontal_rules()</code> 的 <code>is_horizontal_rule()</code> 正则 <code>^[\s\-*_]{3,}\s*$</code> 无差别匹配了所有 <code>---</code>，无法区分 frontmatter 分隔符和正文中的水平分隔线。</p>
+<h4 id="根因分析"><a href="#根因分析" class="headerlink" title="根因分析"></a>根因分析</h4><p>验证脚本的区域感知只有一层——代码块（v2.2 加入）。但 Markdown 博客文件实际有三种”特殊区域”需要跳过：</p>
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>标记</th>
+<th align="center">v2.2 是否跳过</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>代码块</td>
+<td><code>```</code> … <code>```</code></td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td>YAML Frontmatter</td>
+<td><code>---</code> … <code>---</code>（文件开头）</td>
+<td align="center"><strong>否</strong></td>
+</tr>
+<tr>
+<td>HTML 注释</td>
+<td><code>&lt;!--</code> … <code>--&gt;</code></td>
+<td align="center">否（暂不需要）</td>
+</tr>
+</tbody></table>
+<p>Frontmatter 的 <code>---</code> 被 <code>is_horizontal_rule()</code> 匹配后，由于第 1 行前无空行、第 9 行后紧跟正文内容（<code>&gt;</code>），触发了”分隔线前&#x2F;后需要空行”的检查。</p>
+<h4 id="修复方案-1"><a href="#修复方案-1" class="headerlink" title="修复方案"></a>修复方案</h4><p>新增 <code>_build_frontmatter_map()</code> 方法，在验证开始时（<code>_build_code_block_map()</code> 之前）预计算 frontmatter 区域：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">_build_frontmatter_map</span>(<span class="params">self</span>):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;检测 YAML frontmatter 区域（文件以 --- 开头，到第二个 --- 结束）&quot;&quot;&quot;</span></span><br><span class="line">    <span class="variable language_">self</span>._frontmatter_lines = <span class="built_in">set</span>()</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> <span class="variable language_">self</span>.lines <span class="keyword">or</span> <span class="variable language_">self</span>.lines[<span class="number">0</span>].strip() != <span class="string">&#x27;---&#x27;</span>:</span><br><span class="line">        <span class="keyword">return</span></span><br><span class="line">    <span class="variable language_">self</span>._frontmatter_lines.add(<span class="number">0</span>)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="built_in">len</span>(<span class="variable language_">self</span>.lines)):</span><br><span class="line">        <span class="variable language_">self</span>._frontmatter_lines.add(i)</span><br><span class="line">        <span class="keyword">if</span> <span class="variable language_">self</span>.lines[i].strip() == <span class="string">&#x27;---&#x27;</span>:</span><br><span class="line">            <span class="keyword">break</span></span><br></pre></td></tr></table></figure>
+
+<p>关键设计决策：</p>
+<ul>
+<li><strong>检测条件</strong>：仅当文件第 1 行恰好是 <code>---</code> 时才启用，不会误判正文中的分隔线</li>
+<li><strong>范围界定</strong>：从第 1 行扫描到第二个 <code>---</code>，中间所有行都标记为 frontmatter</li>
+<li><strong>执行顺序</strong>：必须在 <code>_build_code_block_map()</code> 之前执行，因为后者也需要跳过 frontmatter 区域（避免将 frontmatter 的 <code>---</code> 误判为代码块围栏）</li>
+</ul>
+<p>所有 6 个 check 方法的跳过条件从：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="variable language_">self</span>._is_inside_code_block(i) <span class="keyword">or</span> <span class="variable language_">self</span>._is_code_fence(i):</span><br><span class="line">    <span class="keyword">continue</span></span><br></pre></td></tr></table></figure>
+
+<p>统一扩展为：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> <span class="variable language_">self</span>._is_inside_frontmatter(i) <span class="keyword">or</span> <span class="variable language_">self</span>._is_inside_code_block(i) <span class="keyword">or</span> <span class="variable language_">self</span>._is_code_fence(i):</span><br><span class="line">    <span class="keyword">continue</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="修复验证"><a href="#修复验证" class="headerlink" title="修复验证"></a>修复验证</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 修复前</span><br><span class="line">❌ 发现 2 个错误:</span><br><span class="line">  - 第 1 行: 分隔线后需要空行</span><br><span class="line">  - 第 9 行: 分隔线前需要空行</span><br><span class="line"></span><br><span class="line"># 修复后</span><br><span class="line">✅ 文件格式验证通过！</span><br></pre></td></tr></table></figure>
+
+<p>交叉验证了多篇已有博客文章（含不同 frontmatter 长度），均通过。</p>
+<h4 id="复盘：为什么-v2-2-没发现这个问题"><a href="#复盘：为什么-v2-2-没发现这个问题" class="headerlink" title="复盘：为什么 v2.2 没发现这个问题"></a>复盘：为什么 v2.2 没发现这个问题</h4><p>v2.2 的测试用例是已有的博客文章（当时恰好都通过了，因为 <code>check_headings()</code> 的 <code>if i &gt; 5</code> 硬编码跳过了前 5 行，间接绕过了 frontmatter），而 <code>check_horizontal_rules()</code> 没有类似的硬编码保护。这说明”硬编码跳过”是脆弱的——正确做法是结构化地识别和跳过特殊区域。</p>
+<h3 id="4-8-v2-4-迭代：模板-粗体-诱导-MD036-违规"><a href="#4-8-v2-4-迭代：模板-粗体-诱导-MD036-违规" class="headerlink" title="4.8 v2.4 迭代：模板 **粗体** 诱导 MD036 违规"></a>4.8 v2.4 迭代：模板 <code>**粗体**</code> 诱导 MD036 违规</h3><h4 id="问题发现-1"><a href="#问题发现-1" class="headerlink" title="问题发现"></a>问题发现</h4><p>一次性用 optimize-doc 生成 4 篇后端技术文章后，每篇都出现 1-3 处 MD036 违规：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">❌ 发现 1 个错误:</span><br><span class="line">  - 第 446 行: 禁止使用强调文本作为标题，请使用标准标题格式 (MD036)</span><br></pre></td></tr></table></figure>
+
+<p>违规行的形态各异，但模式一致——<strong>整行只有 <code>**粗体文字**</code>，没有其他文字</strong>：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="strong">**结论：Redis ZSet 综合得分最高，是当前场景的最优选。**</span></span><br><span class="line"><span class="strong">**A:**</span></span><br><span class="line"><span class="strong">**场景一：自定义 SqlSessionFactory Bean**</span></span><br><span class="line"><span class="strong">**为什么用 @PostConstruct？**</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="根因分析：模板教坏了-AI"><a href="#根因分析：模板教坏了-AI" class="headerlink" title="根因分析：模板教坏了 AI"></a>根因分析：模板教坏了 AI</h4><p>排查 <code>document-template.md</code>，找到 5 处完全匹配 MD036 检测正则 <code>^(\*\*[^*]+\*\*)\s*$</code> 的行：</p>
+<table>
+<thead>
+<tr>
+<th>行号</th>
+<th>模板内容</th>
+<th>意图</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>167</td>
+<td><code>**步骤 1：准备工作**</code></td>
+<td>子标题</td>
+</tr>
+<tr>
+<td>177</td>
+<td><code>**步骤 2：基础配置**</code></td>
+<td>子标题</td>
+</tr>
+<tr>
+<td>185</td>
+<td><code>**步骤 3：运行示例**</code></td>
+<td>子标题</td>
+</tr>
+<tr>
+<td>199</td>
+<td><code>**场景1：高级配置**</code></td>
+<td>子标题</td>
+</tr>
+<tr>
+<td>213</td>
+<td><code>**场景2：性能优化**</code></td>
+<td>子标题</td>
+</tr>
+</tbody></table>
+<p>这些行的写作意图是<strong>子标题</strong>，但用了 <code>**粗体**</code> 而非 <code>####</code> 标题语法。模板本身不会被 validate 检测（不是文章），但 AI 在生成文章时会<strong>泛化这个模式</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">模板：**步骤 1：准备工作**（独立成行的粗体 = 子标题）</span><br><span class="line"> ↓ AI 学到的规则</span><br><span class="line">生成：**结论：...**、**A:**、**场景一：...**（各种变体）</span><br><span class="line"> ↓ validate_markdown.py</span><br><span class="line">MD036 违规 ❌</span><br></pre></td></tr></table></figure>
+
+<p>这是一个典型的”上游模板污染下游输出”问题——验证脚本的规则和模板的写法自相矛盾。</p>
+<h4 id="修复方案-2"><a href="#修复方案-2" class="headerlink" title="修复方案"></a>修复方案</h4><p>将模板中 5 处独立粗体改为 <code>####</code> 四级标题：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">旧：**步骤 1：准备工作**</span><br><span class="line">新：#### 步骤 1：准备工作</span><br><span class="line"></span><br><span class="line">旧：**场景1：高级配置**</span><br><span class="line">新：#### 场景 1：高级配置</span><br></pre></td></tr></table></figure>
+
+<p>由于项目 skill 路径 <code>~/.claude/skills/optimize-doc</code> 是指向 <code>~/.cc-switch/skills/optimize-doc</code> 的软链接，修改一处即全局生效。</p>
+<h4 id="修复验证-1"><a href="#修复验证-1" class="headerlink" title="修复验证"></a>修复验证</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 模板自检：无 MD036 违规</span><br><span class="line">✅ 模板中无 MD036 违规</span><br><span class="line"></span><br><span class="line"># 用修复后的模板生成的文章：4 篇全部通过</span><br><span class="line">✅ 文件格式验证通过！</span><br></pre></td></tr></table></figure>
+
+<h4 id="复盘：为什么之前没发现"><a href="#复盘：为什么之前没发现" class="headerlink" title="复盘：为什么之前没发现"></a>复盘：为什么之前没发现</h4><p>模板文件不是文章，从未被 <code>validate_markdown.py</code> 检测过。之前手动优化文章时，作者写的是正确的 <code>####</code> 标题；只有当 AI 大量生成文章时，才会系统性地复现模板中的 <code>**粗体**</code> 模式。这说明 <strong>模板不仅是给人看的，更是给 AI 看的</strong>——模板中的每一处格式选择都会被 AI 当作”正确示范”来泛化。</p>
+<h4 id="Agent-可靠性原则补充"><a href="#Agent-可靠性原则补充" class="headerlink" title="Agent 可靠性原则补充"></a>Agent 可靠性原则补充</h4><p>在 4.5 节的 Single Source of Truth 基础上，这次补充第三条原则：</p>
+<p><strong>3. Template as Specification</strong>：模板不只是”可复制的骨架”，它是 AI 的格式规范隐式教材。模板中出现的任何格式写法，都会被 AI 理解为”推荐做法”并在生成时泛化。因此模板本身必须严格遵守验证脚本的规则——模板和验证规则不能自相矛盾。</p>
+<h4 id="同一机制的第二个实例：tags-格式矛盾"><a href="#同一机制的第二个实例：tags-格式矛盾" class="headerlink" title="同一机制的第二个实例：tags 格式矛盾"></a>同一机制的第二个实例：tags 格式矛盾</h4><p>修复 MD036 后，4 篇新文章的 <code>tags</code> 全部使用了 YAML 列表格式（<code>- tag1</code>），而仓库中其他文章统一使用行内数组格式（<code>[tag1, tag2]</code>）。排查发现模板和 SKILL.md 对 <code>tags</code> 的示范互相矛盾：</p>
+<table>
+<thead>
+<tr>
+<th>参考源</th>
+<th><code>categories</code> 格式</th>
+<th><code>tags</code> 格式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>document-template.md</code></td>
+<td><code>[tech, subcategory]</code></td>
+<td><code>- tag1</code>（YAML 列表）</td>
+</tr>
+<tr>
+<td>SKILL.md 步骤 4 示例</td>
+<td><code>[tech, subcategory]</code></td>
+<td><code>[tag1, tag2]</code>（行内数组）</td>
+</tr>
+<tr>
+<td>仓库实际标准</td>
+<td><code>[tech, backend]</code></td>
+<td><code>[tag1, tag2]</code>（行内数组）</td>
+</tr>
+</tbody></table>
+<p><code>categories</code> 两处一致，AI 输出稳定；<code>tags</code> 两处矛盾，AI 随机选择模板版本，导致 4 篇文章全部偏离仓库标准。</p>
+<p>修复方式：将模板的 <code>tags</code> 从 YAML 列表改为行内数组，与 SKILL.md 和仓库标准保持一致。</p>
+<p>这个案例与 <code>**粗体**</code> 问题的机制完全相同，进一步验证了 Template as Specification 原则：<strong>当模板与其他参考源对同一规则给出不同示范时，AI 没有判断”哪个更权威”的能力，只会随机选择其一</strong>。消除矛盾的唯一方式是确保所有参考源严格一致。</p>
+<h3 id="4-9-v2-5-迭代：Mermaid-subgraph-语法规范缺失"><a href="#4-9-v2-5-迭代：Mermaid-subgraph-语法规范缺失" class="headerlink" title="4.9 v2.5 迭代：Mermaid subgraph 语法规范缺失"></a>4.9 v2.5 迭代：Mermaid subgraph 语法规范缺失</h3><h4 id="问题发现-2"><a href="#问题发现-2" class="headerlink" title="问题发现"></a>问题发现</h4><p>在编写一篇 GitHub Actions 博客文章时，生成了包含三层防护体系的 Mermaid subgraph 图。review 阶段发现图表语法错误，无法正常渲染：</p>
+<pre class="mermaid">graph TD
+    subgraph 第一层 本地防护
+        A[pre-commit Hook] --> B[扫描暂存文件]
+    end
+    subgraph 第二层 CI 防护
+        E[GitHub Actions] --> F[check:secrets 阻断构建]
+    end
+
+    第一层 本地防护 --> 第二层 CI 防护</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-05-skill-optimization-practice/diagram_20260417_022905_01.webp" alt="含语法错误的 Mermaid subgraph 示例：中文名含空格直接用于连接节点"></p>
+</details>
+
+<p>两处错误：</p>
+<ol>
+<li><code>subgraph 第一层 本地防护</code>：subgraph 名称含空格，未使用 ID + 显示名称分离的写法</li>
+<li><code>第一层 本地防护 --&gt; 第二层 CI 防护</code>：直接用含空格的显示名称作为连接节点</li>
+</ol>
+<h4 id="根因分析-1"><a href="#根因分析-1" class="headerlink" title="根因分析"></a>根因分析</h4><p>排查 <code>references/visualization-guide.md</code>，发现全文有方向规范、颜色规范、节点数限制、PJAX 说明，<strong>唯独没有 subgraph 语法规范</strong>。</p>
+<p><code>markdown-optimization-guide.md</code>（companion doc）的图表类型表格中第 179 行写着：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">| `graph TD` + `subgraph` | 分层架构 | 三层架构 |</span><br></pre></td></tr></table></figure>
+
+<p>只有场景描述，没有任何语法示例。</p>
+<p>Claude 生成 subgraph 时只能依赖自身预训练知识，而不是 Skill 规定的规范，容易产生两类错误：</p>
+<table>
+<thead>
+<tr>
+<th>错误类型</th>
+<th>错误写法</th>
+<th>正确写法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>名称含空格直接用作 ID</td>
+<td><code>subgraph 第一层 本地防护</code></td>
+<td><code>subgraph SG1[&quot;第一层：本地防护&quot;]</code></td>
+</tr>
+<tr>
+<td>用显示名称连接 subgraph</td>
+<td><code>第一层 本地防护 --&gt; 第二层 CI 防护</code></td>
+<td><code>SG1 --&gt; SG2</code></td>
+</tr>
+</tbody></table>
+<p>这与 4.8 节的”Template as Specification”是同一机制，只是作用对象从 <code>assets/document-template.md</code> 换成了 <code>references/visualization-guide.md</code>：<strong>Reference 文件同样是 AI 的隐式规范来源，缺失等于默许错误</strong>。</p>
+<h4 id="修复方案-3"><a href="#修复方案-3" class="headerlink" title="修复方案"></a>修复方案</h4><p>在 <code>visualization-guide.md</code> 的 <code>### PJAX 兼容性</code> 之前，新增 <code>### subgraph 语法规范</code> 章节：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">### subgraph 语法规范</span></span><br><span class="line"></span><br><span class="line">使用 subgraph 分组时，<span class="strong">**必须**</span>遵循 ID + 显示名称分离的写法：</span><br><span class="line"></span><br><span class="line">✅ 正确写法：</span><br><span class="line"></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">pre</span> <span class="attr">class</span>=<span class="string">&quot;mermaid&quot;</span>&gt;</span></span>graph TD</span><br><span class="line"><span class="code">    subgraph SG1[&quot;第一层：本地防护&quot;]</span></span><br><span class="line"><span class="code">        A[pre-commit Hook] --&gt; B[扫描结果]</span></span><br><span class="line"><span class="code">    end</span></span><br><span class="line"><span class="code">    subgraph SG2[&quot;第二层：CI 防护&quot;]</span></span><br><span class="line"><span class="code">        C[GitHub Actions] --&gt; D[阻断构建]</span></span><br><span class="line"><span class="code">    end</span></span><br><span class="line"><span class="code">    SG1 --&gt; SG2&lt;/pre&gt;</span></span><br><span class="line"><span class="code"></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">details</span>&gt;</span></span></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;<span class="name">summary</span>&gt;</span></span><span class="strong">**🖼️ 插图版（2026-04-17 增量补充）**</span><span class="language-xml"><span class="tag">&lt;/<span class="name">summary</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">![<span class="string">正确的 Mermaid subgraph 写法：ID 与显示名称分离的规范格式</span>](<span class="link">https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-03-05-skill-optimization-practice/diagram_20260417_023248_02.webp</span>)</span><br><span class="line"></span><br><span class="line"><span class="language-xml"><span class="tag">&lt;/<span class="name">details</span>&gt;</span></span></span><br><span class="line"></span><br><span class="line">❌ 错误写法（中文名含空格直接作为连接节点）：</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>subgraph 第一层 本地防护<br>    …<br>end<br>第一层 本地防护 –&gt; 第二层 CI 防护</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">**规则**：</span><br><span class="line">- subgraph 声明格式：`subgraph ID[&quot;显示名称&quot;]`（ID 用 ASCII，不含空格）</span><br><span class="line">- subgraph 间连接使用 ID：`SG1 --&gt; SG2`</span><br><span class="line">- 含中文或空格的名称必须放在引号内作为显示名</span><br></pre></td></tr></table></figure>
+
+<p>同步更新 <code>markdown-optimization-guide.md</code> companion doc 表格中 subgraph 行，补充语法格式说明。</p>
+<h4 id="Agent-可靠性原则补充-1"><a href="#Agent-可靠性原则补充-1" class="headerlink" title="Agent 可靠性原则补充"></a>Agent 可靠性原则补充</h4><p>在 4.8 节 Template as Specification 基础上，补充：</p>
+<p><strong>4. Reference as Specification</strong>：references&#x2F; 目录的规范文档，不只是”供 Claude 查阅的参考”。凡是 Reference 中提到”支持 X 功能”而没有给出正确语法示例的地方，AI 就会用自身预训练知识去填充，结果可能正确也可能错误。正确做法是：一旦提到某种语法模式，必须同时给出 <code>✅ 正确写法</code> 和 <code>❌ 错误写法</code> 的示例对比。</p>
+<h3 id="4-10-v2-6-迭代：SKILL-md-内联提醒缺失导致-MD036-复发"><a href="#4-10-v2-6-迭代：SKILL-md-内联提醒缺失导致-MD036-复发" class="headerlink" title="4.10 v2.6 迭代：SKILL.md 内联提醒缺失导致 MD036 复发"></a>4.10 v2.6 迭代：SKILL.md 内联提醒缺失导致 MD036 复发</h3><h4 id="问题发现-3"><a href="#问题发现-3" class="headerlink" title="问题发现"></a>问题发现</h4><p>用 optimize-doc 生成 <code>2026-03-31-python-env-setup-from-java-perspective.md</code> 时，验证脚本在第 177 行报 MD036 错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">❌ 发现 1 个错误:</span><br><span class="line">  - 第 177 行: 禁止使用强调文本作为标题，请使用标准标题格式 (MD036)</span><br></pre></td></tr></table></figure>
+
+<p>违规行位于”选型结论”小节，AI 用一个独立 bold 行突出核心方案：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">### 5.1 选型结论</span></span><br><span class="line"></span><br><span class="line"><span class="strong">**pyenv（版本管理） + Poetry（依赖管理） + in-project venv（隔离）**</span></span><br><span class="line"></span><br><span class="line">三者各司其职，无重叠也无冲突：</span><br></pre></td></tr></table></figure>
+
+<h4 id="与-4-8-节的区别"><a href="#与-4-8-节的区别" class="headerlink" title="与 4.8 节的区别"></a>与 4.8 节的区别</h4><p>4.8 节的根因是<strong>模板污染</strong>：<code>document-template.md</code> 本身含有 5 处独立 <code>**粗体**</code> 行，AI 复现了模板的写法。修复后模板已无 MD036 问题，当前 <code>document-template.md</code> 的子标题全部使用 <code>####</code>。</p>
+<p>这次模板和 <code>SKILL.md</code> 第 95 行的规则声明均正确，但 AI 在写”总结&#x2F;结论”类段落时<strong>自发</strong>生成了独立 bold 行。两次问题的表现相同，机制不同。</p>
+<h4 id="根因分析：规则声明与触发点距离过远"><a href="#根因分析：规则声明与触发点距离过远" class="headerlink" title="根因分析：规则声明与触发点距离过远"></a>根因分析：规则声明与触发点距离过远</h4><p><code>SKILL.md</code> 的 MD036 规则位于”第 5 节：严格格式规范”（生成内容之前），与”步骤 4：重写内容”（AI 实际执行的地方）相距较远。AI 在生成长文时，容易在执行到具体写作步骤时遗忘前面章节声明的约束。</p>
+<p>按照 <code>skill-creator</code> 的设计规范，这类关键约束的标准做法是：</p>
+<ol>
+<li><strong>dedicated section 统一声明</strong>（<code>SKILL.md</code> 第 95 行已有）</li>
+<li><strong>在相关 workflow step 内就近内联重复提醒</strong>（之前缺失）</li>
+</ol>
+<p>只有第 1 步没有第 2 步，规则就只是”写了”而非”在用的时候被提醒到”。</p>
+<h4 id="修复方案-4"><a href="#修复方案-4" class="headerlink" title="修复方案"></a>修复方案</h4><p>三处改动，各在对应的职责层解决：</p>
+<h5 id="改动-1：SKILL-md-步骤-4-末尾增加一句话内联提醒"><a href="#改动-1：SKILL-md-步骤-4-末尾增加一句话内联提醒" class="headerlink" title="改动 1：SKILL.md 步骤 4 末尾增加一句话内联提醒"></a>改动 1：<code>SKILL.md</code> 步骤 4 末尾增加一句话内联提醒</h5><figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 步骤 4 内容结构列表之后 --&gt;</span><br><span class="line"><span class="strong">**格式提醒（MD036）**</span>：总结/结论段落中，禁止用独立 <span class="code">`**粗体**`</span> 行突出核心结论，</span><br><span class="line">必须融入段落句子中。详见 <span class="code">`references/markdown-rules.md`</span> 的结论场景示例。</span><br></pre></td></tr></table></figure>
+
+<p>提醒只有一句话，不重复 <code>references/</code> 中的详细内容——保持 SKILL.md 精简、references 作为详细规范的分层结构。</p>
+<h5 id="改动-2：references-markdown-rules-md-补充”总结-结论场景”正反例"><a href="#改动-2：references-markdown-rules-md-补充”总结-结论场景”正反例" class="headerlink" title="改动 2：references/markdown-rules.md 补充”总结&#x2F;结论场景”正反例"></a>改动 2：<code>references/markdown-rules.md</code> 补充”总结&#x2F;结论场景”正反例</h5><p>在 MD036 章节新增子节，展示 AI 最容易犯错的场景：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- ❌ 错误：独立 bold 行做结论 --&gt;</span><br><span class="line"><span class="section">### 5.1 选型结论</span></span><br><span class="line"></span><br><span class="line"><span class="strong">**pyenv + Poetry + venv**</span></span><br><span class="line"></span><br><span class="line">三者各司其职...</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- ✅ 正确：结论融入段落，行内加粗 --&gt;</span><br><span class="line"><span class="section">### 5.1 选型结论</span></span><br><span class="line"></span><br><span class="line">推荐方案为 <span class="strong">**pyenv + Poetry + venv**</span>，三者各司其职...</span><br></pre></td></tr></table></figure>
+
+<h5 id="改动-3：公共格式文档-source-docs-markdown-format-check-md-补充-MD036"><a href="#改动-3：公共格式文档-source-docs-markdown-format-check-md-补充-MD036" class="headerlink" title="改动 3：公共格式文档 source/docs/markdown-format-check.md 补充 MD036"></a>改动 3：公共格式文档 <code>source/docs/markdown-format-check.md</code> 补充 MD036</h5><p>该文档的 Markdownlint 规则表、检查清单、常见错误三处均未提及 MD036，与验证脚本的实际检测规则存在文档缺口，一并补齐。</p>
+<h4 id="修复验证-2"><a href="#修复验证-2" class="headerlink" title="修复验证"></a>修复验证</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">✅ 文件格式验证通过！</span><br></pre></td></tr></table></figure>
+
+<h4 id="Agent-可靠性原则补充-2"><a href="#Agent-可靠性原则补充-2" class="headerlink" title="Agent 可靠性原则补充"></a>Agent 可靠性原则补充</h4><p>在 4.9 节 Reference as Specification 基础上，补充：</p>
+<p><strong>5. Rule Proximity（规则就近原则）</strong>：仅在 SKILL.md 开头或独立章节声明的规则，AI 在执行距离较远的 workflow step 时容易遗忘。关键规则必须在最可能触发违规的 step 处内联重复——不是复制详细说明，而是一句简短提醒 + 指向 references 文件的引用。</p>
+<p>这与 4.8 节的 Template as Specification 互补：Template as Specification 解决”AI 从模板学到错误示范”，Rule Proximity 解决”AI 执行时遗忘了正确规则”。两者都指向同一个核心问题——<strong>规则能被写进 SKILL.md 不等于规则能被 AI 在执行时有效遵守</strong>。</p>
+<h3 id="4-11-v2-7-迭代：续行误判-MD032-假阳性-Plan-模式下格式约束旁路"><a href="#4-11-v2-7-迭代：续行误判-MD032-假阳性-Plan-模式下格式约束旁路" class="headerlink" title="4.11 v2.7 迭代：续行误判 MD032 假阳性 + Plan 模式下格式约束旁路"></a>4.11 v2.7 迭代：续行误判 MD032 假阳性 + Plan 模式下格式约束旁路</h3><h4 id="问题发现-4"><a href="#问题发现-4" class="headerlink" title="问题发现"></a>问题发现</h4><p>用 <code>/optimize-doc gcloud CLI 的基础用法，多 config 管理</code> 生成文章时（Opus 规划 + Sonnet 执行），验证脚本报了两个 MD032 错误：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">❌ 发现 2 个错误:</span><br><span class="line">  - 第 599 行: 列表后需要空行 (MD032)</span><br><span class="line">  - 第 600 行: 列表前需要空行 (MD032)</span><br></pre></td></tr></table></figure>
+
+<p>问题出在第 9 节总结的有序列表，第 1 条内容偏长被换行续写：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">1.</span> gcloud configurations 是 GCP 版的 Spring Profiles——命名的、可切换的、</span><br><span class="line">   按环境隔离的属性集合</span><br><span class="line"><span class="bullet">2.</span> <span class="code">`create / activate / list / delete`</span> 是多配置管理的完整生命周期</span><br></pre></td></tr></table></figure>
+
+<h4 id="根因分析：两个独立问题"><a href="#根因分析：两个独立问题" class="headerlink" title="根因分析：两个独立问题"></a>根因分析：两个独立问题</h4><p>这次暴露了两个性质不同的问题，需要分开处理。</p>
+<h5 id="问题-A：验证脚本的假阳性"><a href="#问题-A：验证脚本的假阳性" class="headerlink" title="问题 A：验证脚本的假阳性"></a>问题 A：验证脚本的假阳性</h5><p><code>check_lists()</code> 的 <code>is_list_item()</code> 只识别列表首行（<code>\d+\.</code> 或 <code>-*+</code> 开头），缩进续行不满足任何模式，被判定为”非列表项”，触发”列表结束”检测，导致两个连锁误报。</p>
+<p>这是脚本本身的 bug：MD032 规则允许列表项多行续写（缩进对齐即合法），但脚本比真实规范更严格。</p>
+<p>此外，<code>&lt;details&gt;...&lt;/details&gt;</code> 块内的 Mermaid 图和表格行也没有被豁免，存在假阳性风险。</p>
+<h5 id="问题-B：Plan-模式下-SKILL-md-格式约束被旁路"><a href="#问题-B：Plan-模式下-SKILL-md-格式约束被旁路" class="headerlink" title="问题 B：Plan 模式下 SKILL.md 格式约束被旁路"></a>问题 B：Plan 模式下 SKILL.md 格式约束被旁路</h5><p><code>/optimize-doc</code> 由 Opus 进入 Plan 模式（Explore → Plan agent → Sonnet 执行），而不是按 SKILL.md 设计的 Step 1–10 线性工作流执行。</p>
+<p>SKILL.md 的”列表项禁止多行换行续写”写在”核心优化原则”章节（描述性）。Plan agent 在设计文章结构时没有读 <code>references/markdown-rules.md</code>，这条限制在 Opus → Sonnet 的传递链中丢失了。Sonnet 写长列表项时自然换行续写，没有任何 write-time 检查点阻止它。</p>
+<p>与 4.10 节的 Rule Proximity 问题根因相同，但触发机制不同：4.10 节是”AI 在执行同一个工作流的晚期步骤时遗忘了早期章节的规则”，这里是”Plan 模式直接跳过了 skill 工作流，规则根本没有进入执行上下文”。</p>
+<h4 id="修复方案-5"><a href="#修复方案-5" class="headerlink" title="修复方案"></a>修复方案</h4><h5 id="改动-1：validate-markdown-py-新增续行识别"><a href="#改动-1：validate-markdown-py-新增续行识别" class="headerlink" title="改动 1：validate_markdown.py 新增续行识别"></a>改动 1：<code>validate_markdown.py</code> 新增续行识别</h5><p>新增 <code>is_list_continuation()</code> 方法：当前行以空白缩进开头且不是新列表项时，识别为续行，在 <code>check_lists()</code> 中直接跳过，不触发列表结束判定。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">is_list_continuation</span>(<span class="params">self, line: <span class="built_in">str</span>, prev_in_list: <span class="built_in">bool</span></span>) -&gt; <span class="built_in">bool</span>:</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> prev_in_list:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    <span class="keyword">if</span> <span class="variable language_">self</span>.is_empty_line_str(line):</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">bool</span>(re.<span class="keyword">match</span>(<span class="string">r&#x27;^\s+\S&#x27;</span>, line)) <span class="keyword">and</span> <span class="keyword">not</span> <span class="variable language_">self</span>.is_list_item(line)</span><br></pre></td></tr></table></figure>
+
+<h5 id="改动-2：validate-markdown-py-新增-块豁免"><a href="#改动-2：validate-markdown-py-新增-块豁免" class="headerlink" title="改动 2：validate_markdown.py 新增 &lt;details&gt; 块豁免"></a>改动 2：<code>validate_markdown.py</code> 新增 <code>&lt;details&gt;</code> 块豁免</h5><p>新增 <code>_build_html_block_map()</code> 预扫描 <code>&lt;details&gt;...&lt;/details&gt;</code> 范围，<code>check_headings</code>、<code>check_lists</code>、<code>check_tables</code>、<code>check_horizontal_rules</code>、<code>check_emphasis_as_heading</code> 均跳过块内行，消除折叠区域的假阳性。</p>
+<h5 id="改动-3：SKILL-md-步骤-4-末尾增加-write-time-checklist"><a href="#改动-3：SKILL-md-步骤-4-末尾增加-write-time-checklist" class="headerlink" title="改动 3：SKILL.md 步骤 4 末尾增加 write-time checklist"></a>改动 3：<code>SKILL.md</code> 步骤 4 末尾增加 write-time checklist</h5><p>仅在”原则”章节描述不够，需要在 AI 实际执行写作的步骤处设置检查点：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="strong">**写作时逐行自查（写完每个列表后立即检查）**</span>：</span><br><span class="line"><span class="bullet">-</span> [ ] 有序/无序列表的每一项都在单行内写完</span><br><span class="line"><span class="bullet">-</span> [ ] 超过 80 字符的列表项已缩短表述或拆成子列表</span><br></pre></td></tr></table></figure>
+
+<h4 id="修复验证-3"><a href="#修复验证-3" class="headerlink" title="修复验证"></a>修复验证</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">✅ 文件格式验证通过！</span><br></pre></td></tr></table></figure>
+
+<p>两篇文章（含大量 <code>&lt;details&gt;</code> 折叠块的现存文章）均通过。</p>
+<h4 id="Agent-可靠性原则补充-3"><a href="#Agent-可靠性原则补充-3" class="headerlink" title="Agent 可靠性原则补充"></a>Agent 可靠性原则补充</h4><p>在 Rule Proximity 基础上，补充：</p>
+<p><strong>6. Execution Context Bypass（执行上下文旁路）</strong>：当 skill 以 Plan 模式执行（Opus 规划 + Sonnet 执行）时，skill 的线性工作流步骤可能被完全旁路。Plan agent 只读 SKILL.md 摘要用于结构设计，Sonnet 直接调用 Write 工具，不会按步骤执行 write-time checklist。</p>
+<p>应对策略与 Rule Proximity 一致，但要求更高：<strong>checklist 必须出现在 workflow step 正文中</strong>（而非原则章节），因为原则章节在 Plan 模式下完全不进入 Sonnet 的执行上下文。如果某条规则不在 Plan agent 的设计输出里出现，它在执行阶段就不存在。</p>
+<hr>
+<h2 id="5-实施建议"><a href="#5-实施建议" class="headerlink" title="5. 实施建议"></a>5. 实施建议</h2><h3 id="5-1-Skill-创建检查清单"><a href="#5-1-Skill-创建检查清单" class="headerlink" title="5.1 Skill 创建检查清单"></a>5.1 Skill 创建检查清单</h3><h4 id="元数据层"><a href="#元数据层" class="headerlink" title="元数据层"></a>元数据层</h4><ul>
+<li><input disabled="" type="checkbox"> <code>name</code> 简洁可搜索</li>
+<li><input disabled="" type="checkbox"> <code>description</code> 包含 what + when，中英文并存</li>
+<li><input disabled="" type="checkbox"> <code>description</code> 使用第三人称</li>
+<li><input disabled="" type="checkbox"> 只有真正必需的参数标记为 <code>required</code></li>
+</ul>
+<h4 id="SKILL-md-层"><a href="#SKILL-md-层" class="headerlink" title="SKILL.md 层"></a>SKILL.md 层</h4><ul>
+<li><input disabled="" type="checkbox"> 正文 &lt; 5000 words</li>
+<li><input disabled="" type="checkbox"> 工作流步骤无重叠</li>
+<li><input disabled="" type="checkbox"> 复杂参考内容已拆到 references&#x2F;</li>
+<li><input disabled="" type="checkbox"> 每段信息只出现在一处（single source of truth）</li>
+</ul>
+<h4 id="资源层"><a href="#资源层" class="headerlink" title="资源层"></a>资源层</h4><ul>
+<li><input disabled="" type="checkbox"> scripts&#x2F;：仅反复使用或需确定性执行的代码</li>
+<li><input disabled="" type="checkbox"> references&#x2F;：SKILL.md 中有明确引用指示</li>
+<li><input disabled="" type="checkbox"> assets&#x2F;：模板完整可用，无需读入上下文理解</li>
+</ul>
+<h3 id="5-2-常见问题与解决方案"><a href="#5-2-常见问题与解决方案" class="headerlink" title="5.2 常见问题与解决方案"></a>5.2 常见问题与解决方案</h3><h4 id="Q1：SKILL-md-写多长合适？"><a href="#Q1：SKILL-md-写多长合适？" class="headerlink" title="Q1：SKILL.md 写多长合适？"></a>Q1：SKILL.md 写多长合适？</h4><p>没有固定答案。核心判断：每段内容在 10 次执行中被用到几次？</p>
+<ul>
+<li>必须每次参考 → 放 SKILL.md</li>
+<li>偶尔查阅 → 放 references&#x2F;，SKILL.md 只写引用</li>
+</ul>
+<p>经验区间：300-500 行。</p>
+<h4 id="Q2：scripts-和-SKILL-md-中的代码示例有什么区别？"><a href="#Q2：scripts-和-SKILL-md-中的代码示例有什么区别？" class="headerlink" title="Q2：scripts 和 SKILL.md 中的代码示例有什么区别？"></a>Q2：scripts 和 SKILL.md 中的代码示例有什么区别？</h4><p>SKILL.md 中的代码是<strong>说明性</strong>的（帮助 Claude 理解逻辑）。</p>
+<p>scripts&#x2F; 中的代码是<strong>执行性</strong>的（直接运行产生结果）。</p>
+<p>简单逻辑（&lt; 10 行）用 SKILL.md 说明即可；需要实际运行的，放 scripts&#x2F;。</p>
+<h4 id="Q3：如何验证-Skill-优化后没有”过度精简”？"><a href="#Q3：如何验证-Skill-优化后没有”过度精简”？" class="headerlink" title="Q3：如何验证 Skill 优化后没有”过度精简”？"></a>Q3：如何验证 Skill 优化后没有”过度精简”？</h4><p>用优化后的 Skill 执行一次完整任务，观察 Claude 是否需要”猜测”SKILL.md 中未提及的规则。如果需要，说明精简过度。</p>
+<h4 id="Q4：多模型协作适合什么场景？"><a href="#Q4：多模型协作适合什么场景？" class="headerlink" title="Q4：多模型协作适合什么场景？"></a>Q4：多模型协作适合什么场景？</h4><table>
+<thead>
+<tr>
+<th>任务</th>
+<th>推荐模型</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>方案评审、架构决策</td>
+<td>Opus</td>
+</tr>
+<tr>
+<td>文件编辑、执行明确任务</td>
+<td>Sonnet</td>
+</tr>
+<tr>
+<td>快速探索、初步方案</td>
+<td>Haiku</td>
+</tr>
+</tbody></table>
+<p>Skill 的开发周期本身就是很好的例子：Haiku 快速提案、Opus 深度审核、Sonnet 精准落地。</p>
+<h4 id="Q5：文件被-cc-switch-覆盖怎么办？"><a href="#Q5：文件被-cc-switch-覆盖怎么办？" class="headerlink" title="Q5：文件被 cc-switch 覆盖怎么办？"></a>Q5：文件被 cc-switch 覆盖怎么办？</h4><p>在切换模型前运行检查：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查关键文件的修改时间</span></span><br><span class="line"><span class="built_in">ls</span> -lah ~/.claude/skills/your-skill/</span><br><span class="line"></span><br><span class="line"><span class="comment"># 对比两个路径的文件状态</span></span><br><span class="line">diff &lt;(<span class="built_in">ls</span> -lah ~/.claude/skills/your-skill/) \</span><br><span class="line">     &lt;(<span class="built_in">ls</span> -lah ~/.cc-switch/skills/your-skill/)</span><br></pre></td></tr></table></figure>
+
+<p>如果发现时间戳回退，重新写入丢失的内容。长期方案：将 skills 目录纳入 git 版本管理。</p>
+<h3 id="5-3-后续迭代方向"><a href="#5-3-后续迭代方向" class="headerlink" title="5.3 后续迭代方向"></a>5.3 后续迭代方向</h3><p>已完成的迭代：</p>
+<ul>
+<li><strong>v2.2</strong>（详见 4.6 节）：预计算代码块映射 + MD018 标题格式检测</li>
+<li><strong>v2.3</strong>（详见 4.7 节）：Frontmatter 区域识别，消除 <code>---</code> 误报</li>
+<li><strong>v2.4</strong>（详见 4.8 节）：修复 <code>document-template.md</code> 中 5 处 <code>**粗体**</code> 伪标题，消除 AI 生成文章时的 MD036 泛化违规</li>
+<li><strong>v2.5</strong>（详见 4.9 节）：在 <code>visualization-guide.md</code> 中新增 subgraph 语法规范，补充正确&#x2F;错误示例对比，消除 Mermaid subgraph 连接语法错误</li>
+<li><strong>v2.6</strong>（详见 4.10 节）：步骤 4 增加 MD036 内联提醒，<code>references/markdown-rules.md</code> 补充结论场景示例，公共格式文档补齐 MD036 规则</li>
+<li><strong>v2.7</strong>（详见 4.11 节）：验证脚本新增续行识别（消除 MD032 假阳性）、<code>&lt;details&gt;</code> 块豁免；SKILL.md 步骤 4 增加 write-time 列表自查 checklist</li>
+</ul>
+<p>继续优化当前 skill 的局部迭代：</p>
+<ol>
+<li><strong>修正步骤编号</strong>：合并步骤 5+6 后，编号出现 5→7 的间隙</li>
+<li><strong>CDN 路径参数化</strong>：<code>leahana/blog-images</code> 硬编码在多个文件中，应提取为配置项</li>
+<li><strong>按文章类型精简流程</strong>：gaming&#x2F;anime 类型不需要故障排查和代码示例章节</li>
+</ol>
+<p>开始拆分 skill 体系的结构性演进：</p>
+<ol>
+<li><strong>收紧 <code>optimize-doc</code> 定位</strong>：明确它优先服务博客型 Markdown 成品优化</li>
+<li><strong>为 SOP &#x2F; 知识库笔记拆出独立 skill</strong>：避免继续往同一个工作流里叠加互相冲突的默认值</li>
+<li><strong>准备固定测试请求集</strong>：用相同输入验证拆分后的触发准确率和输出匹配度</li>
+</ol>
+<p>到 v2.3 为止，当前 <code>optimize-doc</code> 在实现层面的主要误报、<br>重复说明和脚本缺陷已经基本收敛。但这也暴露出一个更深的问题：<br>当一个 skill 需要靠不断加规则去覆盖越来越多场景时，瓶颈往往<br>不再是实现细节，而是边界设计。</p>
+<h2 id="6-从一次优化复盘到-Skill-边界重构"><a href="#6-从一次优化复盘到-Skill-边界重构" class="headerlink" title="6. 从一次优化复盘到 Skill 边界重构"></a>6. 从一次优化复盘到 Skill 边界重构</h2><h3 id="6-1-optimize-doc-当前真正适合什么"><a href="#6-1-optimize-doc-当前真正适合什么" class="headerlink" title="6.1 optimize-doc 当前真正适合什么"></a>6.1 <code>optimize-doc</code> 当前真正适合什么</h3><p>结合这次优化过程，可以更清楚地看到 <code>optimize-doc</code> 的真实边界。<br>它最适合的是：</p>
+<ul>
+<li>技术博客和个人文章重写</li>
+<li>已接近成稿、需要增强结构与可读性的 Markdown 文档</li>
+<li>Hexo 场景下需要补齐可视化、FAQ、案例和检查清单的成品内容</li>
+</ul>
+<p>它不适合的则是另一类任务：</p>
+<ul>
+<li>安装教程和 SOP</li>
+<li>持续迭代型知识库笔记</li>
+<li>偏比较、诊断、迁移建议的分析文档</li>
+<li>只需要轻量润色或局部整理的文本</li>
+</ul>
+<p>这些场景的共同点是：用户要的不是一篇“更像博客成品”的文章，<br>而是更稳定、更克制、便于后续维护的文档结构。</p>
+<h3 id="6-2-为什么继续加规则会失效"><a href="#6-2-为什么继续加规则会失效" class="headerlink" title="6.2 为什么继续加规则会失效"></a>6.2 为什么继续加规则会失效</h3><p><code>optimize-doc</code> 的问题，并不是规则还不够多，而是默认工作流<br>已经明显偏向博客成品化输出：</p>
+<ul>
+<li>触发描述相对宽，但资源和模板高度偏向博客写作</li>
+<li>默认结构强调速览版、可视化、FAQ、案例，天然不适合 SOP</li>
+<li>校验脚本能判断 Markdown 格式是否正确，却不能判断文档类型是否匹配</li>
+</ul>
+<p>当一个 skill 同时想覆盖“博客优化”“安装手册”“知识库整理”<br>“分析笔记”这些目标完全不同的任务时，再继续加规则，<br>只会让 SKILL.md 越来越长、默认值越来越互相冲突，最后变成<br>每次使用都要先纠偏。</p>
+<h3 id="6-3-三种演化方向的取舍"><a href="#6-3-三种演化方向的取舍" class="headerlink" title="6.3 三种演化方向的取舍"></a>6.3 三种演化方向的取舍</h3><table>
+<thead>
+<tr>
+<th>方案</th>
+<th>优点</th>
+<th>风险</th>
+<th>结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>拆成多个 skill</td>
+<td>触发更准，资源更聚焦</td>
+<td>要维护多个 skill</td>
+<td>推荐</td>
+</tr>
+<tr>
+<td>单 skill 多模式</td>
+<td>迁移成本低，保留旧入口</td>
+<td>模式判断会继续膨胀</td>
+<td>适合短期过渡</td>
+</tr>
+<tr>
+<td>路由 skill</td>
+<td>用户入口统一</td>
+<td>路由本身也要维护</td>
+<td>适合第二阶段</td>
+</tr>
+</tbody></table>
+<p>这三条路里，最稳的不是继续把 <code>optimize-doc</code> 做成“大一统文档 skill”，<br>而是先承认边界，再收窄职责。</p>
+<h3 id="6-4-推荐路径：先拆边界，再考虑统一入口"><a href="#6-4-推荐路径：先拆边界，再考虑统一入口" class="headerlink" title="6.4 推荐路径：先拆边界，再考虑统一入口"></a>6.4 推荐路径：先拆边界，再考虑统一入口</h3><p>更合理的做法是分两步：</p>
+<ol>
+<li>先冻结当前 <code>optimize-doc</code> 的职责，把它明确成”博客型 Markdown 成品优化”。</li>
+<li>再为其他高频场景拆出更窄的 skill，比如 SOP 整理、知识库笔记整理。</li>
+</ol>
+<p>只有当这些子 skill 都稳定以后，才值得考虑再加一个统一入口的<br>路由 skill。否则过早引入路由，只会把原本没拆清楚的边界问题<br>再次包起来。</p>
+<h3 id="6-5-怎样验证-skill-真的变好"><a href="#6-5-怎样验证-skill-真的变好" class="headerlink" title="6.5 怎样验证 skill 真的变好"></a>6.5 怎样验证 skill 真的变好</h3><p>判断一个 skill 是否进化成功，不能只看它“写得更长”或“规则更全”，<br>而要看它面对真实请求时是不是更少误触发、更少让用户纠偏。</p>
+<p>最直接的办法，是准备一组固定测试请求，例如：</p>
+<ul>
+<li>技术博客优化</li>
+<li>工具教程整理</li>
+<li>安装 SOP 整理</li>
+<li>知识库笔记收口</li>
+<li>轻量润色任务</li>
+</ul>
+<p>然后检查四件事：</p>
+<ul>
+<li>是否误触发到错误的工作流</li>
+<li>是否默认套错模板</li>
+<li>是否输出过重</li>
+<li>是否仍然需要用户反复手动纠偏</li>
+</ul>
+<p>如果拆分后的 skill 能让博客请求更快进入成品文风，让 SOP 和<br>知识库请求不再默认博客化，那就说明这次优化已经从“修一个 skill”<br>真正升级到了“重构一类 skill 的边界”。</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-03-05</td>
+<td>初始版本，基于 optimize-doc v2.0→v2.1 优化过程</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-06</td>
+<td>新增 4.5 节：auto-post 资源文件未加载导致格式错误案例</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-03-11</td>
+<td>新增 4.6 节：v2.2 代码块跳过与 MD018 检测；更新 5.3 迭代方向</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-03-12</td>
+<td>新增 4.7 节：v2.3 Frontmatter 误报修复（<code>_build_frontmatter_map</code>）；更新 5.3</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-03-23</td>
+<td>新增第 6 节，收束为 skill 边界与演化路径结论</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-03-23</td>
+<td>新增 4.8 节：v2.4 模板 <code>**粗体**</code> 诱导 MD036 违规修复 + tags 格式矛盾修复；更新 5.3</td>
+</tr>
+<tr>
+<td>v1.6</td>
+<td>2026-03-24</td>
+<td>新增 4.9 节：v2.5 visualization-guide.md 补充 subgraph 语法规范，提炼 Reference as Specification 原则</td>
+</tr>
+<tr>
+<td>v1.7</td>
+<td>2026-03-31</td>
+<td>新增 4.10 节：v2.6 SKILL.md 内联提醒缺失导致 MD036 复发，提炼 Rule Proximity 原则；更新 5.3</td>
+</tr>
+<tr>
+<td>v1.8</td>
+<td>2026-04-01</td>
+<td>新增 4.11 节：v2.7 续行误判 MD032 假阳性修复、<code>&lt;details&gt;</code> 块豁免、Plan 模式约束旁路分析，提炼 Execution Context Bypass 原则；更新 5.3</td>
+</tr>
+<tr>
+<td>v1.9</td>
+<td>2026-04-07</td>
+<td>同步 <code>source/docs</code> 去日期前缀后的新文件路径引用</td>
+</tr>
+<tr>
+<td>v2.0</td>
+<td>2026-04-17</td>
+<td>为 3 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/claude-code/" rel="tag">claude-code</a>, <a class="tag-none-link" href="/tags/multi-model/" rel="tag">multi-model</a>, <a class="tag-none-link" href="/tags/prompt-engineering/" rel="tag">prompt-engineering</a>, <a class="tag-none-link" href="/tags/skill/" rel="tag">skill</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" AI 工具 API Key 统一管理：从 .env 到企业级密钥治理" href="/2026/03/03/tech/ai/2026-03-04-ai-api-key-management/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 用 UNLINK 清理 Redis Key：从一次线上操作引发的缓存清理思考" href="/2026/03/05/tech/backend/2026-03-06-redis-unlink-cache-cleanup/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Skill-%E4%B8%89%E5%B1%82%E5%8A%A0%E8%BD%BD%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.1.</span> <span class="toc-text">Skill 三层加载模型</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#optimize-doc-%E4%BC%98%E5%8C%96%E5%89%8D%E5%90%8E%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">optimize-doc 优化前后对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%88%86%E5%B7%A5"><span class="toc-number">1.3.</span> <span class="toc-text">多模型分工</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Skill-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">3.</span> <span class="toc-text">1. Skill 核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%80%E4%B9%88%E6%98%AF-Skill"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 什么是 Skill</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-Skill-%E4%B8%8E%E4%BC%A0%E7%BB%9F%E5%B7%A5%E5%85%B7%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 Skill 与传统工具的区别</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Skill-%E8%AE%BE%E8%AE%A1%E7%90%86%E5%BF%B5"><span class="toc-number">4.</span> <span class="toc-text">2. Skill 设计理念</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-Progressive-Disclosure-%E5%8E%9F%E5%88%99"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 Progressive Disclosure 原则</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E5%B1%82%EF%BC%9A%E5%85%83%E6%95%B0%E6%8D%AE%EF%BC%88%E7%BA%A6-100-words%EF%BC%8C%E5%A7%8B%E7%BB%88%E5%AD%98%E5%9C%A8%EF%BC%89"><span class="toc-number">4.1.1.</span> <span class="toc-text">第一层：元数据（约 100 words，始终存在）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E5%B1%82%EF%BC%9ASKILL-md-%E6%AD%A3%E6%96%87%EF%BC%88%E8%A7%A6%E5%8F%91%E6%97%B6%E5%8A%A0%E8%BD%BD%EF%BC%8C%E5%BB%BA%E8%AE%AE-5000-words%EF%BC%89"><span class="toc-number">4.1.2.</span> <span class="toc-text">第二层：SKILL.md 正文（触发时加载，建议 &lt; 5000 words）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E5%B1%82%EF%BC%9A%E6%8D%86%E7%BB%91%E8%B5%84%E6%BA%90%EF%BC%88%E6%8C%89%E9%9C%80%E5%8A%A0%E8%BD%BD%EF%BC%8C%E4%B8%8D%E9%99%90%E5%AE%B9%E9%87%8F%EF%BC%89"><span class="toc-number">4.1.3.</span> <span class="toc-text">第三层：捆绑资源（按需加载，不限容量）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%A7%A6%E5%8F%91%E6%8F%8F%E8%BF%B0%E7%9A%84%E7%BC%96%E5%86%99"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 触发描述的编写</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%BB%84%E7%BB%87%E7%BB%93%E6%9E%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 组织结构最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-optimize-doc-Skill-%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">3. optimize-doc Skill 设计实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%88%9D%E5%A7%8B%E8%AE%BE%E8%AE%A1%E6%80%9D%E8%B7%AF"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 初始设计思路</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-YAML-Frontmatter-%E9%85%8D%E7%BD%AE"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 YAML Frontmatter 配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1"><span class="toc-number">5.3.</span> <span class="toc-text">3.3 工作流程设计</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Skill-%E4%BC%98%E5%8C%96%E6%96%B9%E6%A1%88%EF%BC%9A%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C%E5%AE%9E%E5%BD%95"><span class="toc-number">6.</span> <span class="toc-text">4. Skill 优化方案：多模型协作实录</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-Haiku-4-5-%E7%9A%84%E5%88%9D%E6%AD%A5%E6%96%B9%E6%A1%88"><span class="toc-number">6.1.</span> <span class="toc-text">4.1 Haiku 4.5 的初步方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-Opus-4-6-%E7%9A%84%E5%AE%A1%E6%A0%B8%E4%B8%8E%E4%BF%AE%E6%AD%A3"><span class="toc-number">6.2.</span> <span class="toc-text">4.2 Opus 4.6 的审核与修正</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-1%EF%BC%9A%E6%9C%AA%E8%AF%BB%E5%AE%8C%E5%B0%B1%E4%B8%8B%E7%BB%93%E8%AE%BA"><span class="toc-number">6.2.1.</span> <span class="toc-text">问题 1：未读完就下结论</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-2%EF%BC%9A%E8%BF%87%E5%BA%A6%E5%B7%A5%E7%A8%8B"><span class="toc-number">6.2.2.</span> <span class="toc-text">问题 2：过度工程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-3%EF%BC%9A%E7%9B%AE%E6%A0%87%E8%A1%8C%E6%95%B0%E8%BF%87%E6%BF%80"><span class="toc-number">6.2.3.</span> <span class="toc-text">问题 3：目标行数过激</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-4%EF%BC%9A%E9%81%97%E6%BC%8F%E4%BA%86%E7%9C%9F%E6%AD%A3%E7%9A%84-bug"><span class="toc-number">6.2.4.</span> <span class="toc-text">问题 4：遗漏了真正的 bug</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-5%EF%BC%9A%E5%86%85%E5%AE%B9%E9%87%8D%E5%A4%8D"><span class="toc-number">6.2.5.</span> <span class="toc-text">问题 5：内容重复</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-3-Sonnet-4-6-%E7%9A%84%E6%89%A7%E8%A1%8C%E7%BB%93%E6%9E%9C"><span class="toc-number">6.3.</span> <span class="toc-text">4.3 Sonnet 4.6 的执行结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-4-%E4%B8%80%E4%B8%AA%E6%84%8F%E5%A4%96%E6%8F%92%E6%9B%B2%EF%BC%9Acc-switch-%E5%AF%BC%E8%87%B4%E6%96%87%E4%BB%B6%E4%B8%A2%E5%A4%B1"><span class="toc-number">6.4.</span> <span class="toc-text">4.4 一个意外插曲：cc-switch 导致文件丢失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-5-%E6%A1%88%E4%BE%8B%EF%BC%9A%E8%B5%84%E6%BA%90%E6%96%87%E4%BB%B6%E6%9C%AA%E5%8A%A0%E8%BD%BD%E5%AF%BC%E8%87%B4%E6%A0%BC%E5%BC%8F%E9%94%99%E8%AF%AF%EF%BC%88auto-post-v1-2-0%EF%BC%89"><span class="toc-number">6.5.</span> <span class="toc-text">4.5 案例：资源文件未加载导致格式错误（auto-post v1.2.0）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E7%8E%B0%E8%B1%A1"><span class="toc-number">6.5.1.</span> <span class="toc-text">问题现象</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E4%B8%89%E5%A4%84%E7%BC%BA%E9%99%B7%E7%9A%84%E5%8F%A0%E5%8A%A0"><span class="toc-number">6.5.2.</span> <span class="toc-text">根因分析：三处缺陷的叠加</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88"><span class="toc-number">6.5.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99"><span class="toc-number">6.5.4.</span> <span class="toc-text">Agent 可靠性原则</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-6-v2-2-%E8%BF%AD%E4%BB%A3%EF%BC%9A%E4%BB%A3%E7%A0%81%E5%9D%97%E8%B7%B3%E8%BF%87%E4%B8%8E-MD018-%E6%A3%80%E6%B5%8B"><span class="toc-number">6.6.</span> <span class="toc-text">4.6 v2.2 迭代：代码块跳过与 MD018 检测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B-1%EF%BC%9A%E9%A2%84%E8%AE%A1%E7%AE%97%E4%BB%A3%E7%A0%81%E5%9D%97%E6%98%A0%E5%B0%84%EF%BC%8C%E6%B6%88%E9%99%A4%E8%AF%AF%E6%8A%A5"><span class="toc-number">6.6.1.</span> <span class="toc-text">改进 1：预计算代码块映射，消除误报</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B-2%EF%BC%9A%E6%96%B0%E5%A2%9E-MD018-%E6%A0%87%E9%A2%98%E6%A0%BC%E5%BC%8F%E6%A3%80%E6%B5%8B"><span class="toc-number">6.6.2.</span> <span class="toc-text">改进 2：新增 MD018 标题格式检测</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-7-v2-3-%E8%BF%AD%E4%BB%A3%EF%BC%9AFrontmatter-%E8%AF%AF%E6%8A%A5%E4%BF%AE%E5%A4%8D"><span class="toc-number">6.7.</span> <span class="toc-text">4.7 v2.3 迭代：Frontmatter 误报修复</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0"><span class="toc-number">6.7.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90"><span class="toc-number">6.7.2.</span> <span class="toc-text">根因分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-1"><span class="toc-number">6.7.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81"><span class="toc-number">6.7.4.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%8D%E7%9B%98%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88-v2-2-%E6%B2%A1%E5%8F%91%E7%8E%B0%E8%BF%99%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="toc-number">6.7.5.</span> <span class="toc-text">复盘：为什么 v2.2 没发现这个问题</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-8-v2-4-%E8%BF%AD%E4%BB%A3%EF%BC%9A%E6%A8%A1%E6%9D%BF-%E7%B2%97%E4%BD%93-%E8%AF%B1%E5%AF%BC-MD036-%E8%BF%9D%E8%A7%84"><span class="toc-number">6.8.</span> <span class="toc-text">4.8 v2.4 迭代：模板 **粗体** 诱导 MD036 违规</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-1"><span class="toc-number">6.8.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E6%A8%A1%E6%9D%BF%E6%95%99%E5%9D%8F%E4%BA%86-AI"><span class="toc-number">6.8.2.</span> <span class="toc-text">根因分析：模板教坏了 AI</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-2"><span class="toc-number">6.8.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81-1"><span class="toc-number">6.8.4.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%8D%E7%9B%98%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B9%8B%E5%89%8D%E6%B2%A1%E5%8F%91%E7%8E%B0"><span class="toc-number">6.8.5.</span> <span class="toc-text">复盘：为什么之前没发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85"><span class="toc-number">6.8.6.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%8C%E4%B8%80%E6%9C%BA%E5%88%B6%E7%9A%84%E7%AC%AC%E4%BA%8C%E4%B8%AA%E5%AE%9E%E4%BE%8B%EF%BC%9Atags-%E6%A0%BC%E5%BC%8F%E7%9F%9B%E7%9B%BE"><span class="toc-number">6.8.7.</span> <span class="toc-text">同一机制的第二个实例：tags 格式矛盾</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-9-v2-5-%E8%BF%AD%E4%BB%A3%EF%BC%9AMermaid-subgraph-%E8%AF%AD%E6%B3%95%E8%A7%84%E8%8C%83%E7%BC%BA%E5%A4%B1"><span class="toc-number">6.9.</span> <span class="toc-text">4.9 v2.5 迭代：Mermaid subgraph 语法规范缺失</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-2"><span class="toc-number">6.9.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90-1"><span class="toc-number">6.9.2.</span> <span class="toc-text">根因分析</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-3"><span class="toc-number">6.9.3.</span> <span class="toc-text">修复方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85-1"><span class="toc-number">6.9.4.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-10-v2-6-%E8%BF%AD%E4%BB%A3%EF%BC%9ASKILL-md-%E5%86%85%E8%81%94%E6%8F%90%E9%86%92%E7%BC%BA%E5%A4%B1%E5%AF%BC%E8%87%B4-MD036-%E5%A4%8D%E5%8F%91"><span class="toc-number">6.10.</span> <span class="toc-text">4.10 v2.6 迭代：SKILL.md 内联提醒缺失导致 MD036 复发</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-3"><span class="toc-number">6.10.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%8E-4-8-%E8%8A%82%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">6.10.2.</span> <span class="toc-text">与 4.8 节的区别</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E8%A7%84%E5%88%99%E5%A3%B0%E6%98%8E%E4%B8%8E%E8%A7%A6%E5%8F%91%E7%82%B9%E8%B7%9D%E7%A6%BB%E8%BF%87%E8%BF%9C"><span class="toc-number">6.10.3.</span> <span class="toc-text">根因分析：规则声明与触发点距离过远</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-4"><span class="toc-number">6.10.4.</span> <span class="toc-text">修复方案</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-1%EF%BC%9ASKILL-md-%E6%AD%A5%E9%AA%A4-4-%E6%9C%AB%E5%B0%BE%E5%A2%9E%E5%8A%A0%E4%B8%80%E5%8F%A5%E8%AF%9D%E5%86%85%E8%81%94%E6%8F%90%E9%86%92"><span class="toc-number">6.10.4.1.</span> <span class="toc-text">改动 1：SKILL.md 步骤 4 末尾增加一句话内联提醒</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-2%EF%BC%9Areferences-markdown-rules-md-%E8%A1%A5%E5%85%85%E2%80%9D%E6%80%BB%E7%BB%93-%E7%BB%93%E8%AE%BA%E5%9C%BA%E6%99%AF%E2%80%9D%E6%AD%A3%E5%8F%8D%E4%BE%8B"><span class="toc-number">6.10.4.2.</span> <span class="toc-text">改动 2：references&#x2F;markdown-rules.md 补充”总结&#x2F;结论场景”正反例</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-3%EF%BC%9A%E5%85%AC%E5%85%B1%E6%A0%BC%E5%BC%8F%E6%96%87%E6%A1%A3-source-docs-markdown-format-check-md-%E8%A1%A5%E5%85%85-MD036"><span class="toc-number">6.10.4.3.</span> <span class="toc-text">改动 3：公共格式文档 source&#x2F;docs&#x2F;markdown-format-check.md 补充 MD036</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81-2"><span class="toc-number">6.10.5.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85-2"><span class="toc-number">6.10.6.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-11-v2-7-%E8%BF%AD%E4%BB%A3%EF%BC%9A%E7%BB%AD%E8%A1%8C%E8%AF%AF%E5%88%A4-MD032-%E5%81%87%E9%98%B3%E6%80%A7-Plan-%E6%A8%A1%E5%BC%8F%E4%B8%8B%E6%A0%BC%E5%BC%8F%E7%BA%A6%E6%9D%9F%E6%97%81%E8%B7%AF"><span class="toc-number">6.11.</span> <span class="toc-text">4.11 v2.7 迭代：续行误判 MD032 假阳性 + Plan 模式下格式约束旁路</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E5%8F%91%E7%8E%B0-4"><span class="toc-number">6.11.1.</span> <span class="toc-text">问题发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B9%E5%9B%A0%E5%88%86%E6%9E%90%EF%BC%9A%E4%B8%A4%E4%B8%AA%E7%8B%AC%E7%AB%8B%E9%97%AE%E9%A2%98"><span class="toc-number">6.11.2.</span> <span class="toc-text">根因分析：两个独立问题</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-A%EF%BC%9A%E9%AA%8C%E8%AF%81%E8%84%9A%E6%9C%AC%E7%9A%84%E5%81%87%E9%98%B3%E6%80%A7"><span class="toc-number">6.11.2.1.</span> <span class="toc-text">问题 A：验证脚本的假阳性</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%97%AE%E9%A2%98-B%EF%BC%9APlan-%E6%A8%A1%E5%BC%8F%E4%B8%8B-SKILL-md-%E6%A0%BC%E5%BC%8F%E7%BA%A6%E6%9D%9F%E8%A2%AB%E6%97%81%E8%B7%AF"><span class="toc-number">6.11.2.2.</span> <span class="toc-text">问题 B：Plan 模式下 SKILL.md 格式约束被旁路</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E6%96%B9%E6%A1%88-5"><span class="toc-number">6.11.3.</span> <span class="toc-text">修复方案</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-1%EF%BC%9Avalidate-markdown-py-%E6%96%B0%E5%A2%9E%E7%BB%AD%E8%A1%8C%E8%AF%86%E5%88%AB"><span class="toc-number">6.11.3.1.</span> <span class="toc-text">改动 1：validate_markdown.py 新增续行识别</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-2%EF%BC%9Avalidate-markdown-py-%E6%96%B0%E5%A2%9E-%E5%9D%97%E8%B1%81%E5%85%8D"><span class="toc-number">6.11.3.2.</span> <span class="toc-text">改动 2：validate_markdown.py 新增 &lt;details&gt; 块豁免</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%94%B9%E5%8A%A8-3%EF%BC%9ASKILL-md-%E6%AD%A5%E9%AA%A4-4-%E6%9C%AB%E5%B0%BE%E5%A2%9E%E5%8A%A0-write-time-checklist"><span class="toc-number">6.11.3.3.</span> <span class="toc-text">改动 3：SKILL.md 步骤 4 末尾增加 write-time checklist</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E5%A4%8D%E9%AA%8C%E8%AF%81-3"><span class="toc-number">6.11.4.</span> <span class="toc-text">修复验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Agent-%E5%8F%AF%E9%9D%A0%E6%80%A7%E5%8E%9F%E5%88%99%E8%A1%A5%E5%85%85-3"><span class="toc-number">6.11.5.</span> <span class="toc-text">Agent 可靠性原则补充</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%AE%9E%E6%96%BD%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">5. 实施建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-Skill-%E5%88%9B%E5%BB%BA%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 Skill 创建检查清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%83%E6%95%B0%E6%8D%AE%E5%B1%82"><span class="toc-number">7.1.1.</span> <span class="toc-text">元数据层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#SKILL-md-%E5%B1%82"><span class="toc-number">7.1.2.</span> <span class="toc-text">SKILL.md 层</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B5%84%E6%BA%90%E5%B1%82"><span class="toc-number">7.1.3.</span> <span class="toc-text">资源层</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E4%B8%8E%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 常见问题与解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Q1%EF%BC%9ASKILL-md-%E5%86%99%E5%A4%9A%E9%95%BF%E5%90%88%E9%80%82%EF%BC%9F"><span class="toc-number">7.2.1.</span> <span class="toc-text">Q1：SKILL.md 写多长合适？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q2%EF%BC%9Ascripts-%E5%92%8C-SKILL-md-%E4%B8%AD%E7%9A%84%E4%BB%A3%E7%A0%81%E7%A4%BA%E4%BE%8B%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">7.2.2.</span> <span class="toc-text">Q2：scripts 和 SKILL.md 中的代码示例有什么区别？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q3%EF%BC%9A%E5%A6%82%E4%BD%95%E9%AA%8C%E8%AF%81-Skill-%E4%BC%98%E5%8C%96%E5%90%8E%E6%B2%A1%E6%9C%89%E2%80%9D%E8%BF%87%E5%BA%A6%E7%B2%BE%E7%AE%80%E2%80%9D%EF%BC%9F"><span class="toc-number">7.2.3.</span> <span class="toc-text">Q3：如何验证 Skill 优化后没有”过度精简”？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q4%EF%BC%9A%E5%A4%9A%E6%A8%A1%E5%9E%8B%E5%8D%8F%E4%BD%9C%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%EF%BC%9F"><span class="toc-number">7.2.4.</span> <span class="toc-text">Q4：多模型协作适合什么场景？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q5%EF%BC%9A%E6%96%87%E4%BB%B6%E8%A2%AB-cc-switch-%E8%A6%86%E7%9B%96%E6%80%8E%E4%B9%88%E5%8A%9E%EF%BC%9F"><span class="toc-number">7.2.5.</span> <span class="toc-text">Q5：文件被 cc-switch 覆盖怎么办？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E5%90%8E%E7%BB%AD%E8%BF%AD%E4%BB%A3%E6%96%B9%E5%90%91"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 后续迭代方向</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E4%BB%8E%E4%B8%80%E6%AC%A1%E4%BC%98%E5%8C%96%E5%A4%8D%E7%9B%98%E5%88%B0-Skill-%E8%BE%B9%E7%95%8C%E9%87%8D%E6%9E%84"><span class="toc-number">8.</span> <span class="toc-text">6. 从一次优化复盘到 Skill 边界重构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#6-1-optimize-doc-%E5%BD%93%E5%89%8D%E7%9C%9F%E6%AD%A3%E9%80%82%E5%90%88%E4%BB%80%E4%B9%88"><span class="toc-number">8.1.</span> <span class="toc-text">6.1 optimize-doc 当前真正适合什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-2-%E4%B8%BA%E4%BB%80%E4%B9%88%E7%BB%A7%E7%BB%AD%E5%8A%A0%E8%A7%84%E5%88%99%E4%BC%9A%E5%A4%B1%E6%95%88"><span class="toc-number">8.2.</span> <span class="toc-text">6.2 为什么继续加规则会失效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-3-%E4%B8%89%E7%A7%8D%E6%BC%94%E5%8C%96%E6%96%B9%E5%90%91%E7%9A%84%E5%8F%96%E8%88%8D"><span class="toc-number">8.3.</span> <span class="toc-text">6.3 三种演化方向的取舍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-4-%E6%8E%A8%E8%8D%90%E8%B7%AF%E5%BE%84%EF%BC%9A%E5%85%88%E6%8B%86%E8%BE%B9%E7%95%8C%EF%BC%8C%E5%86%8D%E8%80%83%E8%99%91%E7%BB%9F%E4%B8%80%E5%85%A5%E5%8F%A3"><span class="toc-number">8.4.</span> <span class="toc-text">6.4 推荐路径：先拆边界，再考虑统一入口</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-5-%E6%80%8E%E6%A0%B7%E9%AA%8C%E8%AF%81-skill-%E7%9C%9F%E7%9A%84%E5%8F%98%E5%A5%BD"><span class="toc-number">8.5.</span> <span class="toc-text">6.5 怎样验证 skill 真的变好</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">9.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

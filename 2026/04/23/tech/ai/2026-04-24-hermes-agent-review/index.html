@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？ | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI Agent, Claude Code, Codex, Hermes Agent, Nous Research, 工具对比, 开源" />
+  
+  <meta name="description" content="深度评测 Nous Research 开源的 Hermes Agent——从学习循环、多平台覆盖、工具生态、安全机制到与 Claude Code CLI &#x2F; Codex 的核心差异对比，帮助技术选型。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？">
+<meta property="og:url" content="https://leahana.github.io/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="深度评测 Nous Research 开源的 Hermes Agent——从学习循环、多平台覆盖、工具生态、安全机制到与 Claude Code CLI &#x2F; Codex 的核心差异对比，帮助技术选型。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-24-hermes-agent-review/diagram_20260427_024607_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-24-hermes-agent-review/diagram_20260427_024613_01.webp">
+<meta property="article:published_time" content="2026-04-23T20:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.761Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI Agent">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="Codex">
+<meta property="article:tag" content="Hermes Agent">
+<meta property="article:tag" content="Nous Research">
+<meta property="article:tag" content="工具对比">
+<meta property="article:tag" content="开源">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-24-hermes-agent-review/diagram_20260427_024607_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？","description":"深度评测 Nous Research 开源的 Hermes Agent——从学习循环、多平台覆盖、工具生态、安全机制到与 Claude Code CLI / Codex 的核心差异对比，帮助技术选型。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-23T20:00:00.000Z","dateModified":"2026-05-18T05:47:58.761Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-23T20:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-24</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~11.02K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Hermes-Agent-%E4%B8%80%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.1.</span> <span class="toc-text">Hermes Agent 一句话</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%E9%80%9F%E8%A7%88"><span class="toc-number">1.2.</span> <span class="toc-text">核心对比速览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">1.3.</span> <span class="toc-text">选型决策树</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%85%B3%E6%B3%A8-Hermes-Agent"><span class="toc-number">2.</span> <span class="toc-text">背景：为什么关注 Hermes Agent</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%E6%8B%86%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">核心能力拆解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AD%A6%E4%B9%A0%E5%BE%AA%E7%8E%AF%EF%BC%9A%E4%BB%8E%E4%BD%BF%E7%94%A8%E5%88%B0%E6%8A%80%E8%83%BD%E7%9A%84%E9%97%AD%E7%8E%AF"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 学习循环：从使用到技能的闭环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%AE%B0%E5%BF%86%E7%B3%BB%E7%BB%9F%EF%BC%9A%E8%B7%A8%E4%BC%9A%E8%AF%9D%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BB%B6%E7%BB%AD"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 记忆系统：跨会话的知识延续</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%A4%9A%E5%B9%B3%E5%8F%B0%E8%A6%86%E7%9B%96%EF%BC%9A%E4%B8%8D%E6%AD%A2%E4%BA%8E%E7%BB%88%E7%AB%AF"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 多平台覆盖：不止于终端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%BB%88%E7%AB%AF%E9%9A%94%E7%A6%BB%E4%B8%8E%E5%AE%89%E5%85%A8"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 终端隔离与安全</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%B7%A5%E5%85%B7%E9%9B%86%E4%B8%8E%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.5.</span> <span class="toc-text">2.5 工具集与调度系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E6%A8%A1%E5%9E%8B%E8%87%AA%E7%94%B1"><span class="toc-number">3.6.</span> <span class="toc-text">2.6 模型自由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E7%BC%BA%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">优缺点分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="toc-number">4.1.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF"><span class="toc-number">4.2.</span> <span class="toc-text">劣势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94%EF%BC%9AHermes-Agent-vs-Claude-Code-CLI-vs-Codex"><span class="toc-number">5.</span> <span class="toc-text">深度对比：Hermes Agent vs Claude Code CLI vs Codex</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E7%90%86%E5%BF%B5%E5%AF%B9%E6%AF%94"><span class="toc-number">5.1.</span> <span class="toc-text">架构理念对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E4%BD%93%E9%AA%8C%E5%AF%B9%E6%AF%94"><span class="toc-number">5.2.</span> <span class="toc-text">开发体验对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%80%81%E5%AE%9A%E4%BD%8D"><span class="toc-number">5.3.</span> <span class="toc-text">生态定位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82%E6%80%BB%E7%BB%93"><span class="toc-number">5.4.</span> <span class="toc-text">关键差异总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%A0%E5%B0%84"><span class="toc-number">6.</span> <span class="toc-text">实际使用场景映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8A%E6%89%8B%E8%B7%AF%E5%BE%84%E4%B8%8E%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">上手路径与建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">7.1.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E-Claude-Code-%E7%94%A8%E6%88%B7%E8%A7%86%E8%A7%92%E7%9A%84%E8%BF%81%E7%A7%BB%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.2.</span> <span class="toc-text">从 Claude Code 用户视角的迁移建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A3%8E%E9%99%A9%E6%8F%90%E7%A4%BA"><span class="toc-number">7.3.</span> <span class="toc-text">风险提示</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FAQ"><span class="toc-number">8.</span> <span class="toc-text">FAQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">10.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：Hermes Agent 是目前唯一内置”学习循环”的开源 AI Agent——它不只会执行任务，还会从经验中自动创建技能、持续自我改进，让 Agent 越用越强。</p>
+<p>💡 <strong>核心理念</strong>：Agent 的价值不在于它能调用多少工具，而在于它能否把每次交互都转化为可复用的能力——技能从使用中产生、知识在会话间延续、模型随用户成长而适配。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3-分钟速览版"><a href="#📖-3-分钟速览版" class="headerlink" title="📖 3 分钟速览版"></a>📖 3 分钟速览版</h2><details>
+<summary><strong>📊 点击展开：Hermes Agent 核心能力速览 + 三工具快速对比</strong></summary>
+
+<h3 id="Hermes-Agent-一句话"><a href="#Hermes-Agent-一句话" class="headerlink" title="Hermes Agent 一句话"></a>Hermes Agent 一句话</h3><p>Nous Research 推出的开源 AI Agent，MIT 协议，Python 实现。核心差异化能力：从使用中学习的闭环。</p>
+<h3 id="核心对比速览"><a href="#核心对比速览" class="headerlink" title="核心对比速览"></a>核心对比速览</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Hermes Agent</th>
+<th>Claude Code CLI</th>
+<th>Codex CLI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>开发者</strong></td>
+<td>Nous Research</td>
+<td>Anthropic</td>
+<td>OpenAI</td>
+</tr>
+<tr>
+<td><strong>协议</strong></td>
+<td>MIT 开源</td>
+<td>专有（免费使用）</td>
+<td>专有（订阅制）</td>
+</tr>
+<tr>
+<td><strong>语言&#x2F;技术栈</strong></td>
+<td>Python (10.7k 行核心)</td>
+<td>Node.js &#x2F; TypeScript</td>
+<td>Node.js &#x2F; TypeScript</td>
+</tr>
+<tr>
+<td><strong>模型绑定</strong></td>
+<td>18+ 提供商，自由切换</td>
+<td>Anthropic 系列</td>
+<td>OpenAI 系列</td>
+</tr>
+<tr>
+<td><strong>学习能力</strong></td>
+<td>✅ 自动创建 Skill + 自我改进</td>
+<td>⚠️ 手动 SKILL.md + CLAUDE.md</td>
+<td>❌ 无内置学习</td>
+</tr>
+<tr>
+<td><strong>记忆系统</strong></td>
+<td>MEMORY.md + USER.md + FTS5 搜索</td>
+<td>CLAUDE.md + hooks + MCP</td>
+<td>.codex&#x2F;config.toml</td>
+</tr>
+<tr>
+<td><strong>内置工具</strong></td>
+<td>47 工具 &#x2F; 19 工具集</td>
+<td>随版本增长</td>
+<td>随版本增长</td>
+</tr>
+<tr>
+<td><strong>终端后端</strong></td>
+<td>本地 &#x2F; Docker &#x2F; SSH &#x2F; Daytona &#x2F; Singularity &#x2F; Modal</td>
+<td>本地</td>
+<td>本地</td>
+</tr>
+<tr>
+<td><strong>平台覆盖</strong></td>
+<td>CLI + 15+ 消息平台 + IDE ACP + Python 库</td>
+<td>CLI only</td>
+<td>CLI + IDE 插件</td>
+</tr>
+<tr>
+<td><strong>MCP 支持</strong></td>
+<td>✅ 原生</td>
+<td>✅ 原生</td>
+<td>✅ 原生</td>
+</tr>
+<tr>
+<td><strong>安全机制</strong></td>
+<td>审批 + 容器隔离 + Tirith 扫描 + 密钥脱敏</td>
+<td>审批 + sandbox + hooks</td>
+<td>审批</td>
+</tr>
+<tr>
+<td><strong>定价</strong></td>
+<td>免费（自备 API key）</td>
+<td>免费 + 订阅制高级功能</td>
+<td>OpenAI 订阅&#x2F;API 付费</td>
+</tr>
+<tr>
+<td><strong>安装方式</strong></td>
+<td>curl-to-bash 一键</td>
+<td>npm install -g</td>
+<td>npm install -g</td>
+</tr>
+<tr>
+<td><strong>Windows 支持</strong></td>
+<td>❌ 需 WSL2</td>
+<td>✅ 原生</td>
+<td>✅ 原生</td>
+</tr>
+</tbody></table>
+<h3 id="选型决策树"><a href="#选型决策树" class="headerlink" title="选型决策树"></a>选型决策树</h3><pre class="mermaid">graph TD
+    A["你的需求是什么？"] -->|"需要跨会话积累能力"| B["想培养一个懂你的 Agent？"]
+    A -->|"纯编码任务"| C["主要用哪个模型？"]
+    B -->|"是"| D["Hermes Agent ✅"]
+    B -->|"否"| C
+    C -->|"Anthropic"| E["Claude Code CLI ✅"]
+    C -->|"OpenAI"| F["Codex CLI ✅"]
+    C -->|"多模型切换"| D
+
+    style D fill:#fff3e0,stroke:#333,color:#000
+    style E fill:#e3f2fd,stroke:#333,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-27 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-24-hermes-agent-review/diagram_20260427_024607_00.webp" alt="三工具选型决策树：根据需求（积累能力&#x2F;模型偏好）选择 Hermes Agent、Claude Code CLI 或 Codex CLI"></p>
+</details>
+
+</details>
+
+<hr>
+<h2 id="背景：为什么关注-Hermes-Agent"><a href="#背景：为什么关注-Hermes-Agent" class="headerlink" title="背景：为什么关注 Hermes Agent"></a>背景：为什么关注 Hermes Agent</h2><p>作为 Claude Code CLI 和 Codex 的日常用户，有几个痛点你大概也碰到过：</p>
+<ul>
+<li><strong>痛点 1：每个新会话”从零开始”</strong>。CLAUDE.md 和 SKILL.md 能提供项目上下文，但 Agent 不会从你的使用中自动积累经验——每次会话都是独立事件。你今天纠正过的错误用法，明天它照样犯。</li>
+<li><strong>痛点 2：CLI 的限制</strong>。Claude Code 和 Codex 都绑在终端里，你离开电脑就只能等。没法在手机上通过 Telegram 看一眼进度，也没法让 Agent 定时巡检项目。</li>
+<li><strong>痛点 3：Skills 全靠手动维护</strong>。写 SKILL.md 是体力活——你要先意识到某个流程值得沉淀，再手工撰写、测试、迭代。Agent 不会帮你做这件事。</li>
+<li><strong>痛点 4：单模型锁定</strong>。用 Claude Code 就只能用 Anthropic 模型，用 Codex 就只能用 OpenAI。想切模型？换个工具。</li>
+</ul>
+<p>Hermes Agent 的定位正好打在这些痛点上。它不是另一个编码 Agent，而是 <strong>学会从使用中成长的通用 Agent</strong>。Nous Research 是 Hermes 模型系列的创造者，在开源 AI 社区有相当影响力（Hermes 系列是 HuggingFace 上下载量最高的指令微调模型之一）。他们把模型训练中对”学习”的理解注入了这个 Agent 产品。</p>
+<hr>
+<h2 id="核心能力拆解"><a href="#核心能力拆解" class="headerlink" title="核心能力拆解"></a>核心能力拆解</h2><h3 id="2-1-学习循环：从使用到技能的闭环"><a href="#2-1-学习循环：从使用到技能的闭环" class="headerlink" title="2.1 学习循环：从使用到技能的闭环"></a>2.1 学习循环：从使用到技能的闭环</h3><p>这是 Hermes 最根本的差异化能力。它的工作方式是：</p>
+<ol>
+<li><strong>观察</strong>——Agent 在执行任务时，记录哪些操作成功、哪些踩坑</li>
+<li><strong>抽象</strong>——完成复杂任务（5+ 次工具调用）后，自动将成功路径编码为 Skill</li>
+<li><strong>复用</strong>——下次遇到类似场景，Agent 自动加载对应 Skill</li>
+<li><strong>改进</strong>——Skill 在使用中被持续打磨，成功的操作强化、低效的路径被替换</li>
+</ol>
+<p>这个流程对应到开发者的实际工作里：部署脚本、日志分析模式、数据库巡检流程——这些重复性任务会随着使用次数的增加而逐步自动化。</p>
+<p>与 Claude Code Skills 的本质区别：</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Claude Code Skills</th>
+<th>Hermes Skills</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>创建方式</strong></td>
+<td>人工编写 SKILL.md</td>
+<td>Agent 自动创建</td>
+</tr>
+<tr>
+<td><strong>优化方式</strong></td>
+<td>人工迭代</td>
+<td>Agent 自我改进</td>
+</tr>
+<tr>
+<td><strong>共享标准</strong></td>
+<td>GitHub &#x2F; npm 安装</td>
+<td>agentskills.io 开放标准</td>
+</tr>
+<tr>
+<td><strong>生命周期</strong></td>
+<td>静态，除非人工更新</td>
+<td>随使用持续进化</td>
+</tr>
+</tbody></table>
+<p>agentskills.io 是一个开放标准，意味着 Hermes 创建的技能可以在其他兼容 Agent 之间迁移。社区可以通过 Skills Hub 贡献和共享技能，目前已有 7 个来源（包括 OpenAI、Anthropic 官方技能仓库、Vercel skills.sh 等）。</p>
+<blockquote>
+<p>有一个关键细节值得注意：Skills 系统的”渐进式披露”设计。Agent 只在真正需要时才加载 Skill 的完整内容（三级加载：列表→摘要→全文），最大程度节省 token 消耗。</p>
+</blockquote>
+<h3 id="2-2-记忆系统：跨会话的知识延续"><a href="#2-2-记忆系统：跨会话的知识延续" class="headerlink" title="2.2 记忆系统：跨会话的知识延续"></a>2.2 记忆系统：跨会话的知识延续</h3><p>Hermes 的记忆架构是三层设计：</p>
+<table>
+<thead>
+<tr>
+<th>层级</th>
+<th>载体</th>
+<th>容量</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>持久记忆</strong></td>
+<td>MEMORY.md（~2,200 chars）</td>
+<td>8-15 条记录</td>
+<td>Agent 认为重要的事：环境配置、项目约定、踩过的坑</td>
+</tr>
+<tr>
+<td><strong>用户画像</strong></td>
+<td>USER.md（~1,375 chars）</td>
+<td>5-10 条记录</td>
+<td>用户偏好、沟通风格、工作习惯、技术水平</td>
+</tr>
+<tr>
+<td><strong>会话搜索</strong></td>
+<td>SQLite FTS5（<code>~/.hermes/state.db</code>）</td>
+<td>无限</td>
+<td>全文搜索历史会话 + Gemini Flash 摘要</td>
+</tr>
+</tbody></table>
+<p>关键差异在于<strong>谁来决定存什么</strong>。Claude Code 的 MEMORY.md 靠你主动说”记住这个”；Hermes 的 Agent 会自行判断并自动保存——你纠正它一次，它下次会主动避开同样的坑。</p>
+<p>记忆的注入机制也值得一提：系统 prompt 在会话开始时冻结快照（为了保持 LLM 的 prefix cache 性能），所以会话内的记忆变更不会立刻生效，但在下次会话启动时自动注入。</p>
+<p>此外，Hermes 支持 8 个外部记忆提供者插件（Honcho、Mem0、Holographic 等），这些运行在持久记忆之上，提供知识图谱、语义搜索、跨会话用户建模等增强能力。Honcho 在其中比较特别——它专注于”辩证式用户建模”，不只记住你说过什么，还会推断你的决策模式和思维习惯。</p>
+<h3 id="2-3-多平台覆盖：不止于终端"><a href="#2-3-多平台覆盖：不止于终端" class="headerlink" title="2.3 多平台覆盖：不止于终端"></a>2.3 多平台覆盖：不止于终端</h3><p>Hermes 的设计哲学是”一个 Agent，所有平台”。它的核心 <code>AIAgent</code> 类同时服务五个入口：</p>
+<ul>
+<li><strong>CLI</strong>：全功能 TUI，支持多行编辑、斜杠命令、流式工具输出</li>
+<li><strong>Gateway</strong>：单一进程管理 18 个消息平台适配器（Telegram、Discord、Slack、WhatsApp、Signal、Matrix、Mattermost、Email、SMS、钉钉、飞书、企业微信、BlueBubbles、QQ Bot、Home Assistant 等）</li>
+<li><strong>ACP Adapter</strong>：通过 stdio &#x2F; JSON-RPC 接入支持 Agent Communication Protocol 的 IDE（VS Code、Zed、JetBrains）</li>
+<li><strong>Batch Runner</strong>：批量轨迹生成，面向研究和评估</li>
+<li><strong>Python Library</strong>：<code>import hermes</code> 直接嵌入 Python 项目</li>
+</ul>
+<p>实际场景：在电脑上通过 Docker 后端跑 Hermes，它会做代码分析和定时任务；你在手机上通过 Telegram 收到结果推送，可以直接回复指令。</p>
+<h3 id="2-4-终端隔离与安全"><a href="#2-4-终端隔离与安全" class="headerlink" title="2.4 终端隔离与安全"></a>2.4 终端隔离与安全</h3><p>Hermes 的终端工具有 6 种后端，安全层级是逐步递进的：</p>
+<table>
+<thead>
+<tr>
+<th>后端</th>
+<th>隔离程度</th>
+<th>适用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Local</strong></td>
+<td>无隔离</td>
+<td>开发、受信任任务</td>
+</tr>
+<tr>
+<td><strong>Docker</strong></td>
+<td>容器隔离（cap drop、no new privileges、256 PID 限制）</td>
+<td>安全性要求高的操作</td>
+</tr>
+<tr>
+<td><strong>SSH</strong></td>
+<td>远程隔离</td>
+<td>让 Agent 远离自己的代码</td>
+</tr>
+<tr>
+<td><strong>Daytona</strong></td>
+<td>云端开发环境</td>
+<td>持久化远程沙箱</td>
+</tr>
+<tr>
+<td><strong>Singularity</strong></td>
+<td>HPC 容器</td>
+<td>集群计算、rootless 工作负载</td>
+</tr>
+<tr>
+<td><strong>Modal</strong></td>
+<td>无服务器云执行</td>
+<td>可扩展的按需运行</td>
+</tr>
+</tbody></table>
+<p>安全机制是四层叠加：</p>
+<ol>
+<li><strong>命令审批</strong>——支持手动&#x2F;智能&#x2F;关闭三种模式，智能模式用辅助 LLM 评估风险后自动放行低风险命令</li>
+<li><strong>容器隔离</strong>——Docker&#x2F;Singularity 后端提供完全隔离的执行环境</li>
+<li><strong>Tirith 扫描</strong>——执行终端命令前进行安全扫描（可配置超时和失败开放策略）</li>
+<li><strong>密钥脱敏</strong>——检测输出中的 API key、token、密码并自动遮盖</li>
+</ol>
+<p>这种多层安全设计让 Hermes 可以放心跑在服务器上——不像 Claude Code 和 Codex，基本只能在本地终端用。</p>
+<h3 id="2-5-工具集与调度系统"><a href="#2-5-工具集与调度系统" class="headerlink" title="2.5 工具集与调度系统"></a>2.5 工具集与调度系统</h3><p>47 个内置工具按 19 个工具集组织，覆盖：</p>
+<ul>
+<li><strong>Web</strong>：搜索、内容提取、爬虫</li>
+<li><strong>终端</strong>：6 种后端的命令执行、后台进程管理（含 PTY 模式支持 Codex&#x2F;Claude Code 等交互式 CLI）</li>
+<li><strong>浏览器</strong>：Playwright 自动化，支持文本和视觉模式</li>
+<li><strong>媒体</strong>：视觉分析、图片生成、TTS</li>
+<li><strong>编排</strong>：TODO 管理、子 Agent 委派、代码执行</li>
+<li><strong>记忆</strong>：Memory 工具、会话搜索</li>
+</ul>
+<p>Cron 调度是 Hermes 的一个强项——它不是”在 shell 里加了个 crontab 的 wrapper”，而是 Agent 的一等公民能力。你可以用自然语言描述：”每天早上 9 点检查项目的依赖更新，通过 Telegram 通知我”——Agent 自己会创建、调度、执行这个任务。</p>
+<p>子 Agent 委派（<code>delegate_task</code>）也是重要特性——主 Agent 可以 spawn 隔离子 Agent 并行处理不同任务，每个子 Agent 有自己的上下文窗口。最大并发 3 个子 Agent，委派深度可配（1-3 层）。</p>
+<h3 id="2-6-模型自由"><a href="#2-6-模型自由" class="headerlink" title="2.6 模型自由"></a>2.6 模型自由</h3><p>Hermes 支持 18+ LLM 提供商，包括：</p>
+<ul>
+<li>Anthropic（Claude Opus 4.7 &#x2F; Sonnet 4.6 等）</li>
+<li>OpenAI &#x2F; Codex</li>
+<li>OpenRouter（200+ 模型）</li>
+<li>Google Gemini</li>
+<li>DeepSeek</li>
+<li>Kimi Coding</li>
+<li>阿里百炼</li>
+<li>NIM、Groq、xAI 等</li>
+</ul>
+<p>一句 <code>hermes model</code> 就能热切换，不需要改配置或重启。这对于需要根据不同任务选择不同模型的场景非常实用——比如用 Claude 做推理、用 Gemini 做压缩、用 DeepSeek 做低成本批量任务。</p>
+<hr>
+<h2 id="优缺点分析"><a href="#优缺点分析" class="headerlink" title="优缺点分析"></a>优缺点分析</h2><h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><table>
+<thead>
+<tr>
+<th>#</th>
+<th>优势</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>学习循环</strong></td>
+<td>唯一具备”用中学”能力的 Agent，技能自动生成、自我改进</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>模型自由</strong></td>
+<td>18+ 提供商，一句命令热切换，避免供应商锁定</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>全平台覆盖</strong></td>
+<td>CLI + 15 消息平台 + IDE + Python 库，部署到 VPS 后在手机上收发</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>MIT 开源</strong></td>
+<td>完全免费，代码可审计、可定制、可商用</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>记忆深度</strong></td>
+<td>三层架构 + Honcho 用户建模 + 8 外部记忆插件，跨会话积累远超同类</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>安全层级</strong></td>
+<td>容器隔离 + Tirith + 密钥脱敏 + 命令审批，四层防护可放心部署到服务器</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>研究生态</strong></td>
+<td>RL 训练环境（Atropos） + 轨迹生成 + 压缩器，不仅是工具也是研究平台</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Cron 一等公民</strong></td>
+<td>自然语言描述定时任务，Agent 自己创建和管理</td>
+</tr>
+<tr>
+<td>9</td>
+<td><strong>迁移友好</strong></td>
+<td>内置 OpenClaw 一键迁移，导入所有配置和记忆</td>
+</tr>
+</tbody></table>
+<h3 id="劣势"><a href="#劣势" class="headerlink" title="劣势"></a>劣势</h3><table>
+<thead>
+<tr>
+<th>#</th>
+<th>劣势</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td><strong>无原生 Windows</strong></td>
+<td>必须通过 WSL2 间接使用，Windows 桌面用户有额外一层</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>非编程专用</strong></td>
+<td>通用 Agent 定位，编码深度不如 Claude Code 和 Codex 的 Git&#x2F;文件&#x2F;审查集成</td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>上手门槛</strong></td>
+<td>10.7k 行核心 + 大量配置选项，比 <code>npm install -g &amp;&amp; claude</code> 重得多</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Python 技术栈</strong></td>
+<td>对于 Node.js&#x2F;TypeScript 生态的开发者，调试和定制的语言成本高</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>学习循环质量存疑</strong></td>
+<td>“自动创建技能”是把双刃剑——质量差的 Skill 可能固化错误模式，需要定期审查</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>文档成熟度</strong></td>
+<td>相比 Anthropic &#x2F; OpenAI 官方产品的文档完整度仍有差距，部分页面（如 Godmode）还是占位</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>无内置代码审查</strong></td>
+<td>Claude Code 有 <code>/review</code>，Codex 有 <code>/codex:review</code>，Hermes 需要手工搭建审查流程</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>配额不可预测</strong></td>
+<td>学习循环 + 记忆强化的后台消耗不易预估，建议先在便宜 API 后端上实验</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="深度对比：Hermes-Agent-vs-Claude-Code-CLI-vs-Codex"><a href="#深度对比：Hermes-Agent-vs-Claude-Code-CLI-vs-Codex" class="headerlink" title="深度对比：Hermes Agent vs Claude Code CLI vs Codex"></a>深度对比：Hermes Agent vs Claude Code CLI vs Codex</h2><h3 id="架构理念对比"><a href="#架构理念对比" class="headerlink" title="架构理念对比"></a>架构理念对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Hermes Agent</th>
+<th>Claude Code CLI</th>
+<th>Codex CLI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>核心理念</strong></td>
+<td>学习型——经验积累，越用越强</td>
+<td>上下文型——CLAUDE.md + Skills + Hooks 构建工作上下文</td>
+<td>任务型——专注编码任务的端到端完成</td>
+</tr>
+<tr>
+<td><strong>“大脑”模型</strong></td>
+<td>记忆 + 技能 + 用户画像三层</td>
+<td>CLAUDE.md 项目说明书</td>
+<td>.codex&#x2F;config.toml</td>
+</tr>
+<tr>
+<td><strong>自主程度</strong></td>
+<td>最高（自我创建技能、自动维护记忆）</td>
+<td>中（在 hooks&#x2F;sandbox 约束内自主）</td>
+<td>中（工具调用 + 子任务委派）</td>
+</tr>
+<tr>
+<td><strong>设计哲学</strong></td>
+<td>平台化——一个 Agent 跑在所有地方</td>
+<td>嵌入式——深度集成终端和项目</td>
+<td>专用化——围绕 OpenAI 模型优化</td>
+</tr>
+</tbody></table>
+<h3 id="开发体验对比"><a href="#开发体验对比" class="headerlink" title="开发体验对比"></a>开发体验对比</h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>Hermes Agent</th>
+<th>Claude Code CLI</th>
+<th>Codex CLI</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>从零写功能</strong></td>
+<td>适合，但需要先”培养”对项目的理解</td>
+<td><strong>最佳</strong>——CLAUDE.md 让首句话就有上下文</td>
+<td>好——GPT-5.x 对代码生成有针对性优化</td>
+</tr>
+<tr>
+<td><strong>代码审查</strong></td>
+<td>需自行搭建流程</td>
+<td><code>/review</code> + 插件生态</td>
+<td><code>/codex:review</code> + <code>/codex:adversarial-review</code></td>
+</tr>
+<tr>
+<td><strong>Bug 调查</strong></td>
+<td>可能更好——如果积累过类似场景的 Skill</td>
+<td>好——可直接执行命令复现</td>
+<td>好——<code>/codex:rescue</code> 后台调查</td>
+</tr>
+<tr>
+<td><strong>跨会话延续</strong></td>
+<td><strong>最佳</strong>——MEMORY.md + FTS5 自动召回历史</td>
+<td>依赖 <code>--resume</code> 恢复特定会话</td>
+<td>依赖 <code>--resume</code></td>
+</tr>
+<tr>
+<td><strong>移动端接入</strong></td>
+<td>✅ Telegram &#x2F; Discord &#x2F; Slack 等</td>
+<td>❌ 仅终端</td>
+<td>❌ 仅终端</td>
+</tr>
+<tr>
+<td><strong>定时任务</strong></td>
+<td>✅ 自然语言 Cron</td>
+<td>❌ 需外部 cron &#x2F; systemd</td>
+<td>❌ 需外部 cron &#x2F; systemd</td>
+</tr>
+<tr>
+<td><strong>模型切换</strong></td>
+<td>一行 <code>hermes model</code> 热切换</td>
+<td>仅 Anthropic 系列</td>
+<td>仅 OpenAI 系列</td>
+</tr>
+<tr>
+<td><strong>安装成本</strong></td>
+<td>curl-to-bash（~60s）</td>
+<td>npm install -g（~30s）</td>
+<td>npm install -g（~30s）</td>
+</tr>
+<tr>
+<td><strong>Windows 体验</strong></td>
+<td>WSL2 only</td>
+<td>✅ 原生</td>
+<td>✅ 原生</td>
+</tr>
+</tbody></table>
+<h3 id="生态定位"><a href="#生态定位" class="headerlink" title="生态定位"></a>生态定位</h3><pre class="mermaid">graph LR
+    subgraph "编码深度"
+        A["Codex CLI"] --- B["Claude Code CLI"]
+    end
+    subgraph "通用广度"
+        C["Hermes Agent"]
+    end
+
+    A -->|"编码特化"| D["Git + 文件 + 审查 深度集成"]
+    B -->|"上下文特化"| E["CLAUDE.md + Skills + Hooks"]
+    C -->|"学习能力"| F["Skills 自生成 + 记忆 + 多平台"]
+
+    style A fill:#c8e6c9,stroke:#333,color:#000
+    style B fill:#e3f2fd,stroke:#333,color:#000
+    style C fill:#fff3e0,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-27 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-24-hermes-agent-review/diagram_20260427_024613_01.webp" alt="三工具生态定位图：Codex&#x2F;Claude Code CLI 编码深度 vs Hermes Agent 通用广度与学习能力"></p>
+</details>
+
+<h3 id="关键差异总结"><a href="#关键差异总结" class="headerlink" title="关键差异总结"></a>关键差异总结</h3><ol>
+<li><strong>模型的维度</strong>：Claude Code 和 Codex 锁定单一模型系列（深度优化）；Hermes 绑定用户选择（自由度和不确定性并存）</li>
+<li><strong>记忆的维度</strong>：Claude Code &#x2F; Codex 是”你告诉它记住”；Hermes 是”它自己判断并记住”——前者可控，后者可能发现你忽视的模式</li>
+<li><strong>平台的维度</strong>：Claude Code &#x2F; Codex 是终端工具；Hermes 是消息平台 + 终端 + IDE + Python 库的平台化 Agent</li>
+<li><strong>学习的维度</strong>：这是 Hermes 的根本差异化——其他 Agent 每次使用是独立事件，Hermes 把每次使用变成成长增量</li>
+</ol>
+<hr>
+<h2 id="实际使用场景映射"><a href="#实际使用场景映射" class="headerlink" title="实际使用场景映射"></a>实际使用场景映射</h2><table>
+<thead>
+<tr>
+<th>你的场景</th>
+<th>推荐工具</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>日常编码、写功能、改 Bug</td>
+<td>Claude Code CLI &#x2F; Codex</td>
+<td>编码深度集成最好</td>
+</tr>
+<tr>
+<td>需要第二双眼睛做代码审查</td>
+<td>Codex Plugin + Claude Code</td>
+<td>双引擎交叉验证</td>
+</tr>
+<tr>
+<td>想在手机上跟进 Agent 任务</td>
+<td><strong>Hermes Agent</strong></td>
+<td>唯一支持消息平台</td>
+</tr>
+<tr>
+<td>想长期培养懂你项目的 Agent</td>
+<td><strong>Hermes Agent</strong></td>
+<td>学习循环 + 用户建模</td>
+</tr>
+<tr>
+<td>需要定时自动任务</td>
+<td><strong>Hermes Agent</strong></td>
+<td>Cron 一等公民</td>
+</tr>
+<tr>
+<td>想自由切换底层模型</td>
+<td><strong>Hermes Agent</strong></td>
+<td>18+ 提供商</td>
+</tr>
+<tr>
+<td>纯 Windows 桌面环境</td>
+<td>Claude Code CLI &#x2F; Codex</td>
+<td>Hermes 无原生 Windows</td>
+</tr>
+<tr>
+<td>刚入门 AI 辅助编程</td>
+<td>Claude Code CLI</td>
+<td>CLAUDE.md 上手最快</td>
+</tr>
+<tr>
+<td>想一次性低成本体验</td>
+<td>Claude Code CLI + Hermes 并行</td>
+<td>两者免费且互补</td>
+</tr>
+<tr>
+<td>需要部署到服务器长期运行</td>
+<td><strong>Hermes Agent</strong></td>
+<td>容器隔离 + 多层安全</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="上手路径与建议"><a href="#上手路径与建议" class="headerlink" title="上手路径与建议"></a>上手路径与建议</h2><h3 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Linux / macOS / WSL2（唯一前置：git）</span></span><br><span class="line">curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash</span><br><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br><span class="line">hermes  <span class="comment"># 进入交互式引导，配置模型和 API key</span></span><br></pre></td></tr></table></figure>
+
+<p>安装器会自动处理 Python 3.11 (via uv)、Node.js 22、ripgrep、ffmpeg 等依赖。</p>
+<h3 id="从-Claude-Code-用户视角的迁移建议"><a href="#从-Claude-Code-用户视角的迁移建议" class="headerlink" title="从 Claude Code 用户视角的迁移建议"></a>从 Claude Code 用户视角的迁移建议</h3><p>不要用”替代”思维，用”互补”思维：</p>
+<ul>
+<li><strong>Claude Code</strong> 继续做日常编码主力——它的 Git&#x2F;文件&#x2F;审查集成是最成熟的</li>
+<li><strong>Hermes</strong> 负责三个 Claude Code 做不到的事：<ol>
+<li><strong>长期运行的定时任务</strong>（项目健康巡检、依赖更新检查、日志异常扫描）</li>
+<li><strong>消息平台接入</strong>（通过 Telegram 接收任务结果、手机端下发指令）</li>
+<li><strong>知识积累</strong>（通过学习循环把重复性运维&#x2F;部署流程逐步自动化）</li>
+</ol>
+</li>
+</ul>
+<p>两者可以通过 MCP 互通——Hermes 可以连接 Claude Code 的 MCP server，反之亦然。</p>
+<h3 id="风险提示"><a href="#风险提示" class="headerlink" title="风险提示"></a>风险提示</h3><ul>
+<li>学习循环的 API quota 消耗可能超预期，建议先在 OpenRouter 免费额度或便宜的 API 后端上实验</li>
+<li>自动创建的 Skill 需要定期审查——AI 可能学到并固化错误的”模式”</li>
+<li>Windows 用户必须接受 WSL2 的额外层</li>
+<li>不要在生产环境直接开放所有工具权限——利用审批和容器隔离</li>
+</ul>
+<hr>
+<h2 id="FAQ"><a href="#FAQ" class="headerlink" title="FAQ"></a>FAQ</h2><p><strong>Q1: Hermes Agent 能替代 Claude Code CLI 吗？</strong></p>
+<p>不能，也不应该。两者的定位不同：Claude Code 是嵌入式编码工具，Hermes 是平台化通用 Agent。它们在同一个工作流里是互补关系——Claude Code 做编码主力，Hermes 做长期知识积累和跨平台接入。</p>
+<p><strong>Q2: 学习循环真的有用吗？会不会学到错误的习惯？</strong></p>
+<p>这是个合理的担忧。学习循环的价值体现在重复性任务上——当你多次执行类似的部署、巡检、排查流程时，Agent 会逐步优化这些路径。但质量确实取决于生成的 Skill 是否经过验证，建议定期用 <code>hermes skills list</code> 审查自动创建的技能。</p>
+<p><strong>Q3: Hermes 的 Skills 和 Claude Code 的 Skills 有什么区别？</strong></p>
+<p>格式兼容（都是 Markdown + YAML frontmatter），但 Hermes Skills 多了 agentskills.io 标准支持，可以跨 Agent 迁移。更关键的区别：Hermes 的 Agent 可以自动创建和优化 Skills，Claude Code 的技能全靠人工维护。</p>
+<p><strong>Q4: Hermes Agent 在国内网络环境能用吗？</strong></p>
+<p>Hermes 本身是本地安装的，API 调用取决于你选的模型提供商。如果用 DeepSeek、阿里百炼、Kimi Coding 这些国内提供商，网络不是问题。OpenRouter 在中国大陆的可用性不稳定。Telegram 接入需要代理。</p>
+<p><strong>Q5: 安装需要什么前置条件？</strong></p>
+<p>唯一硬性要求是 Git。安装器会自动处理 Python 3.11、Node.js 22、ripgrep、ffmpeg。需要至少一个 LLM 提供商的 API key。Docker、Modal、Daytona 等后端是可选的。</p>
+<p><strong>Q6: API 配额消耗大概多少？</strong></p>
+<p>这取决于你使用的模型和任务复杂度。内存和技能系统的额外开销约 1,300 tokens &#x2F; 会话（记忆注入）。如果用 Gemini Flash 做压缩和搜索摘要，这笔开销很小。学习循环的消耗取决于技能创建频率。</p>
+<p><strong>Q7: 如何确保自动创建的 Skill 质量？</strong></p>
+<p>定期运行 <code>hermes skills list</code> 审查 Skills 列表，用 <code>hermes skills inspect &lt;name&gt;</code> 查看具体内容，不满意的直接 <code>hermes skills uninstall &lt;name&gt;</code>。也可以在 <code>config.yaml</code> 中限制 Skills 的自动创建频率。</p>
+<p><strong>Q8: 和 Claude Code 可以同时使用吗？</strong></p>
+<p>可以。两者互不冲突——Hermes 通过 Docker&#x2F;SSH 后端运行，Claude Code 在本地终端。通过 MCP 还能互通。Hermes 也支持 PTY 模式，可以在其终端工具里运行 Claude Code 和 Codex。</p>
+<hr>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>Hermes Agent 的核心差异化不是工具数量或平台覆盖的广度，而是<strong>学习循环</strong>——这是目前 Claude Code 和 Codex 都不具备的能力。它把每次使用视为一次学习机会，技能从使用中产生、知识在会话间延续。</p>
+<p>但这也意味着它和 Claude Code &#x2F; Codex 不在同一个品类。它不是编程工具的替代品，而是一个互补角色：</p>
+<ul>
+<li><strong>Claude Code</strong> 是你日常编码的最佳搭档——它深度嵌入终端、Git 和你的项目</li>
+<li><strong>Codex</strong> 为 OpenAI 生态的编码任务提供针对性优化</li>
+<li><strong>Hermes</strong> 填补了前两者做不到的事——长期知识积累、跨平台接入、自主调度</li>
+</ul>
+<p>如果你是一个 AI 工具的早期采用者，想在编码主力之外探索”Agent 如何学会我的项目和个人偏好”这个命题，Hermes 值得花一个下午来尝试。MIT 协议意味着你可以零成本持有，等它的学习能力持续产生复利。</p>
+<p><strong>行动建议</strong>：</p>
+<ul>
+<li><strong>今天</strong>：在 WSL2 或 Linux 环境 <code>curl | bash</code> 安装，用 OpenRouter 免费额度跑 30 分钟体验</li>
+<li><strong>本周</strong>：让 Hermes 对接一个项目仓库，观察它在 3-5 次对话后是否产生有用的 Skill</li>
+<li><strong>持续观察</strong>：学习循环的质量、agentskills.io 社区的技能共享生态发展</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-24</td>
+<td>初始版本，基于 Hermes Agent v0.11.0</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-27</td>
+<td>为选型决策树和生态定位图追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI-Agent/" rel="tag">AI Agent</a>, <a class="tag-none-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a>, <a class="tag-none-link" href="/tags/Codex/" rel="tag">Codex</a>, <a class="tag-none-link" href="/tags/Hermes-Agent/" rel="tag">Hermes Agent</a>, <a class="tag-none-link" href="/tags/Nous-Research/" rel="tag">Nous Research</a>, <a class="tag-none-link" href="/tags/%E5%B7%A5%E5%85%B7%E5%AF%B9%E6%AF%94/" rel="tag">工具对比</a>, <a class="tag-none-link" href="/tags/%E5%BC%80%E6%BA%90/" rel="tag">开源</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.761Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Hub and Spoke（主控与辐射）架构实战" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3-%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3 分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Hermes-Agent-%E4%B8%80%E5%8F%A5%E8%AF%9D"><span class="toc-number">1.1.</span> <span class="toc-text">Hermes Agent 一句话</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AF%B9%E6%AF%94%E9%80%9F%E8%A7%88"><span class="toc-number">1.2.</span> <span class="toc-text">核心对比速览</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%89%E5%9E%8B%E5%86%B3%E7%AD%96%E6%A0%91"><span class="toc-number">1.3.</span> <span class="toc-text">选型决策树</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%83%8C%E6%99%AF%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%85%B3%E6%B3%A8-Hermes-Agent"><span class="toc-number">2.</span> <span class="toc-text">背景：为什么关注 Hermes Agent</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%83%BD%E5%8A%9B%E6%8B%86%E8%A7%A3"><span class="toc-number">3.</span> <span class="toc-text">核心能力拆解</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%AD%A6%E4%B9%A0%E5%BE%AA%E7%8E%AF%EF%BC%9A%E4%BB%8E%E4%BD%BF%E7%94%A8%E5%88%B0%E6%8A%80%E8%83%BD%E7%9A%84%E9%97%AD%E7%8E%AF"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 学习循环：从使用到技能的闭环</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E8%AE%B0%E5%BF%86%E7%B3%BB%E7%BB%9F%EF%BC%9A%E8%B7%A8%E4%BC%9A%E8%AF%9D%E7%9A%84%E7%9F%A5%E8%AF%86%E5%BB%B6%E7%BB%AD"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 记忆系统：跨会话的知识延续</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E5%A4%9A%E5%B9%B3%E5%8F%B0%E8%A6%86%E7%9B%96%EF%BC%9A%E4%B8%8D%E6%AD%A2%E4%BA%8E%E7%BB%88%E7%AB%AF"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 多平台覆盖：不止于终端</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E7%BB%88%E7%AB%AF%E9%9A%94%E7%A6%BB%E4%B8%8E%E5%AE%89%E5%85%A8"><span class="toc-number">3.4.</span> <span class="toc-text">2.4 终端隔离与安全</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E5%B7%A5%E5%85%B7%E9%9B%86%E4%B8%8E%E8%B0%83%E5%BA%A6%E7%B3%BB%E7%BB%9F"><span class="toc-number">3.5.</span> <span class="toc-text">2.5 工具集与调度系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-6-%E6%A8%A1%E5%9E%8B%E8%87%AA%E7%94%B1"><span class="toc-number">3.6.</span> <span class="toc-text">2.6 模型自由</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%98%E7%BC%BA%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">4.</span> <span class="toc-text">优缺点分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BC%98%E5%8A%BF"><span class="toc-number">4.1.</span> <span class="toc-text">优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8A%A3%E5%8A%BF"><span class="toc-number">4.2.</span> <span class="toc-text">劣势</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%B1%E5%BA%A6%E5%AF%B9%E6%AF%94%EF%BC%9AHermes-Agent-vs-Claude-Code-CLI-vs-Codex"><span class="toc-number">5.</span> <span class="toc-text">深度对比：Hermes Agent vs Claude Code CLI vs Codex</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9E%B6%E6%9E%84%E7%90%86%E5%BF%B5%E5%AF%B9%E6%AF%94"><span class="toc-number">5.1.</span> <span class="toc-text">架构理念对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E4%BD%93%E9%AA%8C%E5%AF%B9%E6%AF%94"><span class="toc-number">5.2.</span> <span class="toc-text">开发体验对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%94%9F%E6%80%81%E5%AE%9A%E4%BD%8D"><span class="toc-number">5.3.</span> <span class="toc-text">生态定位</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%B7%AE%E5%BC%82%E6%80%BB%E7%BB%93"><span class="toc-number">5.4.</span> <span class="toc-text">关键差异总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%9E%E9%99%85%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF%E6%98%A0%E5%B0%84"><span class="toc-number">6.</span> <span class="toc-text">实际使用场景映射</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%8A%E6%89%8B%E8%B7%AF%E5%BE%84%E4%B8%8E%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.</span> <span class="toc-text">上手路径与建议</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85"><span class="toc-number">7.1.</span> <span class="toc-text">安装</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%8E-Claude-Code-%E7%94%A8%E6%88%B7%E8%A7%86%E8%A7%92%E7%9A%84%E8%BF%81%E7%A7%BB%E5%BB%BA%E8%AE%AE"><span class="toc-number">7.2.</span> <span class="toc-text">从 Claude Code 用户视角的迁移建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%A3%8E%E9%99%A9%E6%8F%90%E7%A4%BA"><span class="toc-number">7.3.</span> <span class="toc-text">风险提示</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#FAQ"><span class="toc-number">8.</span> <span class="toc-text">FAQ</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">10.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

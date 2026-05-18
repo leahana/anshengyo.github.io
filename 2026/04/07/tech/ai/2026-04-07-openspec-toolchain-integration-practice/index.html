@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2026/04/07/tech/ai/2026-04-07-openspec-toolchain-integration-practice/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="Claude Code, OpenCode, OpenSpec, SDD, 工具链, 规格驱动开发" />
+  
+  <meta name="description" content="以 Claude Code &#x2F; OpenCode 为例，展示 OpenSpec 的规格产物、使用时机与落地流程，帮助把规格驱动开发接进日常工作流。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链">
+<meta property="og:url" content="https://leahana.github.io/2026/04/07/tech/ai/2026-04-07-openspec-toolchain-integration-practice/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="以 Claude Code &#x2F; OpenCode 为例，展示 OpenSpec 的规格产物、使用时机与落地流程，帮助把规格驱动开发接进日常工作流。">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-openspec-toolchain-integration-practice/diagram_20260417_045519_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-openspec-toolchain-integration-practice/diagram_20260417_045543_01.webp">
+<meta property="article:published_time" content="2026-04-07T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.761Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="Claude Code">
+<meta property="article:tag" content="OpenCode">
+<meta property="article:tag" content="OpenSpec">
+<meta property="article:tag" content="SDD">
+<meta property="article:tag" content="工具链">
+<meta property="article:tag" content="规格驱动开发">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-openspec-toolchain-integration-practice/diagram_20260417_045519_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链","description":"以 Claude Code / OpenCode 为例，展示 OpenSpec 的规格产物、使用时机与落地流程，帮助把规格驱动开发接进日常工作流。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2026-04-07T00:00:00.000Z","dateModified":"2026-05-18T05:47:58.761Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2026/04/07/tech/ai/2026-04-07-openspec-toolchain-integration-practice/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2026/04/07/tech/ai/2026-04-07-openspec-toolchain-integration-practice/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">OpenSpec 实战落地手册：把规格驱动开发塞进 Claude Code 工具链</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2026-04-07T00:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2026-04-07</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~10.53K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenSpec-%E4%BA%A7%E7%89%A9%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-number">2.</span> <span class="toc-text">OpenSpec 产物长什么样</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E7%94%A8-%E4%B8%8D%E8%AF%A5%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">什么时候该用 &#x2F; 不该用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSpec-%E5%92%8C-Plan-Mode-%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">3.1.</span> <span class="toc-text">OpenSpec 和 Plan Mode 的边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">安装与初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">安装流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E6%AC%A1%E7%9C%9F%E5%AE%9E%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95%EF%BC%9AVolta-%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84%E5%9D%91"><span class="toc-number">4.2.</span> <span class="toc-text">一次真实安装记录：Volta 环境下的坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#openspec-init-%E5%AE%9E%E9%99%85%E4%BC%9A%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-number">4.3.</span> <span class="toc-text">openspec init 实际会做什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#opsx-%E5%9B%9B%E4%B8%AA%E5%91%BD%E4%BB%A4%E6%80%8E%E4%B9%88%E5%88%86%E5%B7%A5"><span class="toc-number">4.4.</span> <span class="toc-text">&#x2F;opsx: 四个命令怎么分工</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#explore-%E5%92%8C-propose-%E5%88%B0%E5%BA%95%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-number">4.5.</span> <span class="toc-text">explore 和 propose 到底差在哪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSpec-%E7%9B%AE%E5%BD%95%E4%B8%8E%E6%96%87%E4%BB%B6%E6%B8%85%E5%8D%95"><span class="toc-number">4.6.</span> <span class="toc-text">OpenSpec 目录与文件清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E9%93%BE%E5%88%86%E5%B7%A5%E6%9E%B6%E6%9E%84"><span class="toc-number">4.7.</span> <span class="toc-text">工具链分工架构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%B7%A5%E4%BD%9C%E6%B5%81%E4%B8%B2%E8%81%94"><span class="toc-number">5.1.</span> <span class="toc-text">典型工作流串联</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-A%EF%BC%9A%E5%8A%9F%E8%83%BD%E9%9C%80%E6%B1%82%E5%85%A8%E9%93%BE%E8%B7%AF"><span class="toc-number">5.1.1.</span> <span class="toc-text">流程 A：功能需求全链路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-B%EF%BC%9A%E5%AD%98%E9%87%8F%E4%BB%A3%E7%A0%81%E9%87%8D%E6%9E%84"><span class="toc-number">5.1.2.</span> <span class="toc-text">流程 B：存量代码重构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-C%EF%BC%88%E9%AB%98%E7%BA%A7%E5%8F%AF%E9%80%89%EF%BC%89%EF%BC%9AOpenSpec-oh-my-openagent-%E4%B8%B2%E8%81%94"><span class="toc-number">5.1.3.</span> <span class="toc-text">流程 C（高级可选）：OpenSpec + oh-my-openagent 串联</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6"><span class="toc-number">5.2.</span> <span class="toc-text">边界条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">5.3.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.4.</span> <span class="toc-text">最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">6.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：一篇把 OpenSpec 从”概念工具”变成”可落地工程实践”的操作手册。</p>
+<p>💡 <strong>核心理念</strong>：AI 写代码失控的根源不是模型能力不够，而是没有把”要做什么”和”怎么验收”定义清楚。OpenSpec 就是那个工程化协议层。</p>
+</blockquote>
+<hr>
+<h2 id="📋-问题背景"><a href="#📋-问题背景" class="headerlink" title="📋 问题背景"></a>📋 问题背景</h2><h3 id="业务场景"><a href="#业务场景" class="headerlink" title="业务场景"></a>业务场景</h3><p>你在用 Claude Code 做 vibecoding 开发，节奏很快：给一个需求描述，AI 把代码<br>写出来，你审查、合并、继续下一个。直到有一天，AI 改了一个”简单”功能，<br>顺手动了三个你没预期的模块，测试全绿但行为已经悄悄漂移了。</p>
+<p>这不是偶发事故。在快速迭代的节奏下，”需求意图”和”实现边界”之间永远存在模糊<br>地带——而 AI 会用它能理解的方式来填补这个模糊地带，结果未必是你想要的。</p>
+<h3 id="痛点分析"><a href="#痛点分析" class="headerlink" title="痛点分析"></a>痛点分析</h3><ul>
+<li><strong>痛点 1</strong>：纯 prompt 描述需求，AI 对边界的理解每次不一样，相同的描述在不同<br>会话里可能产出结构完全不同的代码。</li>
+<li><strong>痛点 2</strong>：多工具协作时（Claude Code 写逻辑、OpenCode 批量重构、VS Code 审查），<br>各个 AI 工具拿到的上下文不同，容易形成”各说各话”的漂移。</li>
+<li><strong>痛点 3</strong>：没有结构化的验收标准，AI 生成的代码”能跑”但不一定”对”，<br>边界条件漏测，上线后才发现。</li>
+</ul>
+<h3 id="目标"><a href="#目标" class="headerlink" title="目标"></a>目标</h3><p>在 Claude Code 工作流里引入 OpenSpec 作为”规格层”：需求先走 OpenSpec 物化成<br>结构化规格文档，再把规格文档喂给 Claude Code &#x2F; OpenCode 执行，<br>实现”AI 写代码有据可依、AI 审代码有标准可查”。</p>
+<hr>
+<h2 id="OpenSpec-产物长什么样"><a href="#OpenSpec-产物长什么样" class="headerlink" title="OpenSpec 产物长什么样"></a>OpenSpec 产物长什么样</h2><p>真正值得沉淀的不是 <code>/opsx:propose</code> 这条命令本身，<br>而是它在仓库里留下来的那份<strong>结构化规格</strong>。<br>以一个”异步爬虫 + 缓存 + 重试”的需求为例，<br>我更关心的是最终能不能落出一份所有 AI 工具都看得懂的契约。</p>
+<p>一个典型的规格骨架大致会长这样：</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="section"># crawler-feature</span></span><br><span class="line"></span><br><span class="line"><span class="section">## User Stories</span></span><br><span class="line"><span class="bullet">-</span> 作为调用方，我希望爬虫支持按域名限速，避免把目标站点打挂</span><br><span class="line"><span class="bullet">-</span> 作为维护者，我希望失败请求有明确重试策略，便于排查</span><br><span class="line"></span><br><span class="line"><span class="section">## API Specs</span></span><br><span class="line"><span class="section">### `crawl(url: str) -&gt; CrawlResult`</span></span><br><span class="line"><span class="bullet">-</span> 输入：目标 URL</span><br><span class="line"><span class="bullet">-</span> 输出：状态、内容摘要、错误信息</span><br><span class="line"></span><br><span class="line"><span class="section">## Data Models</span></span><br><span class="line"><span class="section">### `CrawlTask`</span></span><br><span class="line"><span class="bullet">-</span> <span class="code">`url`</span></span><br><span class="line"><span class="bullet">-</span> <span class="code">`retry_count`</span></span><br><span class="line"><span class="bullet">-</span> <span class="code">`status`</span></span><br><span class="line"><span class="bullet">-</span> <span class="code">`cached_at`</span></span><br><span class="line"></span><br><span class="line"><span class="section">## Tasks</span></span><br><span class="line"><span class="bullet">-</span> [ ] Task 1：建立基础爬虫接口与数据模型</span><br><span class="line"><span class="bullet">-</span> [ ] Task 2：补齐缓存层与 TTL 策略</span><br><span class="line"><span class="bullet">-</span> [ ] Task 3：补齐重试与错误处理</span><br></pre></td></tr></table></figure>
+
+<p>这类产物的价值不在于“格式好看”，<br>而在于它把一次需求拆成了四个对实现真正有约束力的面：</p>
+<ul>
+<li>用户到底想解决什么问题</li>
+<li>接口边界是什么</li>
+<li>数据结构是什么</li>
+<li>实施顺序是什么</li>
+</ul>
+<p>如果一篇规格最后没有落到这些东西上，<br>它就更像一段整理得比较工整的 prompt，<br>而不是可复用的工程契约。</p>
+<hr>
+<h2 id="什么时候该用-不该用"><a href="#什么时候该用-不该用" class="headerlink" title="什么时候该用 &#x2F; 不该用"></a>什么时候该用 &#x2F; 不该用</h2><p>在 vibecoding 工作流里，”动手之前先想清楚”常见有四种做法：</p>
+<table>
+<thead>
+<tr>
+<th>做法</th>
+<th>最适合的场景</th>
+<th>容易出问题的场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>纯 prompt 驱动</td>
+<td>单文件、小改动、边界非常清晰</td>
+<td>跨模块需求、多人协作、容易越权修改</td>
+</tr>
+<tr>
+<td>Claude Code Plan Mode</td>
+<td>单次中等复杂任务，需要先只读想一遍</td>
+<td>需要跨会话保存、跨工具共享计划</td>
+</tr>
+<tr>
+<td>OpenSpec</td>
+<td>需求边界模糊、需要规格存档、要喂给多个 AI 工具</td>
+<td>非常小的修改，规格成本会高于收益</td>
+</tr>
+<tr>
+<td>执行层多 Agent</td>
+<td>跨文件复杂改动，已经有明确规格，需要并行执行</td>
+<td>需求本身还没收敛时，容易放大漂移</td>
+</tr>
+</tbody></table>
+<p>所以 OpenSpec 最适合解决的是这类问题：</p>
+<ul>
+<li>你知道这次改动不小，但边界还不够清楚</li>
+<li>你希望 Claude Code、OpenCode 看到的是同一份契约</li>
+<li>你希望这次需求不只存在于聊天记录里，而是能随 Git 一起沉淀</li>
+</ul>
+<p>反过来，如果只是一个明确的小修小补，<br>直接写 prompt 或先走 Plan Mode 往往更划算。</p>
+<h3 id="OpenSpec-和-Plan-Mode-的边界"><a href="#OpenSpec-和-Plan-Mode-的边界" class="headerlink" title="OpenSpec 和 Plan Mode 的边界"></a>OpenSpec 和 Plan Mode 的边界</h3><p>这两者看起来都像“先别急着写代码”，但解决的问题并不一样。</p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>Claude Code Plan Mode</th>
+<th>OpenSpec</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>约束方式</td>
+<td>工具层硬约束，直接禁止写入</td>
+<td>通过规格与流程约束后续实现</td>
+</tr>
+<tr>
+<td>持久性</td>
+<td>只有当前对话里的分析</td>
+<td>会生成真实文件并进入版本控制</td>
+</tr>
+<tr>
+<td>生命周期</td>
+<td>一次性思考后退出</td>
+<td><code>explore -&gt; propose -&gt; apply -&gt; archive</code> 可持续推进</td>
+</tr>
+<tr>
+<td>最适合场景</td>
+<td>临时想清楚思路、快速审计</td>
+<td>需要跨会话、跨工具保存变更上下文</td>
+</tr>
+</tbody></table>
+<p>我现在更倾向于这样区分：</p>
+<ul>
+<li>还只是想“先想清楚”时，用 Plan Mode 很轻便</li>
+<li>已经确定这是一个要跟踪的变更时，用 OpenSpec 更像在开工程单</li>
+</ul>
+<p>换句话说，Plan Mode 更像安全模式，OpenSpec 更像轻量级变更管理层。</p>
+<blockquote>
+<p>关于”什么时候该上 OpenSpec”的判断模型，可参考<br><a href="./2026-03-25-from-openspec-to-demand-complexity-model.md">从 OpenSpec 到项目管理经验：一套能落地的需求复杂度评估模型</a>。<br>那篇重点讲判断标准，本文重点讲实际落地流程。</p>
+</blockquote>
+<hr>
+<h2 id="安装与初始化"><a href="#安装与初始化" class="headerlink" title="安装与初始化"></a>安装与初始化</h2><h3 id="安装流程"><a href="#安装流程" class="headerlink" title="安装流程"></a>安装流程</h3><p><strong>前置环境</strong>：</p>
+<ul>
+<li>Node.js <strong>≥ 20.19.0</strong></li>
+<li>npm（全局安装用）或 pnpm（项目内依赖管理）</li>
+<li>无需任何外部 API Key，无需配置 <code>.env</code></li>
+</ul>
+<p><strong>安装步骤</strong>：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 全局安装 OpenSpec CLI</span></span><br><span class="line">npm install -g @fission-ai/openspec@latest</span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 在项目根目录初始化（生成 openspec/ 目录结构）</span></span><br><span class="line"><span class="built_in">cd</span> your-project</span><br><span class="line">openspec init</span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 在 Claude Code 中直接使用 slash command</span></span><br><span class="line"><span class="comment"># /opsx:propose &quot;你的需求描述&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="一次真实安装记录：Volta-环境下的坑"><a href="#一次真实安装记录：Volta-环境下的坑" class="headerlink" title="一次真实安装记录：Volta 环境下的坑"></a>一次真实安装记录：Volta 环境下的坑</h3><p>我在这台机器上的实际安装过程里，还补到了一个很实用的经验：</p>
+<ul>
+<li>本机环境是 <code>Node.js v24.14.0</code>、<code>pnpm 9.15.4</code></li>
+<li>前置版本本身没有问题</li>
+<li>但如果你和我一样用 <strong>Volta</strong> 管 Node.js，直接跑<br><code>pnpm add -g @fission-ai/openspec@latest</code>，可能会撞上<br><code>ERR_PNPM_NO_GLOBAL_BIN_DIR</code></li>
+</ul>
+<p>这时与其继续折腾 <code>PNPM_HOME</code>，更稳的做法通常是直接回到：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install -g @fission-ai/openspec@latest</span><br></pre></td></tr></table></figure>
+
+<p>我这次最终就是这样安装成功的，随后用：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">openspec --version</span><br></pre></td></tr></table></figure>
+
+<p>确认到的版本是 <code>1.2.0</code>。</p>
+<h3 id="openspec-init-实际会做什么"><a href="#openspec-init-实际会做什么" class="headerlink" title="openspec init 实际会做什么"></a><code>openspec init</code> 实际会做什么</h3><p>初始化的真实价值，不只是“生成一个目录”，而是把 Claude Code<br>里的项目级入口也一起接好。</p>
+<p>这次在博客仓库里执行 <code>openspec init</code> 后，非交互模式给出的结果包括：</p>
+<ul>
+<li>创建 OpenSpec 基础目录结构</li>
+<li>自动为 Claude Code 和 GitHub Copilot 做集成</li>
+<li>在 <code>.claude</code> 和 <code>.github/</code> 下写入 <code>4 skills + 4 commands</code></li>
+<li>提示重启 IDE，让新的 Slash Commands 生效</li>
+</ul>
+<p>这也解释了为什么初始化后你会在 Claude Code 里直接看到 <code>/opsx:</code><br>这一组命令，而不只是一个孤零零的 CLI。</p>
+<h3 id="opsx-四个命令怎么分工"><a href="#opsx-四个命令怎么分工" class="headerlink" title="/opsx: 四个命令怎么分工"></a><code>/opsx:</code> 四个命令怎么分工</h3><p>初始化之后，我现在更推荐把 <code>/opsx:</code> 当成一个完整生命周期来理解：</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+<th>最适合的使用时机</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/opsx:explore</code></td>
+<td>先把模糊需求聊清楚</td>
+<td>还在纠结“要不要、怎么做、会不会影响 X”</td>
+</tr>
+<tr>
+<td><code>/opsx:propose</code></td>
+<td>产出 proposal &#x2F; design &#x2F; tasks</td>
+<td>需求已明确，准备生成工程文档</td>
+</tr>
+<tr>
+<td><code>/opsx:apply</code></td>
+<td>按 proposal&#x2F;tasks 推进实现</td>
+<td>规格已经确认，开始进入编码</td>
+</tr>
+<tr>
+<td><code>/opsx:archive</code></td>
+<td>把这次变更归档收尾</td>
+<td>实现完成，准备做沉淀和关闭</td>
+</tr>
+</tbody></table>
+<p>它们和 <code>/openspec:*</code> 本质上是同一套工作流，只是 <code>/opsx:</code> 更像初始化后<br>在项目里直接可用的别名入口。</p>
+<h3 id="explore-和-propose-到底差在哪"><a href="#explore-和-propose-到底差在哪" class="headerlink" title="explore 和 propose 到底差在哪"></a><code>explore</code> 和 <code>propose</code> 到底差在哪</h3><p>以前我也觉得两者边界有点虚，直到真的走了一遍之后，感觉区别清楚很多：</p>
+<ul>
+<li><code>explore</code> 解决的是“把模糊想法聊清楚”</li>
+<li><code>propose</code> 解决的是“把清楚想法落成工程文档”</li>
+</ul>
+<p>比如博客场景里：</p>
+<ul>
+<li>“我想加阅读进度条，但不确定放顶部还是侧边，要不要移动端显示”<br>这种还有很多问号的阶段，更适合 <code>explore</code></li>
+<li>“给博客顶部加一个固定阅读进度条，用 <code>custom.styl</code> 实现，移动端隐藏”<br>这种意图已经明确的阶段，就可以直接 <code>propose</code></li>
+</ul>
+<p>还有一个很关键的实践点：</p>
+<ul>
+<li><code>explore -&gt; propose</code> 的衔接主要靠<strong>同一会话里的上下文</strong></li>
+<li>它不是“写入某个隐藏状态后再自动传递”</li>
+<li>当讨论足够成熟时，Claude 会主动问你要不要创建 proposal，<br>然后在当前对话里直接切进 <code>propose</code> 逻辑</li>
+</ul>
+<p>所以我现在的经验是：<code>explore</code> 更像橡皮鸭对话，<code>propose</code> 更像出工程单。</p>
+<p><strong>版本管理建议</strong>：</p>
+<ul>
+<li><code>openspec/specs/</code> 目录下的所有 <code>.md</code> 文件直接纳入 Git 版本管理——<br>规格文档即代码，每次变更都有记录。</li>
+<li>规格进度随 Git 流动，换机器 &#x2F; 切编辑器只需 <code>git pull</code> 即可恢复上下文。</li>
+</ul>
+<h3 id="OpenSpec-目录与文件清单"><a href="#OpenSpec-目录与文件清单" class="headerlink" title="OpenSpec 目录与文件清单"></a>OpenSpec 目录与文件清单</h3><p>理解 <code>opsx</code> 命令背后操作了哪些文件，有助于你更好地掌控变更状态。初始化后，你的项目根目录会多出一个 <code>openspec/</code> 文件夹：</p>
+<table>
+<thead>
+<tr>
+<th>目录&#x2F;文件</th>
+<th>作用</th>
+<th>存续周期</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong><code>openspec/changes/</code></strong></td>
+<td><strong>变更中（In-flight）</strong>。存放当前正在进行、尚未归档的任务。</td>
+<td>临时</td>
+</tr>
+<tr>
+<td>└─ <code>&lt;change-id&gt;/</code></td>
+<td>每一个独立的变更需求都会拥有一个以 ID 命名的文件夹。</td>
+<td>任务期间</td>
+</tr>
+<tr>
+<td>├─ <code>proposal.md</code></td>
+<td><strong>核心方案建议书</strong>。包含用户故事、API 规格、数据模型等。</td>
+<td>任务期间</td>
+</tr>
+<tr>
+<td>├─ <code>tasks.md</code></td>
+<td><strong>任务清单</strong>。由方案拆解出的原子化执行步骤。</td>
+<td>任务期间</td>
+</tr>
+<tr>
+<td>├─ <code>design.md</code></td>
+<td>（可选）更详细的架构图、UI 设计或技术细节说明。</td>
+<td>任务期间</td>
+</tr>
+<tr>
+<td>└─ <code>.openspec.yaml</code></td>
+<td>变更单的元数据（标题、作者、关联 spec 等）。</td>
+<td>任务期间</td>
+</tr>
+<tr>
+<td><strong><code>openspec/specs/</code></strong></td>
+<td><strong>长期规格（Stable）</strong>。存放已收敛、作为长期文档维护的特性规格。</td>
+<td>长期</td>
+</tr>
+<tr>
+<td>└─ <code>&lt;feature&gt;.md</code></td>
+<td>某个模块或特性的完整说明，是所有 AI 工具读取的“单一事实来源”。</td>
+<td>长期</td>
+</tr>
+<tr>
+<td><strong><code>openspec/archive/</code></strong></td>
+<td><strong>归档库（Archive）</strong>。存放已完成并执行了 <code>archive</code> 命令的历史任务文件夹。</td>
+<td>永久</td>
+</tr>
+</tbody></table>
+<p><strong>核心逻辑</strong>：</p>
+<ol>
+<li><code>propose</code> 时，AI 在 <code>changes/</code> 下创建新文件夹和 <code>proposal.md</code>。</li>
+<li><code>apply</code> 时，AI 根据 <code>proposal.md</code> 里的 Tasks 逐项修改代码。</li>
+<li><code>archive</code> 时，相关的 Task 可能会更新到 <code>specs/</code> 下的长期文档中，然后整个变更文件夹会被移动到 <code>archive/</code>。</li>
+</ol>
+<h3 id="工具链分工架构"><a href="#工具链分工架构" class="headerlink" title="工具链分工架构"></a>工具链分工架构</h3><p>四个工具各司其职，形成”AI 架构师 + AI 程序员”的双层协作：</p>
+<pre class="mermaid">graph TD
+    A["OpenSpec (opsx)<br/>规格制定者"] --> B["openspec/specs/*.md<br/>单一事实来源"]
+    B --> C["Claude Code<br/>逻辑执行者"]
+    B --> D["OpenCode CLI<br/>批量写入者"]
+    C --> E["VS Code / Zed<br/>审阅与调试"]
+    D --> E
+
+    style A fill:#e3f2fd,stroke:#333,color:#000
+    style B fill:#fff3e0,stroke:#333,color:#000
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,color:#000
+    style E fill:#f3e5f5,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-openspec-toolchain-integration-practice/diagram_20260417_045519_00.webp" alt="OpenSpec 工具链分工架构图"></p>
+</details>
+
+<table>
+<thead>
+<tr>
+<th>工具</th>
+<th>集成角色</th>
+<th>实战调用方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>OpenSpec (opsx)</strong></td>
+<td>规格制定者</td>
+<td><code>opsx propose &quot;&lt;需求描述&gt;&quot;</code> 产出 <code>specs/</code> 下的 MD 文件和任务清单</td>
+</tr>
+<tr>
+<td><strong>Claude Code CLI</strong></td>
+<td>逻辑执行者</td>
+<td><code>Read @openspec/specs/feature_a.md and implement tasks in order</code></td>
+</tr>
+<tr>
+<td><strong>OpenCode CLI</strong></td>
+<td>批量写入者</td>
+<td>根据规格书对存量代码做跨文件重构，利用其文件操作能力</td>
+</tr>
+<tr>
+<td><strong>VS Code &#x2F; Zed</strong></td>
+<td>审阅与调试</td>
+<td>VS Code 插件可视化任务进度；Zed 负责代码精修与运行调试</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="🚧-生产实践"><a href="#🚧-生产实践" class="headerlink" title="🚧 生产实践"></a>🚧 生产实践</h2><h3 id="典型工作流串联"><a href="#典型工作流串联" class="headerlink" title="典型工作流串联"></a>典型工作流串联</h3><h4 id="流程-A：功能需求全链路"><a href="#流程-A：功能需求全链路" class="headerlink" title="流程 A：功能需求全链路"></a>流程 A：功能需求全链路</h4><pre class="mermaid">graph LR
+    A["opsx propose<br/>需求物化"] --> B["审查 specs.md<br/>规格验证"]
+    B --> C["Claude Code<br/>逻辑实现"]
+    C --> E["VS Code / Zed<br/>审阅调试"]
+    C -.->|"可选"| D["OpenCode<br/>批量重构"]
+    D --> E
+    E --> F["提交"]
+
+    style A fill:#e3f2fd,stroke:#333,color:#000
+    style B fill:#fff3e0,stroke:#333,color:#000
+    style C fill:#c8e6c9,stroke:#333,color:#000
+    style D fill:#c8e6c9,stroke:#333,stroke-dasharray:4 4,color:#000
+    style F fill:#c8e6c9,stroke:#333,color:#000</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2026-04-07-openspec-toolchain-integration-practice/diagram_20260417_045543_01.webp" alt="OpenSpec 功能需求全链路流程"></p>
+</details>
+
+<p><strong>Step 1：需求物化（Proposal Phase）</strong></p>
+<p>在项目根目录运行，OpenSpec 会通过追问引导你把模糊需求变成明确规格：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opsx propose <span class="string">&quot;设计一个带缓存机制的 Python 异步爬虫，支持请求重试和速率限制&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>AI 会追问：使用哪个缓存库（Redis&#x2F;Disk）？重试策略是指数退避还是固定间隔？<br>速率限制是全局还是按域名？每个追问都在收窄”边界模糊地带”。</p>
+<p><strong>Step 2：规格验证（Verification Phase）</strong></p>
+<p>检查生成的 <code>openspec/specs/feature_a.md</code>，确认：</p>
+<ul>
+<li>API 签名与 Data Model 字段一致</li>
+<li>任务拆分粒度合理（每个 task 对应一个原子改动）</li>
+<li>验收标准可测试（有具体的输入&#x2F;输出示例）</li>
+</ul>
+<p>此阶段<strong>不产生任何代码</strong>，只是对”契约”做最终签字。</p>
+<p><strong>Step 3：自动化实现（Implementation Phase）</strong></p>
+<p>切换到 Claude Code，喂入规格文档：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Read @openspec/specs/crawler-feature.md and implement tasks 1-3.</span><br><span class="line">Follow the API spec exactly. Do not modify files outside the scope defined in the spec.</span><br></pre></td></tr></table></figure>
+
+<p>有了明确的 <code>tasks.md</code>，Claude Code 的实现通常会更容易按任务边界推进，<br>也更容易减少对无关文件的顺手改动。</p>
+<p><strong>Step 4：批量重构（可选）</strong></p>
+<p>如果需要对存量代码做跨文件的结构调整，切换到 OpenCode：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">opencode <span class="string">&quot;按照 openspec/specs/refactor-auth.md 重构认证模块，保持接口不变&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡 OpenCode 的指令直接引用规格文件路径，而不是重新描述需求——这样<br>Claude Code 和 OpenCode 至少是在读取同一份契约，能明显减少”各说各话”的漂移。</p>
+</blockquote>
+<h4 id="流程-B：存量代码重构"><a href="#流程-B：存量代码重构" class="headerlink" title="流程 B：存量代码重构"></a>流程 B：存量代码重构</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. 先用 OpenSpec 把重构意图规格化</span></span><br><span class="line">opsx propose <span class="string">&quot;将现有的同步认证模块重构为异步，保持对外接口不变&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 验证规格，确认改动边界</span></span><br><span class="line"><span class="comment"># 检查 openspec/specs/async-auth.md</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 3. 用 OpenCode 批量执行跨文件改动</span></span><br><span class="line">opencode <span class="string">&quot;按照 openspec/specs/async-auth.md task 1-5 修改认证模块&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>Step 4 切回 Claude Code 补全测试（prompt 直接引用规格的 Test Cases 章节）：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Read @openspec/specs/async-auth.md section &quot;Test Cases&quot; and implement them.</span><br><span class="line">Do not modify files outside the auth module.</span><br></pre></td></tr></table></figure>
+
+<h4 id="流程-C（高级可选）：OpenSpec-oh-my-openagent-串联"><a href="#流程-C（高级可选）：OpenSpec-oh-my-openagent-串联" class="headerlink" title="流程 C（高级可选）：OpenSpec + oh-my-openagent 串联"></a>流程 C（高级可选）：OpenSpec + oh-my-openagent 串联</h4><p>当功能复杂到”需要多个专家 Agent 并行”时，OpenSpec 和 oh-my-openagent 可以串联：<br>OpenSpec 负责把模糊需求收敛成精确规格，oh-my-openagent 的 Sisyphus 负责把规格<br>拆解并分发给专业 Agent 执行。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 1. OpenSpec 完成需求收敛，产出规格文档</span></span><br><span class="line">opsx propose <span class="string">&quot;设计用户认证模块：JWT + OAuth2 双通道，支持刷新令牌，Redis 缓存 session&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 2. 规格验证通过后，在 OpenCode（已装 oh-my-openagent）中调用 Prometheus 做规划</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Read @openspec/specs/auth-module.md.</span><br><span class="line">Use Prometheus Agent to create a detailed implementation plan,</span><br><span class="line">breaking tasks down to atomic level (≤50 lines per task).</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 3. 确认 Prometheus 的规划符合 specs 后，触发 Sisyphus 并行编排</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Execute the implementation plan:</span><br><span class="line">- Atlas handles API route layer (openspec/specs/auth-module.md tasks 1-3)</span><br><span class="line">- Hephaestus handles core auth logic (tasks 4-6)</span><br><span class="line">Run in parallel where tasks have no dependencies.</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 4. 执行完成后，用 OpenSpec 规格做验收基准</span></span><br><span class="line"><span class="comment"># 检查实现是否覆盖 specs 中的所有 User Stories 和 Test Cases</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>串联的关键</strong>：<code>openspec/specs/</code> 文件是两套系统之间的桥梁——<br>OpenSpec 写入它，oh-my-openagent 的各 Agent 读取它。两边都不需要重新描述需求，<br>这会比“每个工具各吃一遍自然语言背景”更稳定，也更容易控制上下文漂移。</p>
+<h3 id="边界条件"><a href="#边界条件" class="headerlink" title="边界条件"></a>边界条件</h3><ul>
+<li><strong>空追问跳过</strong>：如果在 <code>propose</code> 阶段直接回车跳过所有追问，生成的规格质量<br>会退化为普通 prompt 水平，失去 OpenSpec 的核心价值。务必耐心回答每个追问。</li>
+<li><strong>规格版本冲突</strong>：多人协作时，<code>openspec/specs/</code> 目录的 Git 冲突需要手动解决，<br>规则是”以最新讨论结果为准”，不要自动合并规格文件。</li>
+</ul>
+<h3 id="常见坑点"><a href="#常见坑点" class="headerlink" title="常见坑点"></a>常见坑点</h3><ol>
+<li><p><strong>任务粒度过粗</strong></p>
+<ul>
+<li><strong>现象</strong>：OpenCode 执行一个 task 时改了几十个文件，结果混乱</li>
+<li><strong>原因</strong>：<code>propose</code> 阶段没有要求 AI 把任务拆到原子级别</li>
+<li><strong>解决</strong>：在 <code>propose</code> 时明确要求——“每个 task 修改代码不超过 50 行，<br>单一职责”，或在验证阶段手动拆分过大的 task</li>
+</ul>
+</li>
+<li><p><strong>AI 工具间上下文漂移</strong></p>
+<ul>
+<li><strong>现象</strong>：Claude Code 和 OpenCode 对同一模块的改法不一致，互相覆盖</li>
+<li><strong>原因</strong>：各工具有各自的会话上下文，没有共享的”事实来源”</li>
+<li><strong>解决</strong>：始终以 <code>openspec/specs/</code> 作为单一事实来源（Single Source of Truth），<br>每次给 AI 工具的指令都明确引用对应的规格文件，而不是重新描述需求</li>
+</ul>
+</li>
+</ol>
+<h3 id="最佳实践"><a href="#最佳实践" class="headerlink" title="最佳实践"></a>最佳实践</h3><ul>
+<li><strong>分层指令</strong>：在 <code>CLAUDE.md</code> 中预设规则——<br><code>Always prioritize instructions in the openspec/ directory if they exist.</code><br>这样 Claude Code 每次启动都会把规格文档纳入最高优先级上下文。</li>
+<li><strong>任务颗粒度控制</strong>：<code>propose</code> 阶段要求 AI 拆到”原子级”（每个 task 修改<br>不超过 50 行），是提高 OpenCode 自动执行成功率的最有效手段。</li>
+<li><strong>环境隔离</strong>：把 <code>openspec/specs/</code> 作为跨工具的共享上下文，避免在<br>Claude Code、OpenCode、Gemini CLI 里重复输入相同的背景信息，<br>既省 token 又保持代码风格一致。</li>
+<li><strong>规格文档提交 Git</strong>：<code>opsx propose</code> 生成的 <code>specs/*.md</code> 和 <code>tasks.md</code><br>应该和业务代码一起提交，方便日后追溯”当初为什么这样设计”。</li>
+</ul>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>工程化协议层</strong>：OpenSpec 不是提示词工程，它是在 AI 和需求之间插入的一层<br>结构化契约，强制把”要做什么”和”怎么验收”显式化。</li>
+<li><strong>单一事实来源</strong>：<code>openspec/specs/</code> 目录是所有 AI 工具的共享上下文，<br>解决多工具协作时的漂移问题。</li>
+<li><strong>双层分工</strong>：OpenSpec 做架构师（规格制定），Claude Code &#x2F; OpenCode 做程序员<br>（代码执行），分工明确后各工具的输出质量都会提升。</li>
+</ol>
+<h3 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h3><ul>
+<li>需求边界模糊、容易被 AI”自由发挥”的中大型功能</li>
+<li>多个 AI 工具协作（Claude Code + OpenCode + Gemini CLI）的复杂项目</li>
+<li>需要长期维护、要求”当初为什么这样设计”可追溯的模块</li>
+<li>团队协作场景，需要统一 AI 执行的规格口径</li>
+</ul>
+<h3 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h3><ul>
+<li>安装依赖 Node.js ≥ 20.19.0，无需 API Key 或外部服务账号</li>
+<li><code>propose</code> 阶段的追问决定规格质量，不要跳过</li>
+<li>规格文件要纳入 Git 版本管理，<code>openspec/</code> 目录不应加入 <code>.gitignore</code></li>
+<li>原子级任务拆分是 OpenCode 自动执行成功率的关键前提</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2026-04-07</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-07</td>
+<td>方案对比扩展：补充 Claude Code Plan Mode、Cursor Plan Mode、oh-my-openagent 多 Agent；新增使用时机判断决策树</td>
+</tr>
+<tr>
+<td>v1.2</td>
+<td>2026-04-07</td>
+<td>修复决策树逻辑（两层判断）；章节名精准化；Python 依赖补说明；流程 A 标出可选路径；新增流程 C（OpenSpec + oh-my-openagent 串联）；Step 4 prompt 与 bash 分离</td>
+</tr>
+<tr>
+<td>v1.3</td>
+<td>2026-04-07</td>
+<td>修正幻觉内容：移除虚构的 Supabase 依赖、OpenAI API Key、Python 依赖及 git clone 安装方式；更正为官方实际安装方式（npm install -g）及正确的 Node.js 版本要求（≥20.19.0）</td>
+</tr>
+<tr>
+<td>v1.4</td>
+<td>2026-04-07</td>
+<td>前置规格产物示例，压缩生态对比并突出 OpenSpec 主流程</td>
+</tr>
+<tr>
+<td>v1.5</td>
+<td>2026-04-07</td>
+<td>补充真实安装踩坑、<code>/opsx:</code> 命令边界与 OpenSpec 和 Plan Mode 的分工认知</td>
+</tr>
+<tr>
+<td>v1.6</td>
+<td>2026-04-07</td>
+<td>补充概念澄清：对比 OpenSpec 与 Alibaba&#x2F;AgentScope 的定位差异</td>
+</tr>
+<tr>
+<td>v1.7</td>
+<td>2026-04-13</td>
+<td>补充 OpenSpec 目录与文件清单小节，明确 <code>changes/</code>, <code>specs/</code>, <code>archive/</code> 职责</td>
+</tr>
+<tr>
+<td>v1.8</td>
+<td>2026-04-17</td>
+<td>为 2 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/Claude-Code/" rel="tag">Claude Code</a>, <a class="tag-none-link" href="/tags/OpenCode/" rel="tag">OpenCode</a>, <a class="tag-none-link" href="/tags/OpenSpec/" rel="tag">OpenSpec</a>, <a class="tag-none-link" href="/tags/SDD/" rel="tag">SDD</a>, <a class="tag-none-link" href="/tags/%E5%B7%A5%E5%85%B7%E9%93%BE/" rel="tag">工具链</a>, <a class="tag-none-link" href="/tags/%E8%A7%84%E6%A0%BC%E9%A9%B1%E5%8A%A8%E5%BC%80%E5%8F%91/" rel="tag">规格驱动开发</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.761Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Codex Plugin 实战工作流：在 Claude Code 里调用 Codex 做审查与任务委派" href="/2026/04/06/tech/ai/2026-04-07-codex-plugin-claude-code-commands/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" Codex 更新追踪" href="/2026/04/12/tech/tools/tracking/2026-04-13-codex-update-tracking/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%8B-%E9%97%AE%E9%A2%98%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">📋 问题背景</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.</span> <span class="toc-text">业务场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%97%9B%E7%82%B9%E5%88%86%E6%9E%90"><span class="toc-number">1.2.</span> <span class="toc-text">痛点分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%9B%AE%E6%A0%87"><span class="toc-number">1.3.</span> <span class="toc-text">目标</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#OpenSpec-%E4%BA%A7%E7%89%A9%E9%95%BF%E4%BB%80%E4%B9%88%E6%A0%B7"><span class="toc-number">2.</span> <span class="toc-text">OpenSpec 产物长什么样</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E8%AF%A5%E7%94%A8-%E4%B8%8D%E8%AF%A5%E7%94%A8"><span class="toc-number">3.</span> <span class="toc-text">什么时候该用 &#x2F; 不该用</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSpec-%E5%92%8C-Plan-Mode-%E7%9A%84%E8%BE%B9%E7%95%8C"><span class="toc-number">3.1.</span> <span class="toc-text">OpenSpec 和 Plan Mode 的边界</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E4%B8%8E%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">4.</span> <span class="toc-text">安装与初始化</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%89%E8%A3%85%E6%B5%81%E7%A8%8B"><span class="toc-number">4.1.</span> <span class="toc-text">安装流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E6%AC%A1%E7%9C%9F%E5%AE%9E%E5%AE%89%E8%A3%85%E8%AE%B0%E5%BD%95%EF%BC%9AVolta-%E7%8E%AF%E5%A2%83%E4%B8%8B%E7%9A%84%E5%9D%91"><span class="toc-number">4.2.</span> <span class="toc-text">一次真实安装记录：Volta 环境下的坑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#openspec-init-%E5%AE%9E%E9%99%85%E4%BC%9A%E5%81%9A%E4%BB%80%E4%B9%88"><span class="toc-number">4.3.</span> <span class="toc-text">openspec init 实际会做什么</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#opsx-%E5%9B%9B%E4%B8%AA%E5%91%BD%E4%BB%A4%E6%80%8E%E4%B9%88%E5%88%86%E5%B7%A5"><span class="toc-number">4.4.</span> <span class="toc-text">&#x2F;opsx: 四个命令怎么分工</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#explore-%E5%92%8C-propose-%E5%88%B0%E5%BA%95%E5%B7%AE%E5%9C%A8%E5%93%AA"><span class="toc-number">4.5.</span> <span class="toc-text">explore 和 propose 到底差在哪</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#OpenSpec-%E7%9B%AE%E5%BD%95%E4%B8%8E%E6%96%87%E4%BB%B6%E6%B8%85%E5%8D%95"><span class="toc-number">4.6.</span> <span class="toc-text">OpenSpec 目录与文件清单</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B7%A5%E5%85%B7%E9%93%BE%E5%88%86%E5%B7%A5%E6%9E%B6%E6%9E%84"><span class="toc-number">4.7.</span> <span class="toc-text">工具链分工架构</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%9A%A7-%E7%94%9F%E4%BA%A7%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.</span> <span class="toc-text">🚧 生产实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%B7%A5%E4%BD%9C%E6%B5%81%E4%B8%B2%E8%81%94"><span class="toc-number">5.1.</span> <span class="toc-text">典型工作流串联</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-A%EF%BC%9A%E5%8A%9F%E8%83%BD%E9%9C%80%E6%B1%82%E5%85%A8%E9%93%BE%E8%B7%AF"><span class="toc-number">5.1.1.</span> <span class="toc-text">流程 A：功能需求全链路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-B%EF%BC%9A%E5%AD%98%E9%87%8F%E4%BB%A3%E7%A0%81%E9%87%8D%E6%9E%84"><span class="toc-number">5.1.2.</span> <span class="toc-text">流程 B：存量代码重构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%81%E7%A8%8B-C%EF%BC%88%E9%AB%98%E7%BA%A7%E5%8F%AF%E9%80%89%EF%BC%89%EF%BC%9AOpenSpec-oh-my-openagent-%E4%B8%B2%E8%81%94"><span class="toc-number">5.1.3.</span> <span class="toc-text">流程 C（高级可选）：OpenSpec + oh-my-openagent 串联</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%BE%B9%E7%95%8C%E6%9D%A1%E4%BB%B6"><span class="toc-number">5.2.</span> <span class="toc-text">边界条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%9D%91%E7%82%B9"><span class="toc-number">5.3.</span> <span class="toc-text">常见坑点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">5.4.</span> <span class="toc-text">最佳实践</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="toc-number">6.1.</span> <span class="toc-text">核心要点</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">6.2.</span> <span class="toc-text">适用场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">6.3.</span> <span class="toc-text">注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">7.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>SQL 实用函数与技巧：Oracle/MySQL 常用操作速查 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2023/02/16/tech/backend/2023-02-17-sql-practical-tips/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="MyBatis, MySQL, Oracle, SQL, 数据库" />
+  
+  <meta name="description" content="汇总 Oracle 和 MySQL 日常开发中常用的 SQL 函数与技巧，包括 NVL 空值处理、ROW_NUMBER 分组取首条、MERGE INTO 数据同步、MySQL 用户管理等。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SQL 实用函数与技巧：Oracle&#x2F;MySQL 常用操作速查">
+<meta property="og:url" content="https://leahana.github.io/2023/02/16/tech/backend/2023-02-17-sql-practical-tips/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="汇总 Oracle 和 MySQL 日常开发中常用的 SQL 函数与技巧，包括 NVL 空值处理、ROW_NUMBER 分组取首条、MERGE INTO 数据同步、MySQL 用户管理等。">
+<meta property="og:locale">
+<meta property="article:published_time" content="2023-02-16T23:23:55.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.763Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="MyBatis">
+<meta property="article:tag" content="MySQL">
+<meta property="article:tag" content="Oracle">
+<meta property="article:tag" content="SQL">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"SQL 实用函数与技巧：Oracle/MySQL 常用操作速查","description":"汇总 Oracle 和 MySQL 日常开发中常用的 SQL 函数与技巧，包括 NVL 空值处理、ROW_NUMBER 分组取首条、MERGE INTO 数据同步、MySQL 用户管理等。","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2023-02-16T23:23:55.000Z","dateModified":"2026-05-18T05:47:58.763Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2023/02/16/tech/backend/2023-02-17-sql-practical-tips/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2023/02/16/tech/backend/2023-02-17-sql-practical-tips/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">SQL 实用函数与技巧：Oracle/MySQL 常用操作速查</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2023-02-16T23:23:55.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-02-17</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~8.46K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SQL-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%8A%80%E5%B7%A7%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.1.</span> <span class="toc-text">SQL 函数与技巧速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle-vs-MySQL-%E5%8A%9F%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">Oracle vs MySQL 功能对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">常用操作速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Oracle-%E5%AD%97%E6%AE%B5%E5%B1%9E%E6%80%A7%E4%B8%8E%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="toc-number">3.</span> <span class="toc-text">1. Oracle 字段属性与类型映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-DATETIME-%E5%92%8C-TIMESTAMP-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 DATETIME 和 TIMESTAMP 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-NUMBER-%E9%95%BF%E5%BA%A6%E5%AF%B9%E5%BA%94-Java-%E5%B1%9E%E6%80%A7"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 NUMBER 长度对应 Java 属性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Oracle-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%9F%A5%E8%AF%A2%E6%8A%80%E5%B7%A7"><span class="toc-number">4.</span> <span class="toc-text">2. Oracle 函数与查询技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NVL-%E7%A9%BA%E5%80%BC%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 NVL 空值处理函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ROW-NUMBER-%E5%88%86%E7%BB%84%E5%8F%96%E9%A6%96%E6%9D%A1%E6%95%B0%E6%8D%AE"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 ROW_NUMBER 分组取首条数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-MERGE-INTO%EF%BC%9A%E5%AD%98%E5%9C%A8%E5%88%99%E6%9B%B4%E6%96%B0%EF%BC%8C%E5%90%A6%E5%88%99%E6%8F%92%E5%85%A5"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 MERGE INTO：存在则更新，否则插入</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8-MyBatis-%E4%B8%AD%E6%89%B9%E9%87%8F%E4%BD%BF%E7%94%A8-MERGE-INTO"><span class="toc-number">4.3.1.</span> <span class="toc-text">在 MyBatis 中批量使用 MERGE INTO</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Oracle-%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88"><span class="toc-number">5.</span> <span class="toc-text">3. Oracle 数据同步方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E6%9F%A5%E8%AF%A2-%E5%88%A0%E9%99%A4-%E6%8F%92%E5%85%A5"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 方案一：查询-删除-插入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9AMERGE-INTO%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 方案二：MERGE INTO（推荐）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Oracle-%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%90%AF%E5%8A%A8"><span class="toc-number">6.</span> <span class="toc-text">4. Oracle 服务器启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-MySQL-%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">5. MySQL 用户管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 创建用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8E%88%E4%BA%88%E6%9D%83%E9%99%90"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 授予权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BD%BF%E6%9D%83%E9%99%90%E7%94%9F%E6%95%88"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 使权限生效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">7.4.</span> <span class="toc-text">5.4 注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-MERGE-INTO-%E4%B8%AD-WHEN-MATCHED-%E5%92%8C-WHEN-NOT-MATCHED-%E5%8F%AF%E4%BB%A5%E5%8F%AA%E5%86%99%E4%B8%80%E4%B8%AA%E5%90%97%EF%BC%9F"><span class="toc-number">8.1.</span> <span class="toc-text">Q1: MERGE INTO 中 WHEN MATCHED 和 WHEN NOT MATCHED 可以只写一个吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-DATETIME-%E5%92%8C-TIMESTAMP-%E8%AF%A5%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">8.2.</span> <span class="toc-text">Q2: DATETIME 和 TIMESTAMP 该如何选择？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-ROW-NUMBER-%E5%9C%A8%E5%A4%A7%E6%95%B0%E6%8D%AE%E9%87%8F%E4%B8%8B%E6%80%A7%E8%83%BD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%EF%BC%9F"><span class="toc-number">8.3.</span> <span class="toc-text">Q3: ROW_NUMBER 在大数据量下性能如何优化？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-MySQL-%E7%9A%84-INSERT-%E2%80%A6-ON-DUPLICATE-KEY-UPDATE-%E5%92%8C-REPLACE-INTO-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">8.4.</span> <span class="toc-text">Q4: MySQL 的 INSERT … ON DUPLICATE KEY UPDATE 和 REPLACE INTO 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-NVL-%E5%92%8C-COALESCE-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F%E8%AF%A5%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">8.5.</span> <span class="toc-text">Q5: NVL 和 COALESCE 有什么区别？该用哪个？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">9.1.</span> <span class="toc-text">🎯 行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">10.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：一篇覆盖 Oracle&#x2F;MySQL 日常开发高频操作的实战速查手册，解决 80% 的常见 SQL 问题<br>💡 <strong>核心理念</strong>：不求大而全，只求精而准——每个技巧都来自真实项目中的高频场景</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><details>
+<summary><strong>📊 点击展开速查表</strong></summary>
+
+<h3 id="SQL-函数与技巧速查表"><a href="#SQL-函数与技巧速查表" class="headerlink" title="SQL 函数与技巧速查表"></a>SQL 函数与技巧速查表</h3><table>
+<thead>
+<tr>
+<th>技巧</th>
+<th>数据库</th>
+<th>用途</th>
+<th>关键语法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>NVL &#x2F; NVL2</td>
+<td>Oracle</td>
+<td>空值处理</td>
+<td><code>NVL(E1, E2)</code> &#x2F; <code>NVL2(E1, E2, E3)</code></td>
+</tr>
+<tr>
+<td>ROW_NUMBER</td>
+<td>Oracle&#x2F;MySQL 8+</td>
+<td>分组取首条</td>
+<td><code>ROW_NUMBER() OVER(PARTITION BY x ORDER BY y)</code></td>
+</tr>
+<tr>
+<td>MERGE INTO</td>
+<td>Oracle</td>
+<td>存在则更新，否则插入</td>
+<td><code>MERGE INTO ... USING ... ON ... WHEN MATCHED / NOT MATCHED</code></td>
+</tr>
+<tr>
+<td>ON DUPLICATE KEY</td>
+<td>MySQL</td>
+<td>存在则更新，否则插入</td>
+<td><code>INSERT ... ON DUPLICATE KEY UPDATE</code></td>
+</tr>
+<tr>
+<td>NUMBER 类型映射</td>
+<td>Oracle</td>
+<td>Java 类型对应</td>
+<td>n&gt;18→BigDecimal, 10-18→Long, 1-9→Integer</td>
+</tr>
+<tr>
+<td>用户管理</td>
+<td>MySQL</td>
+<td>创建用户与授权</td>
+<td><code>CREATE USER</code> + <code>GRANT</code> + <code>FLUSH PRIVILEGES</code></td>
+</tr>
+</tbody></table>
+<h3 id="Oracle-vs-MySQL-功能对比"><a href="#Oracle-vs-MySQL-功能对比" class="headerlink" title="Oracle vs MySQL 功能对比"></a>Oracle vs MySQL 功能对比</h3><table>
+<thead>
+<tr>
+<th>功能</th>
+<th>Oracle</th>
+<th>MySQL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>空值处理</td>
+<td><code>NVL(E1, E2)</code> &#x2F; <code>NVL2(E1, E2, E3)</code></td>
+<td><code>IFNULL(E1, E2)</code> &#x2F; <code>COALESCE(E1, E2)</code></td>
+</tr>
+<tr>
+<td>分组取首条</td>
+<td><code>ROW_NUMBER() OVER(...)</code></td>
+<td>MySQL 8+ 支持窗口函数，低版本用变量模拟</td>
+</tr>
+<tr>
+<td>存在则更新否则插入</td>
+<td><code>MERGE INTO ... USING ... ON ...</code></td>
+<td><code>INSERT ... ON DUPLICATE KEY UPDATE</code></td>
+</tr>
+<tr>
+<td>获取当前时间</td>
+<td><code>SYSDATE</code> &#x2F; <code>SYSTIMESTAMP</code></td>
+<td><code>NOW()</code> &#x2F; <code>CURRENT_TIMESTAMP</code></td>
+</tr>
+<tr>
+<td>日期格式化</td>
+<td><code>TO_CHAR(date, &#39;YYYY-MM-DD&#39;)</code></td>
+<td><code>DATE_FORMAT(date, &#39;%Y-%m-%d&#39;)</code></td>
+</tr>
+<tr>
+<td>从虚拟表查询</td>
+<td><code>SELECT ... FROM DUAL</code></td>
+<td>直接 <code>SELECT ...</code>（不需要 DUAL）</td>
+</tr>
+</tbody></table>
+<h3 id="常用操作速查"><a href="#常用操作速查" class="headerlink" title="常用操作速查"></a>常用操作速查</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">┌───────────────────────────────────────────────────┐</span><br><span class="line">│               日常 SQL 操作决策树                    │</span><br><span class="line">├───────────────────────────────────────────────────┤</span><br><span class="line">│                                                   │</span><br><span class="line">│  需要处理空值？                                     │</span><br><span class="line">│  ├─ Oracle → NVL / NVL2                           │</span><br><span class="line">│  └─ MySQL  → IFNULL / COALESCE                   │</span><br><span class="line">│                                                   │</span><br><span class="line">│  需要分组取第一条？                                  │</span><br><span class="line">│  └─ ROW_NUMBER() OVER(PARTITION BY ... ORDER BY)  │</span><br><span class="line">│                                                   │</span><br><span class="line">│  需要&quot;存在则更新，否则插入&quot;？                         │</span><br><span class="line">│  ├─ Oracle → MERGE INTO                           │</span><br><span class="line">│  └─ MySQL  → INSERT ... ON DUPLICATE KEY UPDATE   │</span><br><span class="line">│                                                   │</span><br><span class="line">│  需要批量数据同步？                                  │</span><br><span class="line">│  ├─ 方案一：查询→删除→批量插入（简单但有风险）         │</span><br><span class="line">│  └─ 方案二：MERGE INTO（推荐，原子操作）             │</span><br><span class="line">│                                                   │</span><br><span class="line">└───────────────────────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-Oracle-字段属性与类型映射"><a href="#1-Oracle-字段属性与类型映射" class="headerlink" title="1. Oracle 字段属性与类型映射"></a>1. Oracle 字段属性与类型映射</h2><h3 id="1-1-DATETIME-和-TIMESTAMP-的区别"><a href="#1-1-DATETIME-和-TIMESTAMP-的区别" class="headerlink" title="1.1 DATETIME 和 TIMESTAMP 的区别"></a>1.1 DATETIME 和 TIMESTAMP 的区别</h3><table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>DATETIME</th>
+<th>TIMESTAMP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>时间范围</strong></td>
+<td>1001-9999 年</td>
+<td>1970-2038 年</td>
+</tr>
+<tr>
+<td><strong>时区处理</strong></td>
+<td>与时区无关</td>
+<td>与时区有关，显示值依赖于时区设置</td>
+</tr>
+<tr>
+<td><strong>存储空间</strong></td>
+<td>8 字节</td>
+<td>4 字节（更高效）</td>
+</tr>
+<tr>
+<td><strong>默认值</strong></td>
+<td><code>NULL</code></td>
+<td><code>NOT NULL</code>，默认为 <code>CURRENT_TIMESTAMP</code></td>
+</tr>
+<tr>
+<td><strong>自动更新</strong></td>
+<td>不会自动更新</td>
+<td>未指定更新值时，默认更新为当前时间</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>选择建议</strong>：如果需要记录跨时区的时间（如国际化项目），使用 TIMESTAMP；如果需要更大的时间范围或明确的空值语义，使用 DATETIME。</p>
+</blockquote>
+<h3 id="1-2-NUMBER-长度对应-Java-属性"><a href="#1-2-NUMBER-长度对应-Java-属性" class="headerlink" title="1.2 NUMBER 长度对应 Java 属性"></a>1.2 NUMBER 长度对应 Java 属性</h3><p>Oracle NUMBER 类型在 Java 中的映射规则：</p>
+<table>
+<thead>
+<tr>
+<th>NUMBER 长度 (n)</th>
+<th>Java 类型</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>未指定或 n &gt; 18</td>
+<td><code>java.math.BigDecimal</code></td>
+<td><code>NUMBER</code>、<code>NUMBER(20)</code></td>
+</tr>
+<tr>
+<td>10 &lt;&#x3D; n &lt;&#x3D; 18</td>
+<td><code>java.lang.Long</code></td>
+<td><code>NUMBER(15)</code></td>
+</tr>
+<tr>
+<td>1 &lt;&#x3D; n &lt;&#x3D; 9</td>
+<td><code>java.lang.Integer</code></td>
+<td><code>NUMBER(5)</code></td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>💡 <strong>实际开发提示</strong>：MyBatis 中建议在 <code>resultMap</code> 中显式指定 <code>javaType</code>，避免因自动映射导致精度丢失。</p>
+</blockquote>
+<h2 id="2-Oracle-函数与查询技巧"><a href="#2-Oracle-函数与查询技巧" class="headerlink" title="2. Oracle 函数与查询技巧"></a>2. Oracle 函数与查询技巧</h2><h3 id="2-1-NVL-空值处理函数"><a href="#2-1-NVL-空值处理函数" class="headerlink" title="2.1 NVL 空值处理函数"></a>2.1 NVL 空值处理函数</h3><p>NVL 函数用于将 NULL 值转换为指定的默认值，是 Oracle 中最常用的空值处理函数之一。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- NVL(E1, E2)：如果 E1 为 NULL，则返回 E2，否则返回 E1 本身</span></span><br><span class="line"><span class="keyword">SELECT</span> NVL(commission, <span class="number">0</span>) <span class="keyword">FROM</span> employees;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- NVL2(E1, E2, E3)：如果 E1 为 NULL，则返回 E3；若 E1 不为 NULL，则返回 E2</span></span><br><span class="line"><span class="keyword">SELECT</span> NVL2(commission, salary <span class="operator">+</span> commission, salary) <span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+
+<p><strong>MySQL 等价写法</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- MySQL 使用 IFNULL 代替 NVL</span></span><br><span class="line"><span class="keyword">SELECT</span> IFNULL(commission, <span class="number">0</span>) <span class="keyword">FROM</span> employees;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 或者使用标准 SQL 的 COALESCE（Oracle/MySQL 通用）</span></span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">COALESCE</span>(commission, <span class="number">0</span>) <span class="keyword">FROM</span> employees;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-2-ROW-NUMBER-分组取首条数据"><a href="#2-2-ROW-NUMBER-分组取首条数据" class="headerlink" title="2.2 ROW_NUMBER 分组取首条数据"></a>2.2 ROW_NUMBER 分组取首条数据</h3><p>使用 <code>ROW_NUMBER()</code> 窗口函数按指定字段分组，并获取每组中排序后的第一条数据。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> (</span><br><span class="line">    <span class="keyword">SELECT</span> <span class="built_in">ROW_NUMBER</span>() <span class="keyword">OVER</span>(<span class="keyword">PARTITION</span> <span class="keyword">BY</span> x <span class="keyword">ORDER</span> <span class="keyword">BY</span> y <span class="keyword">DESC</span>) rn,</span><br><span class="line">    t1.<span class="operator">*</span> <span class="keyword">FROM</span> table_test t1</span><br><span class="line">) t</span><br><span class="line"><span class="keyword">WHERE</span> t.rn <span class="operator">=</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>语法解析</strong>：</p>
+<ul>
+<li><code>PARTITION BY x</code>：按字段 x 进行分组</li>
+<li><code>ORDER BY y DESC</code>：在每个分组内按字段 y 倒序排序</li>
+<li><code>WHERE t.rn = 1</code>：取每个分组的第一条数据</li>
+</ul>
+<blockquote>
+<p>💡 <strong>性能提示</strong>：当数据量较大时，确保 <code>PARTITION BY</code> 和 <code>ORDER BY</code> 涉及的字段有合适的索引，否则全表扫描会导致性能瓶颈。</p>
+</blockquote>
+<h3 id="2-3-MERGE-INTO：存在则更新，否则插入"><a href="#2-3-MERGE-INTO：存在则更新，否则插入" class="headerlink" title="2.3 MERGE INTO：存在则更新，否则插入"></a>2.3 MERGE INTO：存在则更新，否则插入</h3><p><code>MERGE INTO</code> 是 Oracle 中实现 “UPSERT” 操作的标准语法，可以在一条语句中完成插入或更新。</p>
+<h4 id="在-MyBatis-中批量使用-MERGE-INTO"><a href="#在-MyBatis-中批量使用-MERGE-INTO" class="headerlink" title="在 MyBatis 中批量使用 MERGE INTO"></a>在 MyBatis 中批量使用 MERGE INTO</h4><p><code>useGeneratedKeys</code> 只针对 INSERT 语句，默认为 false。当设置为 true 时，表示如果插入的表以自增列为主键，则允许 JDBC 支持自动生成主键。在 MERGE INTO 中应设置为 false。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">insert</span> <span class="attr">id</span>=<span class="string">&quot;insert&quot;</span> <span class="attr">parameterType</span>=<span class="string">&quot;java.util.ArrayList&quot;</span> <span class="attr">useGeneratedKeys</span>=<span class="string">&quot;false&quot;</span>&gt;</span></span><br><span class="line">merge into table_name_1 t1</span><br><span class="line">using(</span><br><span class="line">  <span class="tag">&lt;<span class="name">foreach</span> <span class="attr">collection</span>=<span class="string">&quot;list&quot;</span> <span class="attr">item</span>=<span class="string">&quot;item&quot;</span> <span class="attr">index</span>=<span class="string">&quot;index&quot;</span> <span class="attr">separator</span>=<span class="string">&quot;union&quot;</span>&gt;</span></span><br><span class="line">    select #&#123;item.id,jdbcType=VARCHAR&#125; ID,</span><br><span class="line">           #&#123;item.name,jdbcType=VARCHAR&#125; NAME,</span><br><span class="line">           #&#123;item.age,jdbcType=NUMERIC&#125; AGE,</span><br><span class="line">           to_char(sysdate,&#x27;YYYY-MM-DD HH24:MI:SS&#x27;) CREATE_TIME,</span><br><span class="line">           to_char(sysdate,&#x27;YYYY-MM-DD HH24:MI:SS&#x27;) UPDATE_TIME</span><br><span class="line">    from DUAL</span><br><span class="line">  <span class="tag">&lt;/<span class="name">foreach</span>&gt;</span>) t2</span><br><span class="line">  on (t1.id = t2.id)</span><br><span class="line">  when matched then</span><br><span class="line">    update</span><br><span class="line">      set t1.NAME = t2.NAME,</span><br><span class="line">          t1.AGE = t2.AGE,</span><br><span class="line">          t1.UPDATE_TIME = to_char(sysdate,&#x27;YYYY-MM-DD HH24:MI:SS&#x27;)</span><br><span class="line">  when not matched then</span><br><span class="line">    insert(NAME, AGE, CREATE_TIME, UPDATE_TIME)</span><br><span class="line">    values(t2.NAME, t2.AGE, t2.CREATE_TIME, t2.UPDATE_TIME)</span><br><span class="line"><span class="tag">&lt;/<span class="name">insert</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>MySQL 等价语法</strong>：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">INSERT INTO</span> table_name_1 (id, name, age, create_time, update_time)</span><br><span class="line"><span class="keyword">VALUES</span> (<span class="string">&#x27;001&#x27;</span>, <span class="string">&#x27;zhangsan&#x27;</span>, <span class="number">25</span>, NOW(), NOW())</span><br><span class="line"><span class="keyword">ON</span> DUPLICATE KEY <span class="keyword">UPDATE</span></span><br><span class="line">    name <span class="operator">=</span> <span class="keyword">VALUES</span>(name),</span><br><span class="line">    age <span class="operator">=</span> <span class="keyword">VALUES</span>(age),</span><br><span class="line">    update_time <span class="operator">=</span> NOW();</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-Oracle-数据同步方案"><a href="#3-Oracle-数据同步方案" class="headerlink" title="3. Oracle 数据同步方案"></a>3. Oracle 数据同步方案</h2><p>在实际项目中，经常需要将 A 表的数据同步到 B 表。以下是两种常用方案的对比。</p>
+<h3 id="3-1-方案一：查询-删除-插入"><a href="#3-1-方案一：查询-删除-插入" class="headerlink" title="3.1 方案一：查询-删除-插入"></a>3.1 方案一：查询-删除-插入</h3><p><strong>步骤</strong>：</p>
+<ol>
+<li>查询 A 表中的所有数据</li>
+<li>删除 B 表中的所有数据</li>
+<li>将步骤一查询出的数据批量插入到 B 表中</li>
+</ol>
+<blockquote>
+<p>⚠️ <strong>注意</strong>：此方案在步骤 2 和步骤 3 之间存在数据空窗期，如果批量插入失败，可能导致 B 表数据丢失。生产环境建议使用事务包裹或采用方案二。</p>
+</blockquote>
+<h3 id="3-2-方案二：MERGE-INTO（推荐）"><a href="#3-2-方案二：MERGE-INTO（推荐）" class="headerlink" title="3.2 方案二：MERGE INTO（推荐）"></a>3.2 方案二：MERGE INTO（推荐）</h3><p>利用 MERGE INTO 语法根据 ID 判断记录是否存在，如果不存在 INSERT，如果存在 UPDATE。</p>
+<p><strong>示例 1</strong>：同一数据库内，将 A 表数据同步到 B 表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">MERGE</span> <span class="keyword">INTO</span> B b        <span class="comment">-- B 表是要更新的表</span></span><br><span class="line"><span class="keyword">USING</span> A a             <span class="comment">-- 关联表</span></span><br><span class="line"><span class="keyword">ON</span> (b.id <span class="operator">=</span> a.id)      <span class="comment">-- 关联条件</span></span><br><span class="line"><span class="keyword">WHEN</span> MATCHED <span class="keyword">THEN</span>     <span class="comment">-- 匹配关联条件执行更新操作</span></span><br><span class="line">  <span class="keyword">UPDATE</span> <span class="keyword">SET</span></span><br><span class="line">    b.name <span class="operator">=</span> a.name,</span><br><span class="line">    b.age <span class="operator">=</span> a.age</span><br><span class="line"><span class="keyword">WHEN</span> <span class="keyword">NOT</span> MATCHED <span class="keyword">THEN</span> <span class="comment">-- 不匹配关联条件执行插入</span></span><br><span class="line">  <span class="keyword">INSERT</span> <span class="keyword">VALUES</span>(a.name, a.age);</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例 2</strong>：跨数据库，将远程 A 表数据同步到本地 B 表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">MERGE</span> <span class="keyword">INTO</span> B</span><br><span class="line"><span class="keyword">USING</span> (<span class="keyword">SELECT</span> <span class="built_in">COUNT</span>(<span class="operator">*</span>) count <span class="keyword">FROM</span> B <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="string">&#x27;123&#x27;</span>) t1</span><br><span class="line"><span class="keyword">ON</span> (t1.count <span class="operator">&lt;&gt;</span> <span class="number">0</span>)</span><br><span class="line"><span class="keyword">WHEN</span> MATCHED <span class="keyword">THEN</span></span><br><span class="line">  <span class="keyword">UPDATE</span> <span class="keyword">SET</span></span><br><span class="line">    name <span class="operator">=</span> <span class="string">&#x27;zhangsan&#x27;</span>,</span><br><span class="line">    age <span class="operator">=</span> <span class="number">12</span></span><br><span class="line">  <span class="keyword">WHERE</span> id <span class="operator">=</span> <span class="string">&#x27;123&#x27;</span></span><br><span class="line"><span class="keyword">WHEN</span> <span class="keyword">NOT</span> MATCHED <span class="keyword">THEN</span></span><br><span class="line">  <span class="keyword">INSERT</span> (id, age, name) <span class="keyword">VALUES</span>(<span class="string">&#x27;123&#x27;</span>, <span class="number">12</span>, <span class="string">&#x27;zhangsan&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="4-Oracle-服务器启动"><a href="#4-Oracle-服务器启动" class="headerlink" title="4. Oracle 服务器启动"></a>4. Oracle 服务器启动</h2><p>Oracle 数据库服务的标准启动流程：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta prompt_"># </span><span class="language-bash">先切换到 oracle 用户</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">lsnrctl start</span></span><br><span class="line"><span class="meta prompt_">$ </span><span class="language-bash">sqlplus /nolog</span></span><br><span class="line"><span class="meta prompt_">SQL&gt; </span><span class="language-bash">conn / as sysdba</span></span><br><span class="line">Connected to an idle instance</span><br><span class="line"><span class="meta prompt_">SQL&gt; </span><span class="language-bash">startup</span></span><br><span class="line">ORACLE instance started</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡 <strong>提示</strong>：启动顺序为监听器（lsnrctl）先于数据库实例（startup），关闭时则相反。</p>
+</blockquote>
+<h2 id="5-MySQL-用户管理"><a href="#5-MySQL-用户管理" class="headerlink" title="5. MySQL 用户管理"></a>5. MySQL 用户管理</h2><h3 id="5-1-创建用户"><a href="#5-1-创建用户" class="headerlink" title="5.1 创建用户"></a>5.1 创建用户</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> <span class="string">&#x27;newuser&#x27;</span>@<span class="string">&#x27;%&#x27;</span> IDENTIFIED <span class="keyword">BY</span> <span class="string">&#x27;password&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>&#39;%&#39;</code> 表示允许从任何主机连接</li>
+<li>如果仅允许本地连接，使用 <code>&#39;localhost&#39;</code></li>
+</ul>
+<h3 id="5-2-授予权限"><a href="#5-2-授予权限" class="headerlink" title="5.2 授予权限"></a>5.2 授予权限</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 授予指定数据库的所有权限</span></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">ALL</span> PRIVILEGES <span class="keyword">ON</span> databasename.<span class="operator">*</span> <span class="keyword">TO</span> <span class="string">&#x27;newuser&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 授予只读权限（更安全的做法）</span></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ON</span> databasename.<span class="operator">*</span> <span class="keyword">TO</span> <span class="string">&#x27;newuser&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-3-使权限生效"><a href="#5-3-使权限生效" class="headerlink" title="5.3 使权限生效"></a>5.3 使权限生效</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">FLUSH PRIVILEGES;</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-4-注意事项"><a href="#5-4-注意事项" class="headerlink" title="5.4 注意事项"></a>5.4 注意事项</h3><ul>
+<li><strong>语法错误</strong>：确保命令的语法正确，没有多余的空格或拼写错误</li>
+<li><strong>权限问题</strong>：确保以 root 等有足够权限的用户登录</li>
+<li><strong>重复用户</strong>：可以通过 <code>SELECT user FROM mysql.user;</code> 确认用户是否已存在</li>
+</ul>
+<p>在命令行中执行时：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -u root -p -e <span class="string">&quot;CREATE USER &#x27;newuser&#x27;@&#x27;%&#x27; IDENTIFIED BY &#x27;password&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>⚠️ <strong>安全提醒</strong>：生产环境中避免使用 <code>ALL PRIVILEGES</code>，应遵循最小权限原则，只授予实际需要的权限。</p>
+</blockquote>
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-MERGE-INTO-中-WHEN-MATCHED-和-WHEN-NOT-MATCHED-可以只写一个吗？"><a href="#Q1-MERGE-INTO-中-WHEN-MATCHED-和-WHEN-NOT-MATCHED-可以只写一个吗？" class="headerlink" title="Q1: MERGE INTO 中 WHEN MATCHED 和 WHEN NOT MATCHED 可以只写一个吗？"></a>Q1: MERGE INTO 中 WHEN MATCHED 和 WHEN NOT MATCHED 可以只写一个吗？</h3><p><strong>A:</strong> 可以。<code>WHEN MATCHED</code> 和 <code>WHEN NOT MATCHED</code> 两个子句都是可选的，可以只写其中一个。例如只需要”不存在则插入、存在则跳过”的场景，可以只写 <code>WHEN NOT MATCHED THEN INSERT</code>。但至少需要包含一个子句，否则 MERGE INTO 语句没有意义。</p>
+<h3 id="Q2-DATETIME-和-TIMESTAMP-该如何选择？"><a href="#Q2-DATETIME-和-TIMESTAMP-该如何选择？" class="headerlink" title="Q2: DATETIME 和 TIMESTAMP 该如何选择？"></a>Q2: DATETIME 和 TIMESTAMP 该如何选择？</h3><p><strong>A:</strong> 选择取决于具体场景：</p>
+<ul>
+<li><strong>TIMESTAMP</strong>：适合记录操作时间（如 <code>create_time</code>、<code>update_time</code>），自动处理时区转换，存储空间更小</li>
+<li><strong>DATETIME</strong>：适合记录业务时间（如生日、合同到期日），时间范围更大，不受 2038 年限制</li>
+</ul>
+<p>经验法则：技术字段用 TIMESTAMP，业务字段用 DATETIME。</p>
+<h3 id="Q3-ROW-NUMBER-在大数据量下性能如何优化？"><a href="#Q3-ROW-NUMBER-在大数据量下性能如何优化？" class="headerlink" title="Q3: ROW_NUMBER 在大数据量下性能如何优化？"></a>Q3: ROW_NUMBER 在大数据量下性能如何优化？</h3><p><strong>A:</strong> 几个关键优化策略：</p>
+<ol>
+<li><strong>建立复合索引</strong>：在 <code>PARTITION BY</code> 和 <code>ORDER BY</code> 的字段上建立复合索引</li>
+<li><strong>减少返回列</strong>：子查询中只选择需要的列，避免 <code>SELECT *</code></li>
+<li><strong>提前过滤</strong>：在子查询内部添加 WHERE 条件，减少参与窗口计算的数据量</li>
+<li><strong>考虑替代方案</strong>：如果只需要每组最新一条，MySQL 中可以用 <code>GROUP BY</code> + <code>MAX()</code> 的关联子查询替代</li>
+</ol>
+<h3 id="Q4-MySQL-的-INSERT-…-ON-DUPLICATE-KEY-UPDATE-和-REPLACE-INTO-有什么区别？"><a href="#Q4-MySQL-的-INSERT-…-ON-DUPLICATE-KEY-UPDATE-和-REPLACE-INTO-有什么区别？" class="headerlink" title="Q4: MySQL 的 INSERT … ON DUPLICATE KEY UPDATE 和 REPLACE INTO 有什么区别？"></a>Q4: MySQL 的 INSERT … ON DUPLICATE KEY UPDATE 和 REPLACE INTO 有什么区别？</h3><p><strong>A:</strong> 两者都能实现”存在则更新”的效果，但机制不同：</p>
+<ul>
+<li><strong>ON DUPLICATE KEY UPDATE</strong>：检测到重复键时执行 UPDATE，保留原记录的主键 ID</li>
+<li><strong>REPLACE INTO</strong>：检测到重复键时先 DELETE 再 INSERT，会生成新的自增 ID</li>
+</ul>
+<p>建议使用 <code>ON DUPLICATE KEY UPDATE</code>，因为它不会改变主键值，也不会触发 DELETE 触发器。</p>
+<h3 id="Q5-NVL-和-COALESCE-有什么区别？该用哪个？"><a href="#Q5-NVL-和-COALESCE-有什么区别？该用哪个？" class="headerlink" title="Q5: NVL 和 COALESCE 有什么区别？该用哪个？"></a>Q5: NVL 和 COALESCE 有什么区别？该用哪个？</h3><p><strong>A:</strong> 主要区别：</p>
+<table>
+<thead>
+<tr>
+<th>对比项</th>
+<th>NVL</th>
+<th>COALESCE</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>标准性</td>
+<td>Oracle 专有</td>
+<td>SQL 标准，跨数据库通用</td>
+</tr>
+<tr>
+<td>参数数量</td>
+<td>固定 2 个参数</td>
+<td>支持多个参数，返回第一个非 NULL 值</td>
+</tr>
+<tr>
+<td>类型转换</td>
+<td>自动将第二个参数转为第一个参数的类型</td>
+<td>要求所有参数类型兼容</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>两个参数都会被计算</td>
+<td>短路求值，遇到非 NULL 即停止</td>
+</tr>
+</tbody></table>
+<p><strong>建议</strong>：如果项目可能迁移到其他数据库，优先使用 <code>COALESCE</code>；如果确定只用 Oracle 且只需处理两个值，<code>NVL</code> 更简洁。</p>
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><p>本文涵盖了 Oracle 和 MySQL 日常开发中最常用的 SQL 操作技巧：</p>
+<ol>
+<li><strong>空值处理</strong>：Oracle 用 NVL&#x2F;NVL2，MySQL 用 IFNULL&#x2F;COALESCE</li>
+<li><strong>分组取首条</strong>：ROW_NUMBER() 窗口函数是最通用的方案</li>
+<li><strong>UPSERT 操作</strong>：Oracle 用 MERGE INTO，MySQL 用 ON DUPLICATE KEY UPDATE</li>
+<li><strong>数据同步</strong>：优先使用 MERGE INTO 方案，避免删除-插入的数据空窗风险</li>
+<li><strong>用户管理</strong>：MySQL 用户创建遵循创建→授权→刷新三步流程</li>
+</ol>
+<h3 id="🎯-行动建议"><a href="#🎯-行动建议" class="headerlink" title="🎯 行动建议"></a>🎯 行动建议</h3><ul>
+<li><strong>收藏速查表</strong>：将 3分钟速览版中的对比表格收藏备用</li>
+<li><strong>注意性能</strong>：使用 ROW_NUMBER 时务必检查索引</li>
+<li><strong>安全优先</strong>：MySQL 授权遵循最小权限原则</li>
+<li><strong>跨库兼容</strong>：优先使用 COALESCE 等 SQL 标准函数</li>
+</ul>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2023-02-17</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-03-11</td>
+<td>优化文档结构，添加速查表和 FAQ</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/MyBatis/" rel="tag">MyBatis</a>, <a class="tag-none-link" href="/tags/MySQL/" rel="tag">MySQL</a>, <a class="tag-none-link" href="/tags/Oracle/" rel="tag">Oracle</a>, <a class="tag-none-link" href="/tags/SQL/" rel="tag">SQL</a>, <a class="tag-none-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.763Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" Redis 安装配置与 10 大业务场景实战" href="/2023/02/16/tech/backend/2023-02-17-redis-install-and-scenarios/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 数据库备份恢复全攻略：Oracle expdp/impdp 与 MySQL mysqldump 实战" href="/2023/03/01/tech/backend/2023-03-02-database-backup-recovery/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#SQL-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%8A%80%E5%B7%A7%E9%80%9F%E6%9F%A5%E8%A1%A8"><span class="toc-number">1.1.</span> <span class="toc-text">SQL 函数与技巧速查表</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Oracle-vs-MySQL-%E5%8A%9F%E8%83%BD%E5%AF%B9%E6%AF%94"><span class="toc-number">1.2.</span> <span class="toc-text">Oracle vs MySQL 功能对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B8%B8%E7%94%A8%E6%93%8D%E4%BD%9C%E9%80%9F%E6%9F%A5"><span class="toc-number">1.3.</span> <span class="toc-text">常用操作速查</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-Oracle-%E5%AD%97%E6%AE%B5%E5%B1%9E%E6%80%A7%E4%B8%8E%E7%B1%BB%E5%9E%8B%E6%98%A0%E5%B0%84"><span class="toc-number">3.</span> <span class="toc-text">1. Oracle 字段属性与类型映射</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-DATETIME-%E5%92%8C-TIMESTAMP-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">3.1.</span> <span class="toc-text">1.1 DATETIME 和 TIMESTAMP 的区别</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-NUMBER-%E9%95%BF%E5%BA%A6%E5%AF%B9%E5%BA%94-Java-%E5%B1%9E%E6%80%A7"><span class="toc-number">3.2.</span> <span class="toc-text">1.2 NUMBER 长度对应 Java 属性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Oracle-%E5%87%BD%E6%95%B0%E4%B8%8E%E6%9F%A5%E8%AF%A2%E6%8A%80%E5%B7%A7"><span class="toc-number">4.</span> <span class="toc-text">2. Oracle 函数与查询技巧</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-NVL-%E7%A9%BA%E5%80%BC%E5%A4%84%E7%90%86%E5%87%BD%E6%95%B0"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 NVL 空值处理函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-ROW-NUMBER-%E5%88%86%E7%BB%84%E5%8F%96%E9%A6%96%E6%9D%A1%E6%95%B0%E6%8D%AE"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 ROW_NUMBER 分组取首条数据</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-MERGE-INTO%EF%BC%9A%E5%AD%98%E5%9C%A8%E5%88%99%E6%9B%B4%E6%96%B0%EF%BC%8C%E5%90%A6%E5%88%99%E6%8F%92%E5%85%A5"><span class="toc-number">4.3.</span> <span class="toc-text">2.3 MERGE INTO：存在则更新，否则插入</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%A8-MyBatis-%E4%B8%AD%E6%89%B9%E9%87%8F%E4%BD%BF%E7%94%A8-MERGE-INTO"><span class="toc-number">4.3.1.</span> <span class="toc-text">在 MyBatis 中批量使用 MERGE INTO</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Oracle-%E6%95%B0%E6%8D%AE%E5%90%8C%E6%AD%A5%E6%96%B9%E6%A1%88"><span class="toc-number">5.</span> <span class="toc-text">3. Oracle 数据同步方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%96%B9%E6%A1%88%E4%B8%80%EF%BC%9A%E6%9F%A5%E8%AF%A2-%E5%88%A0%E9%99%A4-%E6%8F%92%E5%85%A5"><span class="toc-number">5.1.</span> <span class="toc-text">3.1 方案一：查询-删除-插入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E6%96%B9%E6%A1%88%E4%BA%8C%EF%BC%9AMERGE-INTO%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">5.2.</span> <span class="toc-text">3.2 方案二：MERGE INTO（推荐）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-Oracle-%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%90%AF%E5%8A%A8"><span class="toc-number">6.</span> <span class="toc-text">4. Oracle 服务器启动</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-MySQL-%E7%94%A8%E6%88%B7%E7%AE%A1%E7%90%86"><span class="toc-number">7.</span> <span class="toc-text">5. MySQL 用户管理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#5-1-%E5%88%9B%E5%BB%BA%E7%94%A8%E6%88%B7"><span class="toc-number">7.1.</span> <span class="toc-text">5.1 创建用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-2-%E6%8E%88%E4%BA%88%E6%9D%83%E9%99%90"><span class="toc-number">7.2.</span> <span class="toc-text">5.2 授予权限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-3-%E4%BD%BF%E6%9D%83%E9%99%90%E7%94%9F%E6%95%88"><span class="toc-number">7.3.</span> <span class="toc-text">5.3 使权限生效</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-4-%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">7.4.</span> <span class="toc-text">5.4 注意事项</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">8.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-MERGE-INTO-%E4%B8%AD-WHEN-MATCHED-%E5%92%8C-WHEN-NOT-MATCHED-%E5%8F%AF%E4%BB%A5%E5%8F%AA%E5%86%99%E4%B8%80%E4%B8%AA%E5%90%97%EF%BC%9F"><span class="toc-number">8.1.</span> <span class="toc-text">Q1: MERGE INTO 中 WHEN MATCHED 和 WHEN NOT MATCHED 可以只写一个吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-DATETIME-%E5%92%8C-TIMESTAMP-%E8%AF%A5%E5%A6%82%E4%BD%95%E9%80%89%E6%8B%A9%EF%BC%9F"><span class="toc-number">8.2.</span> <span class="toc-text">Q2: DATETIME 和 TIMESTAMP 该如何选择？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-ROW-NUMBER-%E5%9C%A8%E5%A4%A7%E6%95%B0%E6%8D%AE%E9%87%8F%E4%B8%8B%E6%80%A7%E8%83%BD%E5%A6%82%E4%BD%95%E4%BC%98%E5%8C%96%EF%BC%9F"><span class="toc-number">8.3.</span> <span class="toc-text">Q3: ROW_NUMBER 在大数据量下性能如何优化？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-MySQL-%E7%9A%84-INSERT-%E2%80%A6-ON-DUPLICATE-KEY-UPDATE-%E5%92%8C-REPLACE-INTO-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">8.4.</span> <span class="toc-text">Q4: MySQL 的 INSERT … ON DUPLICATE KEY UPDATE 和 REPLACE INTO 有什么区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-NVL-%E5%92%8C-COALESCE-%E6%9C%89%E4%BB%80%E4%B9%88%E5%8C%BA%E5%88%AB%EF%BC%9F%E8%AF%A5%E7%94%A8%E5%93%AA%E4%B8%AA%EF%BC%9F"><span class="toc-number">8.5.</span> <span class="toc-text">Q5: NVL 和 COALESCE 有什么区别？该用哪个？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">9.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E8%A1%8C%E5%8A%A8%E5%BB%BA%E8%AE%AE"><span class="toc-number">9.1.</span> <span class="toc-text">🎯 行动建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">10.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>

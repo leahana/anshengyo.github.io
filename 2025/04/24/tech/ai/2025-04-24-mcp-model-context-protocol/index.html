@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="zh">
+    <head>
+  <!-- 元数据 -->
+  <meta charset="utf-8">
+  
+  
+  <title>MCP 模型上下文协议：AI 应用互操作的 Type-C 时代 | MamimiJa Nai</title>
+  <link rel="canonical" href="https://leahana.github.io/2025/04/24/tech/ai/2025-04-24-mcp-model-context-protocol/">
+  <meta name="author" content="Mamimi" />
+  <meta http-equiv="Cache-Control" content="no-transform" />
+  <meta http-equiv="Cache-Control" content="no-siteapp" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="robots" content="index,follow" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="format-detection" content="telphone=no, email=no" />
+  
+    <meta name="keywords" content="AI架构, MCP, Spring AI, 互操作协议" />
+  
+  <meta name="description" content="🎯 一句话定位：让 AI 应用像 USB 设备一样即插即用的通用协议标准 💡 核心价值：解决 AI 工具生态的”巴别塔”问题——每个 AI 应用都说不同的语言，MCP 让它们统一说”普通话”。   📖 3分钟速览版🔌 MCP 是什么？graph LR     A[AI应用] --&gt;|MCP协议| B(工具生态)     B --&gt; C[数据库]     B --&gt; D[API服务]">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MCP 模型上下文协议：AI 应用互操作的 Type-C 时代">
+<meta property="og:url" content="https://leahana.github.io/2025/04/24/tech/ai/2025-04-24-mcp-model-context-protocol/index.html">
+<meta property="og:site_name" content="MamimiJa Nai">
+<meta property="og:description" content="🎯 一句话定位：让 AI 应用像 USB 设备一样即插即用的通用协议标准 💡 核心价值：解决 AI 工具生态的”巴别塔”问题——每个 AI 应用都说不同的语言，MCP 让它们统一说”普通话”。   📖 3分钟速览版🔌 MCP 是什么？graph LR     A[AI应用] --&gt;|MCP协议| B(工具生态)     B --&gt; C[数据库]     B --&gt; D[API服务]">
+<meta property="og:locale">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054610_00.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054734_01.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054739_02.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054835_03.webp">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_055543_00.webp">
+<meta property="article:published_time" content="2025-04-24T00:00:00.000Z">
+<meta property="article:modified_time" content="2026-05-18T05:47:58.760Z">
+<meta property="article:author" content="Mamimi">
+<meta property="article:tag" content="AI架构">
+<meta property="article:tag" content="MCP">
+<meta property="article:tag" content="Spring AI">
+<meta property="article:tag" content="互操作协议">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054610_00.webp">
+  
+  <!-- JSON-LD 结构化数据 -->
+  
+  
+    <script type="application/ld+json">
+    {"@context":"https://schema.org","@type":"BlogPosting","headline":"MCP 模型上下文协议：AI 应用互操作的 Type-C 时代","description":"\n🎯 一句话定位：让 AI 应用像 USB 设备一样即插即用的通用协议标准\n💡 核心价值：解决 AI 工具生态的”巴别塔”问题——每个 AI 应...","image":"https://leahana.github.io/images/theme/Mamimi.JPG","author":{"@type":"Person","name":"Mamimi"},"publisher":{"@type":"Organization","name":"MamimiJa Nai","logo":{"@type":"ImageObject","url":"https://leahana.github.io/images/theme/Mamimi.JPG"}},"datePublished":"2025-04-24T00:00:00.000Z","dateModified":"2026-05-18T05:47:58.760Z","mainEntityOfPage":{"@type":"WebPage","@id":"https://leahana.github.io/2025/04/24/tech/ai/2025-04-24-mcp-model-context-protocol/"}}
+    </script>
+  
+  <!-- 关键 CSS 预加载 -->
+  <link rel="preload" href="/css/kr-core.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/light.min.css" as="style">
+  <link rel="preload" href="/css/kr-theme/dark.min.css" as="style">
+  <!-- 样式表文件 -->
+  <link rel="stylesheet" id="kratos-css" href="/css/kr-core.min.css" media="all">
+  <link rel="stylesheet" id="theme-light-css" href="/css/kr-theme/light.min.css" media="all">
+  <link rel="stylesheet" id="theme-dark-css" href="/css/kr-theme/dark.min.css" media="(prefers-color-scheme: dark)">
+  
+    <link rel="stylesheet"  id="highlight-css" href="/css/highlight/highlight.js/night-eighties.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/css/highlight/highlight.js/night-eighties.min.css"></noscript>
+  
+  <script src="/js/kr-theme.min.js"></script>
+  <!-- Mermaid 图表库 + 初始化 -->
+  <script src="https://unpkg.com/mermaid@10.6.1/dist/mermaid.min.js"></script>
+  <script src="/others/mermaid.js"></script>
+  <link rel="stylesheet"  id="fontawe-css" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/font-awesome@4.7.0/css/font-awesome.min.css"></noscript>
+  
+    <link rel="stylesheet"  id="nprogress-css" href="/vendors/nprogress@0.2.0/nprogress.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/nprogress@0.2.0/nprogress.css"></noscript>
+  
+  
+    <link rel="stylesheet"  href="/vendors/viewerjs@1.11.6/dist/viewer.min.css" media="print" onload="this.media='all'" onerror="this.media='all'"><noscript><link rel="stylesheet" href="/vendors/viewerjs@1.11.6/dist/viewer.min.css"></noscript>
+  
+  <!-- 预先加载的JS文件 -->
+  
+    <script src="/vendors/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+  
+  <!-- 自定义站点横幅和背景 -->
+  <style>
+    
+      .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+      html[data-theme="dark"] .kratos-cover.kratos-cover-2 {
+        background-image: url('');
+      }
+    
+    
+      @media(min-width:768px) {
+        body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+        html[data-theme="dark"] body.custom-background {
+          background-image: url('/images/theme/background.jpg');
+        }
+      }
+    
+    
+      .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+      html[data-theme="dark"] .widget-kratos-about .photo-background {
+        background-image: url('/images/theme/avatar-bg.jpg');
+      }
+    
+  </style>
+
+  <!-- 额外的追加注入项 -->
+  
+    <style>body.custom-background{background-image:url('/images/theme/background.jpg')!important;background-attachment:fixed!important;background-size:cover!important;background-position:center!important;}#kratos-widget-area .widget-kratos-about .photo-background{background-image:url('/images/theme/avatar-bg.jpg')!important;background-size:cover!important;background-position:35% 35%!important;background-repeat:no-repeat!important;}</style><link rel="stylesheet" href="/css/custom.css">
+  
+<meta name="generator" content="Hexo 8.1.1"></head>
+
+    <body class="custom-background">
+        <div id="kratos-wrapper">
+    <div id="kratos-page">
+        <div id="kratos-header">
+            <header id="kratos-desktop-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="nav-header">
+                        <nav id="kratos-menu-wrap">
+                            <ul id="kratos-primary-menu" class="sf-menu">
+                                
+                                    <li>
+                                        
+                                            <a href="/">
+                                        
+                                            
+                                                <i class="fa fa-fa-home"></i>
+                                            
+                                            首页
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/archives">
+                                        
+                                            
+                                                <i class="fa fa-fa-archive"></i>
+                                            
+                                            归档
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/categories">
+                                        
+                                            
+                                                <i class="fa fa-fa-folder-open"></i>
+                                            
+                                            分类
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/tags">
+                                        
+                                            
+                                                <i class="fa fa-fa-tags"></i>
+                                            
+                                            标签
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a href="/search">
+                                        
+                                            
+                                                <i class="fa fa-fa-search"></i>
+                                            
+                                            搜索
+                                        </a>
+                                        
+                                    </li>
+                                
+                                    <li>
+                                        
+                                            <a>
+                                        
+                                            
+                                                <i class="fa fa-fa-th-list"></i>
+                                            
+                                            更多
+                                        </a>
+                                        
+                                            <ul class="sub-menu">
+                                                
+                                                    <li>
+                                                        <a href="/about">
+                                                            
+                                                                <i class="fa fa-fa-user"></i>
+                                                            
+                                                            关于我
+                                                        </a>
+                                                    </li>
+                                                
+                                                    <li>
+                                                        <a href="/links">
+                                                            
+                                                                <i class="fa fa-fa-link"></i>
+                                                            
+                                                            友情链接
+                                                        </a>
+                                                    </li>
+                                                
+                                            </ul>
+                                        
+                                    </li>
+                                
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </header>
+            <header id="kratos-mobile-topnav" class="kratos-topnav">
+                <div class="container">
+                    <div class="color-logo"><a href="/">MamimiJa Nai</a></div>
+                    <div id="kratos-nav-toggle-wrapper" class="nav-toggle">
+                        <a id="kratos-nav-toggle" class="kratos-nav-toggle">
+                            <i></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+        </div>
+        <div class="kratos-start kratos-hero-2">
+            <!-- <div class="kratos-overlay"></div> -->
+            <div class="kratos-cover kratos-cover-2 text-center">
+                <div class="desc desc2 animate-box">
+                    <a href="/">
+                        <h2>MamimiJa Nai</h2> <br />
+                        <span></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="kratos-blog-post">
+            <div class="container">
+                <div id="main" class="row">
+
+
+        
+
+            
+
+            <section class="kr-main-col col-md-8">
+
+        
+
+            <article itemscope itemtype="https://schema.org/Article">
+    <link itemprop="mainEntityOfPage" href="https://leahana.github.io/2025/04/24/tech/ai/2025-04-24-mcp-model-context-protocol/">
+    <div class="kratos-hentry kratos-page-inner clearfix">
+        <header class="kratos-page-header">
+            
+                <h1 class="kratos-page-title text-center" itemprop="name headline">MCP 模型上下文协议：AI 应用互操作的 Type-C 时代</h1>
+            
+            <ul class="kratos-page-meta text-center">
+                <li><time datetime="2025-04-24T00:00:00.000Z" itemprop="datePublished"><i class="fa fa-calendar"></i> 2025-04-24</time></li>
+                <li itemprop="author" itemscope itemtype="https://schema.org/Person">
+                    <i class="fa fa-user"></i> 作者 <span itemprop="name">Mamimi</span>
+                </li>
+                
+                    <li>
+                        <i class="fa fa-edit"></i> 
+                        
+                        
+                            ~15.26K
+                        
+                        字
+                    </li>
+                
+                
+                
+            </ul>
+        </header>
+        <div class="kratos-page-content kr-post">
+            
+            
+            
+                <div class="kratos-post-inner-toc toc-div-class" >
+                    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-MCP-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 MCP 是什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-MCP%EF%BC%9F"><span class="toc-number">1.2.</span> <span class="toc-text">💎 为什么需要 MCP？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-MCP-%E5%8D%8F%E8%AE%AE%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">1. MCP 协议深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-1-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">3.1.</span> <span class="toc-text">🎯 1.1 核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">3.1.1.</span> <span class="toc-text">设计哲学</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B1%BB%E6%AF%94%E7%90%86%E8%A7%A3"><span class="toc-number">3.1.2.</span> <span class="toc-text">类比理解</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8F%97%EF%B8%8F-1-2-%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.2.</span> <span class="toc-text">🏗️ 1.2 架构设计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="toc-number">3.2.1.</span> <span class="toc-text">三层架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6"><span class="toc-number">3.2.2.</span> <span class="toc-text">核心组件</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%84-1-3-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">3.3.</span> <span class="toc-text">🔄 1.3 工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%E8%AF%B4%E6%98%8E"><span class="toc-number">3.3.1.</span> <span class="toc-text">关键步骤说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-MCP-vs-%E5%85%B6%E4%BB%96%E6%96%B9%E6%A1%88"><span class="toc-number">4.</span> <span class="toc-text">2. MCP vs 其他方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%8A-2-1-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">📊 2.1 方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-2-2-%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="toc-number">4.2.</span> <span class="toc-text">🎯 2.2 选择建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Spring-AI-MCP-%E5%AE%9E%E6%88%98"><span class="toc-number">5.</span> <span class="toc-text">3. Spring AI MCP 实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-Spring-AI%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">🎯 3.1 为什么选择 Spring AI？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9B%A0%EF%B8%8F-3-2-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B"><span class="toc-number">5.2.</span> <span class="toc-text">🛠️ 3.2 快速开始</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-1-%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">5.2.1.</span> <span class="toc-text">Step 1: 项目初始化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-2-%E6%B7%BB%E5%8A%A0%E4%BE%9D%E8%B5%96"><span class="toc-number">5.2.2.</span> <span class="toc-text">Step 2: 添加依赖</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-3-%E5%AE%9E%E7%8E%B0%E5%B7%A5%E5%85%B7%E6%9C%8D%E5%8A%A1"><span class="toc-number">5.2.3.</span> <span class="toc-text">Step 3: 实现工具服务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-4-%E9%85%8D%E7%BD%AE-MCP-Server"><span class="toc-number">5.2.4.</span> <span class="toc-text">Step 4: 配置 MCP Server</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-5-application-yml-%E9%85%8D%E7%BD%AE"><span class="toc-number">5.2.5.</span> <span class="toc-text">Step 5: application.yml 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-6-%E6%89%93%E5%8C%85%E4%B8%8E%E8%BF%90%E8%A1%8C"><span class="toc-number">5.2.6.</span> <span class="toc-text">Step 6: 打包与运行</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AE-3-3-%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95"><span class="toc-number">5.3.</span> <span class="toc-text">🎮 3.3 客户端连接测试</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9ACherry-Studio%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">5.3.1.</span> <span class="toc-text">方法一：Cherry Studio（推荐）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E5%AE%89%E8%A3%85-Cherry-Studio"><span class="toc-number">5.3.1.1.</span> <span class="toc-text">1. 安装 Cherry Studio</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE-MCP-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">5.3.1.2.</span> <span class="toc-text">2. 配置 MCP 服务器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0"><span class="toc-number">5.3.1.3.</span> <span class="toc-text">3. 配置参数</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8"><span class="toc-number">5.3.1.4.</span> <span class="toc-text">4. 测试工具调用</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-%E9%AA%8C%E8%AF%81%E7%BB%93%E6%9E%9C"><span class="toc-number">5.3.1.5.</span> <span class="toc-text">5. 验证结果</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9AClaude-Desktop"><span class="toc-number">5.3.2.</span> <span class="toc-text">方法二：Claude Desktop</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE"><span class="toc-number">5.3.2.1.</span> <span class="toc-text">配置文件位置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%86%85%E5%AE%B9"><span class="toc-number">5.3.2.2.</span> <span class="toc-text">配置内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%AD%A5%E9%AA%A4"><span class="toc-number">5.3.2.3.</span> <span class="toc-text">验证步骤</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%89%EF%BC%9A%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%B0%83%E8%AF%95"><span class="toc-number">5.3.3.</span> <span class="toc-text">方法三：命令行调试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">5.3.4.</span> <span class="toc-text">测试检查清单</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9A%80-3-4-%E8%BF%9B%E9%98%B6%EF%BC%9ASSE-%E6%A8%A1%E5%BC%8F%E9%83%A8%E7%BD%B2"><span class="toc-number">5.4.</span> <span class="toc-text">🚀 3.4 进阶：SSE 模式部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE"><span class="toc-number">5.4.1.</span> <span class="toc-text">修改配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E7%AB%AF%E7%82%B9"><span class="toc-number">5.4.2.</span> <span class="toc-text">健康检查端点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%9E%E6%8E%A5%E9%85%8D%E7%BD%AE"><span class="toc-number">5.4.3.</span> <span class="toc-text">客户端连接配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">4. 生产环境最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%92-4-1-%E5%AE%89%E5%85%A8%E9%85%8D%E7%BD%AE"><span class="toc-number">6.1.</span> <span class="toc-text">🔒 4.1 安全配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%8A-4-2-%E7%9B%91%E6%8E%A7%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7"><span class="toc-number">6.2.</span> <span class="toc-text">📊 4.2 监控与可观测性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9A%A1-4-3-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">6.3.</span> <span class="toc-text">⚡ 4.3 性能优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%8C%87%E5%8D%97"><span class="toc-number">7.</span> <span class="toc-text">5. 故障排查指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%A7-5-1-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">7.1.</span> <span class="toc-text">🔧 5.1 常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%981%EF%BC%9A%E5%B7%A5%E5%85%B7%E6%9C%AA%E8%A2%AB%E5%8F%91%E7%8E%B0"><span class="toc-number">7.1.1.</span> <span class="toc-text">问题1：工具未被发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%982%EF%BC%9AStdio-%E6%A8%A1%E5%BC%8F%E6%97%A0%E5%93%8D%E5%BA%94"><span class="toc-number">7.1.2.</span> <span class="toc-text">问题2：Stdio 模式无响应</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%983%EF%BC%9ASSE-%E6%A8%A1%E5%BC%8F%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80"><span class="toc-number">7.1.3.</span> <span class="toc-text">问题3：SSE 模式连接断开</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">8.</span> <span class="toc-text">6. 实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8F%A2-%E6%A1%88%E4%BE%8B%EF%BC%9A%E4%BC%81%E4%B8%9A%E7%BA%A7%E7%9F%A5%E8%AF%86%E5%BA%93-MCP-Server"><span class="toc-number">8.1.</span> <span class="toc-text">🏢 案例：企业级知识库 MCP Server</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E8%83%8C%E6%99%AF"><span class="toc-number">8.1.1.</span> <span class="toc-text">需求背景</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="toc-number">8.1.2.</span> <span class="toc-text">实现方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%9E%B6%E6%9E%84"><span class="toc-number">8.1.3.</span> <span class="toc-text">部署架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">8.1.4.</span> <span class="toc-text">效果对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">9.</span> <span class="toc-text">7. 工具与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-MCP-%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">9.1.</span> <span class="toc-text">✅ MCP 检查清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E7%A1%AE%E8%AE%A4"><span class="toc-number">9.1.1.</span> <span class="toc-text">需求确认</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B"><span class="toc-number">9.1.2.</span> <span class="toc-text">技术选型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E5%87%86%E5%A4%87"><span class="toc-number">9.1.3.</span> <span class="toc-text">开发准备</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E9%AA%8C%E8%AF%81"><span class="toc-number">9.1.4.</span> <span class="toc-text">测试验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E4%B8%8A%E7%BA%BF"><span class="toc-number">9.1.5.</span> <span class="toc-text">部署上线</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%9A-%E6%8E%A8%E8%8D%90%E8%B5%84%E6%BA%90"><span class="toc-number">9.2.</span> <span class="toc-text">📚 推荐资源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-MCP-%E5%92%8C-LangChain-Tools-%E6%9C%89%E4%BB%80%E4%B9%88%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1: MCP 和 LangChain Tools 有什么本质区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-MCP-%E7%9A%84%E6%80%A7%E8%83%BD%E5%BC%80%E9%94%80%E5%A4%A7%E5%90%97%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2: MCP 的性能开销大吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A6%82%E4%BD%95%E8%B0%83%E8%AF%95-MCP-%E5%B7%A5%E5%85%B7%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3: 如何调试 MCP 工具？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-MCP-%E6%94%AF%E6%8C%81%E6%B5%81%E5%BC%8F%E5%93%8D%E5%BA%94%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4: MCP 支持流式响应吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E4%BC%81%E4%B8%9A%E5%86%85%E7%BD%91%E5%8F%AF%E4%BB%A5%E9%83%A8%E7%BD%B2-MCP-%E5%90%97%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5: 企业内网可以部署 MCP 吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-MCP-%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">11.1.</span> <span class="toc-text">🎯 MCP 的价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9A%80-%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%A1%8C%E5%8A%A8"><span class="toc-number">11.2.</span> <span class="toc-text">🚀 下一步行动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AA-%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">💪 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%9D-%E6%96%87%E6%A1%A3%E4%BF%A1%E6%81%AF"><span class="toc-number">12.1.</span> <span class="toc-text">📝 文档信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+                </div>
+            
+            <hr />
+            <div itemprop="articleBody"><blockquote>
+<p>🎯 <strong>一句话定位</strong>：让 AI 应用像 USB 设备一样即插即用的<strong>通用协议标准</strong></p>
+<p>💡 <strong>核心价值</strong>：解决 AI 工具生态的”巴别塔”问题——每个 AI 应用都说不同的语言，MCP 让它们统一说”普通话”。</p>
+</blockquote>
+<hr>
+<h2 id="📖-3分钟速览版"><a href="#📖-3分钟速览版" class="headerlink" title="📖 3分钟速览版"></a>📖 3分钟速览版</h2><h3 id="🔌-MCP-是什么？"><a href="#🔌-MCP-是什么？" class="headerlink" title="🔌 MCP 是什么？"></a>🔌 MCP 是什么？</h3><pre class="mermaid">graph LR
+    A[AI应用] -->|MCP协议| B(工具生态)
+    B --> C[数据库]
+    B --> D[API服务]
+    B --> E[文件系统]
+    B --> F[自定义工具]
+
+    style A fill:#e3f2fd
+    style B fill:#fff3e0
+    style C fill:#c8e6c9
+    style D fill:#c8e6c9
+    style E fill:#c8e6c9
+    style F fill:#c8e6c9</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054610_00.webp" alt="MCP 是什么插图版"></p>
+</details>
+
+<details>
+<summary>**📊 点击展开更多内容**</summary>
+
+<p><strong>通俗类比</strong>：</p>
+<ul>
+<li>🔌 <strong>MCP</strong> &#x3D; USB Type-C（统一接口标准）</li>
+<li>🛠️ <strong>AI Tools</strong> &#x3D; 外设（鼠标、键盘、硬盘）</li>
+<li>🤖 <strong>LLM Apps</strong> &#x3D; 电脑（即插即用）</li>
+</ul>
+<h3 id="💎-为什么需要-MCP？"><a href="#💎-为什么需要-MCP？" class="headerlink" title="💎 为什么需要 MCP？"></a>💎 为什么需要 MCP？</h3><table>
+<thead>
+<tr>
+<th>问题</th>
+<th>没有 MCP</th>
+<th>有 MCP</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>🔌 <strong>接口混乱</strong></td>
+<td>每个工具自定义接口</td>
+<td>统一标准接口</td>
+</tr>
+<tr>
+<td>🔄 <strong>重复开发</strong></td>
+<td>每个应用重复实现工具</td>
+<td>一次开发，到处使用</td>
+</tr>
+<tr>
+<td>🛡️ <strong>安全风险</strong></td>
+<td>各自实现安全机制</td>
+<td>统一安全标准</td>
+</tr>
+<tr>
+<td>📈 <strong>生态割裂</strong></td>
+<td>工具无法跨应用使用</td>
+<td>工具市场共享</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-适用场景"><a href="#🎯-适用场景" class="headerlink" title="🎯 适用场景"></a>🎯 适用场景</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">✅ 推荐：</span><br><span class="line">├─ 需要集成多个外部工具的 AI 应用</span><br><span class="line">├─ 需要让工具在多个 AI 应用间复用</span><br><span class="line">├─ 需要统一的安全和管理机制</span><br><span class="line">└─ 企业级 AI 应用部署</span><br><span class="line"></span><br><span class="line">❌ 不推荐：</span><br><span class="line">├─ 单一简单工具（直接 function call 更快）</span><br><span class="line">├─ 一次性脚本（MCP 有学习成本）</span><br><span class="line">└─ 极低延迟要求（MCP 有通信开销）</span><br></pre></td></tr></table></figure>
+
+</details>
+
+<hr>
+<h2 id="🧠-深度剖析版"><a href="#🧠-深度剖析版" class="headerlink" title="🧠 深度剖析版"></a>🧠 深度剖析版</h2><h2 id="1-MCP-协议深度解析"><a href="#1-MCP-协议深度解析" class="headerlink" title="1. MCP 协议深度解析"></a>1. MCP 协议深度解析</h2><h3 id="🎯-1-1-核心概念"><a href="#🎯-1-1-核心概念" class="headerlink" title="🎯 1.1 核心概念"></a>🎯 1.1 核心概念</h3><p><strong>MCP（Model Context Protocol）</strong> 是 Anthropic 于 2024 年 11 月开源的 AI 应用互操作协议。</p>
+<h4 id="设计哲学"><a href="#设计哲学" class="headerlink" title="设计哲学"></a>设计哲学</h4><pre class="mermaid">graph TD
+    A[AI应用碎片化] --> B[每个应用重复造轮子]
+    A --> C[工具无法跨应用复用]
+    A --> D[安全标准不统一]
+
+    E[MCP统一协议] --> F[工具一次开发]
+    E --> G[跨应用复用]
+    E --> H[统一安全标准]
+
+    F --> I[生态繁荣]
+    G --> I
+    H --> I
+
+    style A fill:#ffcdd2
+    style E fill:#c8e6c9
+    style I fill:#a5d6a7</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054734_01.webp" alt="MCP 设计哲学插图版"></p>
+</details>
+
+<h4 id="类比理解"><a href="#类比理解" class="headerlink" title="类比理解"></a>类比理解</h4><table>
+<thead>
+<tr>
+<th>层次</th>
+<th>传统方式</th>
+<th>MCP 方式</th>
+<th>好处</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>接口</strong></td>
+<td>各自为政</td>
+<td>统一标准</td>
+<td>🔌 即插即用</td>
+</tr>
+<tr>
+<td><strong>实现</strong></td>
+<td>重复开发</td>
+<td>一次编写</td>
+<td>⚡️ 提升效率</td>
+</tr>
+<tr>
+<td><strong>生态</strong></td>
+<td>孤岛效应</td>
+<td>共享市场</td>
+<td>📈 规模效应</td>
+</tr>
+<tr>
+<td><strong>类比</strong></td>
+<td>充电线乱象</td>
+<td>USB Type-C</td>
+<td>🎯 用户体验</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="🏗️-1-2-架构设计"><a href="#🏗️-1-2-架构设计" class="headerlink" title="🏗️ 1.2 架构设计"></a>🏗️ 1.2 架构设计</h3><h4 id="三层架构"><a href="#三层架构" class="headerlink" title="三层架构"></a>三层架构</h4><pre class="mermaid">graph TD
+    subgraph Host["🤖 Host Layer - AI应用"]
+        H1[Claude]
+        H2[Cursor]
+        H3[自定义应用]
+    end
+
+    subgraph Transport["📡 Transport Layer - 传输层"]
+        T1[STDIO<br/>进程通信]
+        T2[SSE<br/>HTTP流]
+    end
+
+    subgraph Server["🛠️ Server Layer - 工具服务器"]
+        S1[文件系统]
+        S2[数据库]
+        S3[API服务]
+        S4[自定义工具]
+    end
+
+    H1 --> T1
+    H2 --> T2
+    H3 --> T1
+
+    T1 --> S1
+    T1 --> S2
+    T2 --> S3
+    T2 --> S4
+
+    style Host fill:#e3f2fd
+    style Transport fill:#fff3e0
+    style Server fill:#e8f5e9</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054739_02.webp" alt="MCP 三层架构插图版"></p>
+</details>
+
+<h4 id="核心组件"><a href="#核心组件" class="headerlink" title="核心组件"></a>核心组件</h4><table>
+<thead>
+<tr>
+<th>组件</th>
+<th>职责</th>
+<th>类比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Host（宿主）</strong></td>
+<td>AI 应用，消费工具</td>
+<td>电脑</td>
+</tr>
+<tr>
+<td><strong>Client（客户端）</strong></td>
+<td>从 Server 获取工具</td>
+<td>驱动程序</td>
+</tr>
+<tr>
+<td><strong>Server（服务器）</strong></td>
+<td>提供工具和资源</td>
+<td>USB 设备</td>
+</tr>
+<tr>
+<td><strong>Transport（传输）</strong></td>
+<td>通信管道</td>
+<td>USB 线缆</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="🔄-1-3-工作流程"><a href="#🔄-1-3-工作流程" class="headerlink" title="🔄 1.3 工作流程"></a>🔄 1.3 工作流程</h3><pre class="mermaid">sequenceDiagram
+    participant H as Host (AI应用)
+    participant C as MCP Client
+    participant T as Transport
+    participant S as MCP Server
+
+    H->>C: 1. 发起连接
+    C->>T: 2. 建立传输通道
+    T->>S: 3. 协议握手
+    S-->>T: 4. 返回能力清单
+    T-->>C: 5. 工具列表
+    C-->>H: 6. 可用工具
+
+    H->>C: 7. 调用工具
+    C->>T: 8. JSON-RPC请求
+    T->>S: 9. 执行工具
+    S-->>T: 10. 返回结果
+    T-->>C: 11. 响应数据
+    C-->>H: 12. 工具输出</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_054835_03.webp" alt="MCP 工作流程插图版"></p>
+</details>
+
+<h4 id="关键步骤说明"><a href="#关键步骤说明" class="headerlink" title="关键步骤说明"></a>关键步骤说明</h4><ol>
+<li><strong>初始化（Initialize）</strong>：协商协议版本、能力</li>
+<li><strong>发现（Discover）</strong>：Server 暴露可用工具&#x2F;资源列表</li>
+<li><strong>调用（Invoke）</strong>：Client 通过 JSON-RPC 调用工具</li>
+<li><strong>响应（Response）</strong>：Server 返回结果或错误</li>
+</ol>
+<hr>
+<h2 id="2-MCP-vs-其他方案"><a href="#2-MCP-vs-其他方案" class="headerlink" title="2. MCP vs 其他方案"></a>2. MCP vs 其他方案</h2><h3 id="📊-2-1-方案对比"><a href="#📊-2-1-方案对比" class="headerlink" title="📊 2.1 方案对比"></a>📊 2.1 方案对比</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>MCP</th>
+<th>LangChain Tools</th>
+<th>OpenAI Function Call</th>
+<th>自定义 API</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>标准化</strong></td>
+<td>✅ 开放标准</td>
+<td>⚠️ 框架特定</td>
+<td>⚠️ 厂商特定</td>
+<td>❌ 各自为政</td>
+</tr>
+<tr>
+<td><strong>跨平台</strong></td>
+<td>✅ 全平台</td>
+<td>⚠️ Python&#x2F;JS</td>
+<td>❌ 仅 OpenAI</td>
+<td>❌ 自定义</td>
+</tr>
+<tr>
+<td><strong>工具复用</strong></td>
+<td>✅ 跨应用</td>
+<td>❌ 框架内</td>
+<td>❌ 单模型</td>
+<td>❌ 单应用</td>
+</tr>
+<tr>
+<td><strong>学习曲线</strong></td>
+<td>⚠️ 中等</td>
+<td>✅ 低</td>
+<td>✅ 低</td>
+<td>❌ 高</td>
+</tr>
+<tr>
+<td><strong>生态成熟度</strong></td>
+<td>🟡 早期</td>
+<td>🟢 成熟</td>
+<td>🟢 成熟</td>
+<td>🔵 取决于你</td>
+</tr>
+</tbody></table>
+<h3 id="🎯-2-2-选择建议"><a href="#🎯-2-2-选择建议" class="headerlink" title="🎯 2.2 选择建议"></a>🎯 2.2 选择建议</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">📋 决策树：</span><br><span class="line"></span><br><span class="line">需要跨应用复用工具？</span><br><span class="line">├─ 是 → 🎯 使用 MCP</span><br><span class="line">│</span><br><span class="line">└─ 否 → 只用单一框架？</span><br><span class="line">    ├─ LangChain → 用 LangChain Tools</span><br><span class="line">    ├─ OpenAI → 用 Function Call</span><br><span class="line">    └─ 都不是 → 考虑自研（学习成本高）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="3-Spring-AI-MCP-实战"><a href="#3-Spring-AI-MCP-实战" class="headerlink" title="3. Spring AI MCP 实战"></a>3. Spring AI MCP 实战</h2><h3 id="🎯-3-1-为什么选择-Spring-AI？"><a href="#🎯-3-1-为什么选择-Spring-AI？" class="headerlink" title="🎯 3.1 为什么选择 Spring AI？"></a>🎯 3.1 为什么选择 Spring AI？</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">✅ Spring AI 优势：</span><br><span class="line">├─ 🇨🇳 国内开发者友好（中文文档完善）</span><br><span class="line">├─ 🏢 企业级特性（配置管理、安全、监控）</span><br><span class="line">├─ 🔌 Spring 生态集成（Boot、Security）</span><br><span class="line">└─ 📊 生产就绪（可观测性、健康检查）</span><br><span class="line"></span><br><span class="line">⚠️ 注意：</span><br><span class="line">└─ MCP 支持处于 Milestone 阶段（1.0.0-M6）</span><br></pre></td></tr></table></figure>
+
+<h3 id="🛠️-3-2-快速开始"><a href="#🛠️-3-2-快速开始" class="headerlink" title="🛠️ 3.2 快速开始"></a>🛠️ 3.2 快速开始</h3><h4 id="Step-1-项目初始化"><a href="#Step-1-项目初始化" class="headerlink" title="Step 1: 项目初始化"></a>Step 1: 项目初始化</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 使用 Spring Initializr 创建项目</span></span><br><span class="line">curl https://start.spring.io/starter.zip \</span><br><span class="line">  -d dependencies=web \</span><br><span class="line">  -d <span class="built_in">type</span>=maven-project \</span><br><span class="line">  -d language=java \</span><br><span class="line">  -d bootVersion=3.3.0 \</span><br><span class="line">  -d groupId=com.example \</span><br><span class="line">  -d artifactId=mcp-demo \</span><br><span class="line">  -o mcp-demo.zip</span><br><span class="line"></span><br><span class="line">unzip mcp-demo.zip</span><br><span class="line"><span class="built_in">cd</span> mcp-demo</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-2-添加依赖"><a href="#Step-2-添加依赖" class="headerlink" title="Step 2: 添加依赖"></a>Step 2: 添加依赖</h4><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- pom.xml --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Spring Web --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- Spring AI MCP Server --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.ai<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-ai-mcp-server-spring-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.0-M6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- 添加 Spring Milestone 仓库 --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>spring-milestones<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>Spring Milestones<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://repo.spring.io/milestone<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-3-实现工具服务"><a href="#Step-3-实现工具服务" class="headerlink" title="Step 3: 实现工具服务"></a>Step 3: 实现工具服务</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.mcp.service;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.mcp.server.tool.Tool;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Service;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * MCP 工具服务示例</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> MamimiJa Nai</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">WeatherService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取指定城市的天气信息</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> city 城市名称</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 天气描述</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Tool(</span></span><br><span class="line"><span class="meta">        name = &quot;get_weather&quot;,</span></span><br><span class="line"><span class="meta">        description = &quot;获取指定城市的当前天气信息，包括温度、天气状况和湿度&quot;</span></span><br><span class="line"><span class="meta">    )</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getWeather</span><span class="params">(String city)</span> &#123;</span><br><span class="line">        <span class="comment">// 实际项目中应该调用真实天气 API</span></span><br><span class="line">        <span class="keyword">return</span> String.format(</span><br><span class="line">            <span class="string">&quot;🌍 %s 的天气：晴天，温度 22°C，湿度 45%%&quot;</span>,</span><br><span class="line">            city</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 获取城市列表</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 支持的城市列表</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Tool(</span></span><br><span class="line"><span class="meta">        name = &quot;list_cities&quot;,</span></span><br><span class="line"><span class="meta">        description = &quot;获取所有支持天气查询的城市列表&quot;</span></span><br><span class="line"><span class="meta">    )</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">listCities</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">            📍 支持的城市：</span></span><br><span class="line"><span class="string">            - 北京</span></span><br><span class="line"><span class="string">            - 上海</span></span><br><span class="line"><span class="string">            - 广州</span></span><br><span class="line"><span class="string">            - 深圳</span></span><br><span class="line"><span class="string">            - 杭州</span></span><br><span class="line"><span class="string">            &quot;&quot;&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-4-配置-MCP-Server"><a href="#Step-4-配置-MCP-Server" class="headerlink" title="Step 4: 配置 MCP Server"></a>Step 4: 配置 MCP Server</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.example.mcp.config;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> com.example.mcp.service.WeatherService;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.mcp.server.ToolCallbackProvider;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ai.mcp.server.config.McpServerProperties;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * MCP 服务器配置</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> MamimiJa Nai</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">McpServerConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 注册工具回调提供者</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> ToolCallbackProvider <span class="title function_">toolCallbackProvider</span><span class="params">(</span></span><br><span class="line"><span class="params">            WeatherService weatherService,</span></span><br><span class="line"><span class="params">            McpServerProperties properties)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ToolCallbackProvider.builder()</span><br><span class="line">            .toolObjects(weatherService)  <span class="comment">// 注册工具服务</span></span><br><span class="line">            .serverProperties(properties)  <span class="comment">// MCP 服务器属性</span></span><br><span class="line">            .build();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-5-application-yml-配置"><a href="#Step-5-application-yml-配置" class="headerlink" title="Step 5: application.yml 配置"></a>Step 5: application.yml 配置</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">weather-mcp-server</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">ai:</span></span><br><span class="line">    <span class="attr">mcp:</span></span><br><span class="line">      <span class="attr">server:</span></span><br><span class="line">        <span class="comment"># 是否启用 MCP 服务器</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 服务器名称</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">$&#123;spring.application.name&#125;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 服务器版本</span></span><br><span class="line">        <span class="attr">version:</span> <span class="number">1.0</span><span class="number">.0</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 执行模式：SYNC（同步）或 ASYNC（异步）</span></span><br><span class="line">        <span class="attr">type:</span> <span class="string">SYNC</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 传输模式：stdio（标准输入输出）或 sse（HTTP流）</span></span><br><span class="line">        <span class="attr">mode:</span> <span class="string">stdio</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 日志级别</span></span><br><span class="line">        <span class="attr">log-level:</span> <span class="string">info</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 日志配置（调试时建议开启 DEBUG）</span></span><br><span class="line"><span class="attr">logging:</span></span><br><span class="line">  <span class="attr">level:</span></span><br><span class="line">    <span class="attr">org.springframework.ai.mcp:</span> <span class="string">DEBUG</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Step-6-打包与运行"><a href="#Step-6-打包与运行" class="headerlink" title="Step 6: 打包与运行"></a>Step 6: 打包与运行</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 打包</span></span><br><span class="line">mvn clean package -DskipTests</span><br><span class="line"></span><br><span class="line"><span class="comment"># 运行（stdio 模式）</span></span><br><span class="line">java -jar target/mcp-demo-0.0.1-SNAPSHOT.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># 或者在 IDE 中直接运行主类</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="🎮-3-3-客户端连接测试"><a href="#🎮-3-3-客户端连接测试" class="headerlink" title="🎮 3.3 客户端连接测试"></a>🎮 3.3 客户端连接测试</h3><h4 id="方法一：Cherry-Studio（推荐）"><a href="#方法一：Cherry-Studio（推荐）" class="headerlink" title="方法一：Cherry Studio（推荐）"></a>方法一：Cherry Studio（推荐）</h4><p><strong>Cherry Studio</strong> 是一款开源的 AI 客户端，支持 MCP 协议，界面友好。</p>
+<details>
+<summary>**📋 Cherry Studio 配置步骤**</summary>
+
+<h5 id="1-安装-Cherry-Studio"><a href="#1-安装-Cherry-Studio" class="headerlink" title="1. 安装 Cherry Studio"></a>1. 安装 Cherry Studio</h5><p>访问 <a target="_blank" rel="noopener" href="https://github.com/CherryHQ/cherry-studio/releases">GitHub Releases</a> 下载对应系统版本。</p>
+<h5 id="2-配置-MCP-服务器"><a href="#2-配置-MCP-服务器" class="headerlink" title="2. 配置 MCP 服务器"></a>2. 配置 MCP 服务器</h5><ul>
+<li>打开 Cherry Studio</li>
+<li>进入 <strong>设置</strong> → <strong>MCP 服务器</strong></li>
+<li>点击 <strong>添加本地服务器</strong></li>
+</ul>
+<h5 id="3-配置参数"><a href="#3-配置参数" class="headerlink" title="3. 配置参数"></a>3. 配置参数</h5><table>
+<thead>
+<tr>
+<th>参数</th>
+<th>值</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>名称</td>
+<td><code>weather-mcp-server</code></td>
+<td>服务器标识</td>
+</tr>
+<tr>
+<td>命令</td>
+<td><code>java -jar /absolute/path/to/mcp-demo.jar</code></td>
+<td>完整绝对路径</td>
+</tr>
+<tr>
+<td>类型</td>
+<td><code>stdio</code></td>
+<td>标准输入输出模式</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ <strong>注意</strong>：JAR 包路径必须使用<strong>绝对路径</strong>，相对路径可能导致启动失败。</p>
+</blockquote>
+<h5 id="4-测试工具调用"><a href="#4-测试工具调用" class="headerlink" title="4. 测试工具调用"></a>4. 测试工具调用</h5><ol>
+<li><p>新建对话</p>
+</li>
+<li><p>选择支持 MCP 的模型（带🔧扳手图标）</p>
+</li>
+<li><p>输入测试提示词：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">帮我查一下北京的天气</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>观察模型是否调用 <code>get_weather</code> 工具</p>
+</li>
+</ol>
+<h5 id="5-验证结果"><a href="#5-验证结果" class="headerlink" title="5. 验证结果"></a>5. 验证结果</h5><p>成功的输出示例：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">🌍 北京的天气：晴天，温度 22°C，湿度 45%</span><br></pre></td></tr></table></figure>
+
+</details>
+
+<h4 id="方法二：Claude-Desktop"><a href="#方法二：Claude-Desktop" class="headerlink" title="方法二：Claude Desktop"></a>方法二：Claude Desktop</h4><p><strong>Claude Desktop</strong> 是 Anthropic 官方桌面客户端，原生支持 MCP。</p>
+<h5 id="配置文件位置"><a href="#配置文件位置" class="headerlink" title="配置文件位置"></a>配置文件位置</h5><table>
+<thead>
+<tr>
+<th>操作系统</th>
+<th>配置文件路径</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>macOS</td>
+<td><code>~/Library/Application Support/Claude/claude_desktop_config.json</code></td>
+</tr>
+<tr>
+<td>Windows</td>
+<td><code>%APPDATA%\Claude\claude_desktop_config.json</code></td>
+</tr>
+<tr>
+<td>Linux</td>
+<td><code>~/.config/Claude/claude_desktop_config.json</code></td>
+</tr>
+</tbody></table>
+<h5 id="配置内容"><a href="#配置内容" class="headerlink" title="配置内容"></a>配置内容</h5><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;weather-server&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;command&quot;</span><span class="punctuation">:</span> <span class="string">&quot;java&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;args&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="string">&quot;-jar&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="string">&quot;/absolute/path/to/mcp-demo-0.0.1-SNAPSHOT.jar&quot;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="验证步骤"><a href="#验证步骤" class="headerlink" title="验证步骤"></a>验证步骤</h5><ol>
+<li>保存配置文件</li>
+<li>重启 Claude Desktop</li>
+<li>在对话中输入：<code>查询上海的天气</code></li>
+<li>查看是否正确调用工具</li>
+</ol>
+<h4 id="方法三：命令行调试"><a href="#方法三：命令行调试" class="headerlink" title="方法三：命令行调试"></a>方法三：命令行调试</h4><p>使用 <code>stdio</code> 模式直接调试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 启动 MCP 服务器</span></span><br><span class="line">java -jar target/mcp-demo-0.0.1-SNAPSHOT.jar</span><br><span class="line"></span><br><span class="line"><span class="comment"># 发送初始化请求（JSON-RPC 格式）</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;&#123;&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;id&quot;:1,&quot;method&quot;:&quot;initialize&quot;,&quot;params&quot;:&#123;&quot;capabilities&quot;:&#123;&#125;,&quot;clientInfo&quot;:&#123;&quot;name&quot;:&quot;test&quot;,&quot;version&quot;:&quot;1.0&quot;&#125;&#125;&#125;&#x27;</span> | java -jar target/mcp-demo-0.0.1-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<h4 id="测试检查清单"><a href="#测试检查清单" class="headerlink" title="测试检查清单"></a>测试检查清单</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">✅ 测试验证清单：</span><br><span class="line"></span><br><span class="line">基础功能</span><br><span class="line">├─ [ ] MCP 服务器正常启动</span><br><span class="line">├─ [ ] 工具列表正确返回（tools/list）</span><br><span class="line">├─ [ ] 单个工具调用成功（tools/call）</span><br><span class="line">└─ [ ] 错误处理正常工作</span><br><span class="line"></span><br><span class="line">客户端集成</span><br><span class="line">├─ [ ] Cherry Studio 连接成功</span><br><span class="line">├─ [ ] Claude Desktop 连接成功</span><br><span class="line">└─ [ ] 工具调用链路完整</span><br><span class="line"></span><br><span class="line">异常场景</span><br><span class="line">├─ [ ] 无效参数返回明确错误</span><br><span class="line">├─ [ ] 服务重启后自动重连</span><br><span class="line">└─ [ ] 日志输出可追踪问题</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="🚀-3-4-进阶：SSE-模式部署"><a href="#🚀-3-4-进阶：SSE-模式部署" class="headerlink" title="🚀 3.4 进阶：SSE 模式部署"></a>🚀 3.4 进阶：SSE 模式部署</h3><h4 id="修改配置"><a href="#修改配置" class="headerlink" title="修改配置"></a>修改配置</h4><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">ai:</span></span><br><span class="line">    <span class="attr">mcp:</span></span><br><span class="line">      <span class="attr">server:</span></span><br><span class="line">        <span class="attr">mode:</span> <span class="string">sse</span>  <span class="comment"># 改为 SSE 模式</span></span><br><span class="line">        <span class="attr">port:</span> <span class="number">8081</span>  <span class="comment"># SSE 服务端口</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="健康检查端点"><a href="#健康检查端点" class="headerlink" title="健康检查端点"></a>健康检查端点</h4><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 检查 MCP 服务器状态</span></span><br><span class="line">curl http://localhost:8081/actuator/health</span><br><span class="line"></span><br><span class="line"><span class="comment"># 预期响应</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;status&quot;</span>: <span class="string">&quot;UP&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="客户端连接配置"><a href="#客户端连接配置" class="headerlink" title="客户端连接配置"></a>客户端连接配置</h4><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;mcpServers&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;weather-server&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;url&quot;</span><span class="punctuation">:</span> <span class="string">&quot;http://localhost:8081/mcp/sse&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="4-生产环境最佳实践"><a href="#4-生产环境最佳实践" class="headerlink" title="4. 生产环境最佳实践"></a>4. 生产环境最佳实践</h2><h3 id="🔒-4-1-安全配置"><a href="#🔒-4-1-安全配置" class="headerlink" title="🔒 4.1 安全配置"></a>🔒 4.1 安全配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">McpSecurityConfig</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 配置工具访问权限</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> ToolCallbackProvider <span class="title function_">secureToolProvider</span><span class="params">(</span></span><br><span class="line"><span class="params">            WeatherService weatherService)</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> ToolCallbackProvider.builder()</span><br><span class="line">            .toolObjects(weatherService)</span><br><span class="line">            <span class="comment">// 添加访问控制</span></span><br><span class="line">            .accessControl((tool, principal) -&gt; &#123;</span><br><span class="line">                <span class="comment">// 只允许特定角色访问</span></span><br><span class="line">                <span class="keyword">return</span> principal.hasRole(<span class="string">&quot;AI_USER&quot;</span>);</span><br><span class="line">            &#125;)</span><br><span class="line">            .build();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="📊-4-2-监控与可观测性"><a href="#📊-4-2-监控与可观测性" class="headerlink" title="📊 4.2 监控与可观测性"></a>📊 4.2 监控与可观测性</h3><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># application.yml</span></span><br><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="attr">exposure:</span></span><br><span class="line">        <span class="attr">include:</span> <span class="string">health,metrics,prometheus</span></span><br><span class="line">  <span class="attr">metrics:</span></span><br><span class="line">    <span class="attr">export:</span></span><br><span class="line">      <span class="attr">prometheus:</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 自定义指标</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">ai:</span></span><br><span class="line">    <span class="attr">mcp:</span></span><br><span class="line">      <span class="attr">server:</span></span><br><span class="line">        <span class="attr">metrics:</span></span><br><span class="line">          <span class="attr">enabled:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>监控指标</strong>：</p>
+<ul>
+<li><code>mcp.tool.invocation.count</code> - 工具调用次数</li>
+<li><code>mcp.tool.execution.time</code> - 工具执行时间</li>
+<li><code>mcp.error.count</code> - 错误次数</li>
+</ul>
+<h3 id="⚡-4-3-性能优化"><a href="#⚡-4-3-性能优化" class="headerlink" title="⚡ 4.3 性能优化"></a>⚡ 4.3 性能优化</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">OptimizedWeatherService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Tool(name = &quot;get_weather_fast&quot;)</span></span><br><span class="line">    <span class="meta">@Cacheable(value = &quot;weather&quot;, key = &quot;#city&quot;)</span>  <span class="comment">// 添加缓存</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getWeather</span><span class="params">(String city)</span> &#123;</span><br><span class="line">        <span class="comment">// 实现逻辑</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Tool(name = &quot;get_weather_batch&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> Map&lt;String, String&gt; <span class="title function_">getWeatherBatch</span><span class="params">(List&lt;String&gt; cities)</span> &#123;</span><br><span class="line">        <span class="comment">// 批量处理，减少调用次数</span></span><br><span class="line">        <span class="keyword">return</span> cities.stream()</span><br><span class="line">            .collect(Collectors.toMap(</span><br><span class="line">                city -&gt; city,</span><br><span class="line">                <span class="built_in">this</span>::getWeather</span><br><span class="line">            ));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="5-故障排查指南"><a href="#5-故障排查指南" class="headerlink" title="5. 故障排查指南"></a>5. 故障排查指南</h2><h3 id="🔧-5-1-常见问题"><a href="#🔧-5-1-常见问题" class="headerlink" title="🔧 5.1 常见问题"></a>🔧 5.1 常见问题</h3><h4 id="问题1：工具未被发现"><a href="#问题1：工具未被发现" class="headerlink" title="问题1：工具未被发现"></a>问题1：工具未被发现</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">❌ 症状：客户端无法看到工具列表</span><br><span class="line"></span><br><span class="line">🔍 可能原因：</span><br><span class="line">├─ @Tool 注解未添加</span><br><span class="line">├─ ToolCallbackProvider 未正确配置</span><br><span class="line">├─ Service 未被 Spring 扫描到</span><br><span class="line">└─ 依赖版本冲突</span><br><span class="line"></span><br><span class="line">✅ 解决方案：</span><br><span class="line">1. 检查 @Tool 注解的 name 和 description</span><br><span class="line">2. 确认 @Bean 配置正确</span><br><span class="line">3. 添加 @ComponentScan 扫描包</span><br><span class="line">4. 统一 Spring AI 版本</span><br></pre></td></tr></table></figure>
+
+<h4 id="问题2：Stdio-模式无响应"><a href="#问题2：Stdio-模式无响应" class="headerlink" title="问题2：Stdio 模式无响应"></a>问题2：Stdio 模式无响应</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">❌ 症状：启动后客户端连接超时</span><br><span class="line"></span><br><span class="line">🔍 可能原因：</span><br><span class="line">├─ Java 进程未启动</span><br><span class="line">├─ 日志输出到 stderr 而非 stdout</span><br><span class="line">└─ 缓冲区未刷新</span><br><span class="line"></span><br><span class="line">✅ 解决方案：</span><br><span class="line">1. 使用 `java -jar` 而非 IDE 运行</span><br><span class="line">2. 检查日志级别是否为 DEBUG</span><br><span class="line">3. 添加 System.out.flush()</span><br></pre></td></tr></table></figure>
+
+<h4 id="问题3：SSE-模式连接断开"><a href="#问题3：SSE-模式连接断开" class="headerlink" title="问题3：SSE 模式连接断开"></a>问题3：SSE 模式连接断开</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">❌ 症状：连接频繁断开重连</span><br><span class="line"></span><br><span class="line">🔍 可能原因：</span><br><span class="line">├─ 超时时间过短</span><br><span class="line">├─ Nginx 代理配置问题</span><br><span class="line">└─ 网络不稳定</span><br><span class="line"></span><br><span class="line">✅ 解决方案：</span><br><span class="line">spring:</span><br><span class="line">  ai:</span><br><span class="line">    mcp:</span><br><span class="line">      server:</span><br><span class="line">        sse:</span><br><span class="line">          heartbeat: 30s  # 心跳间隔</span><br><span class="line">          timeout: 60s    # 超时时间</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="6-实战案例"><a href="#6-实战案例" class="headerlink" title="6. 实战案例"></a>6. 实战案例</h2><h3 id="🏢-案例：企业级知识库-MCP-Server"><a href="#🏢-案例：企业级知识库-MCP-Server" class="headerlink" title="🏢 案例：企业级知识库 MCP Server"></a>🏢 案例：企业级知识库 MCP Server</h3><h4 id="需求背景"><a href="#需求背景" class="headerlink" title="需求背景"></a>需求背景</h4><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">📋 场景：</span><br><span class="line">├─ 企业有多个 AI 应用（客服、培训、文档）</span><br><span class="line">├─ 需要统一的文档查询工具</span><br><span class="line">└─ 要求：安全、可控、可审计</span><br><span class="line"></span><br><span class="line">🎯 目标：</span><br><span class="line">├─ 一次开发，多应用复用</span><br><span class="line">├─ 统一权限管理</span><br><span class="line">└─ 完整的审计日志</span><br></pre></td></tr></table></figure>
+
+<h4 id="实现方案"><a href="#实现方案" class="headerlink" title="实现方案"></a>实现方案</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">KnowledgeBaseService</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Tool(</span></span><br><span class="line"><span class="meta">        name = &quot;search_docs&quot;,</span></span><br><span class="line"><span class="meta">        description = &quot;在企业知识库中搜索相关文档&quot;</span></span><br><span class="line"><span class="meta">    )</span></span><br><span class="line">    <span class="meta">@PreAuthorize(&quot;hasRole(&#x27;EMPLOYEE&#x27;)&quot;)</span>  # 权限控制</span><br><span class="line">    <span class="meta">@AuditLog</span>  # 审计日志</span><br><span class="line">    <span class="keyword">public</span> List&lt;Document&gt; <span class="title function_">searchDocuments</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@ToolParam(description = &quot;搜索关键词&quot;)</span> String query,</span></span><br><span class="line"><span class="params">        <span class="meta">@ToolParam(description = &quot;最大结果数&quot;, defaultValue = &quot;5&quot;)</span> <span class="type">int</span> limit</span></span><br><span class="line"><span class="params">    )</span> &#123;</span><br><span class="line">        <span class="comment">// 1. 参数验证</span></span><br><span class="line">        validateQuery(query);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 2. 调用搜索服务</span></span><br><span class="line">        List&lt;Document&gt; results = searchService.search(query, limit);</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 3. 过滤敏感信息</span></span><br><span class="line">        <span class="keyword">return</span> filterSensitiveInfo(results);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Tool(name = &quot;get_doc_summary&quot;)</span></span><br><span class="line">    <span class="keyword">public</span> String <span class="title function_">getDocumentSummary</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@ToolParam(description = &quot;文档ID&quot;)</span> String docId</span></span><br><span class="line"><span class="params">    )</span> &#123;</span><br><span class="line">        <span class="comment">// 实现逻辑</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="部署架构"><a href="#部署架构" class="headerlink" title="部署架构"></a>部署架构</h4><pre class="mermaid">graph TD
+    A[客服AI应用] -->|MCP| B[KB MCP Server]
+    C[培训AI应用] -->|MCP| B
+    D[文档AI应用] -->|MCP| B
+
+    B --> E[(知识库ES)]
+    B --> F[权限服务]
+    B --> G[审计日志]
+
+    style B fill:#fff3e0
+    style E fill:#e3f2fd
+    style F fill:#f3e5f5
+    style G fill:#ffebee</pre>
+
+<details>
+<summary>**🖼️ 插图版（2026-04-17 增量补充）**</summary>
+
+<p><img src="https://cdn.jsdelivr.net/gh/leahana/blog-images@dev/tech/ai/2025-04-24-mcp-model-context-protocol/diagram_20260417_055543_00.webp" alt="企业级知识库 MCP Server 部署架构插图版"></p>
+</details>
+
+<h4 id="效果对比"><a href="#效果对比" class="headerlink" title="效果对比"></a>效果对比</h4><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>改进前</th>
+<th>改进后</th>
+<th>提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>开发时间</td>
+<td>3周&#x2F;应用</td>
+<td>1周（一次）</td>
+<td>⬇️ 67%</td>
+</tr>
+<tr>
+<td>维护成本</td>
+<td>高</td>
+<td>低</td>
+<td>⬇️ 80%</td>
+</tr>
+<tr>
+<td>工具复用</td>
+<td>0%</td>
+<td>100%</td>
+<td>∞</td>
+</tr>
+<tr>
+<td>安全审计</td>
+<td>分散</td>
+<td>统一</td>
+<td>✅</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="7-工具与资源"><a href="#7-工具与资源" class="headerlink" title="7. 工具与资源"></a>7. 工具与资源</h2><h3 id="✅-MCP-检查清单"><a href="#✅-MCP-检查清单" class="headerlink" title="✅ MCP 检查清单"></a>✅ MCP 检查清单</h3><details>
+<summary>**📋 开发前检查清单**</summary>
+
+<h4 id="需求确认"><a href="#需求确认" class="headerlink" title="需求确认"></a>需求确认</h4><ul>
+<li><input disabled="" type="checkbox"> 确认需要跨应用复用工具</li>
+<li><input disabled="" type="checkbox"> 确认工具可以标准化描述</li>
+<li><input disabled="" type="checkbox"> 评估 MCP 学习成本可接受</li>
+</ul>
+<h4 id="技术选型"><a href="#技术选型" class="headerlink" title="技术选型"></a>技术选型</h4><ul>
+<li><input disabled="" type="checkbox"> 选择传输模式（stdio &#x2F; SSE）</li>
+<li><input disabled="" type="checkbox"> 选择 AI 框架（Spring AI &#x2F; LangChain）</li>
+<li><input disabled="" type="checkbox"> 确认客户端支持（Claude &#x2F; 自研）</li>
+</ul>
+<h4 id="开发准备"><a href="#开发准备" class="headerlink" title="开发准备"></a>开发准备</h4><ul>
+<li><input disabled="" type="checkbox"> 搭建 Spring Boot 项目</li>
+<li><input disabled="" type="checkbox"> 添加 Spring AI MCP 依赖</li>
+<li><input disabled="" type="checkbox"> 配置 IDE 运行环境</li>
+</ul>
+<h4 id="测试验证"><a href="#测试验证" class="headerlink" title="测试验证"></a>测试验证</h4><ul>
+<li><input disabled="" type="checkbox"> 编写工具单元测试</li>
+<li><input disabled="" type="checkbox"> 使用客户端连接测试</li>
+<li><input disabled="" type="checkbox"> 验证工具调用流程</li>
+</ul>
+<h4 id="部署上线"><a href="#部署上线" class="headerlink" title="部署上线"></a>部署上线</h4><ul>
+<li><input disabled="" type="checkbox"> 配置生产环境参数</li>
+<li><input disabled="" type="checkbox"> 设置监控告警</li>
+<li><input disabled="" type="checkbox"> 准备回滚方案</li>
+</ul>
+</details>
+
+<hr>
+<h3 id="📚-推荐资源"><a href="#📚-推荐资源" class="headerlink" title="📚 推荐资源"></a>📚 推荐资源</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>📖 官方文档</td>
+<td>MCP 官方规范</td>
+<td><a target="_blank" rel="noopener" href="https://modelcontextprotocol.io/">https://modelcontextprotocol.io</a></td>
+</tr>
+<tr>
+<td>📖 官方文档</td>
+<td>Spring AI 文档</td>
+<td><a target="_blank" rel="noopener" href="https://docs.spring.io/spring-ai">https://docs.spring.io/spring-ai</a></td>
+</tr>
+<tr>
+<td>🛠️ 工具</td>
+<td>Cherry Studio</td>
+<td><a target="_blank" rel="noopener" href="https://github.com/CherryHQ/cherry-studio">https://github.com/CherryHQ/cherry-studio</a></td>
+</tr>
+<tr>
+<td>🛠️ 工具</td>
+<td>Claude Desktop</td>
+<td><a target="_blank" rel="noopener" href="https://claude.ai/download">https://claude.ai/download</a></td>
+</tr>
+<tr>
+<td>💬 社区</td>
+<td>MCP Discord</td>
+<td><a target="_blank" rel="noopener" href="https://discord.gg/mcp">https://discord.gg/mcp</a></td>
+</tr>
+<tr>
+<td>📺 视频</td>
+<td>MCP 入门教程</td>
+<td>YouTube 搜索 “MCP tutorial”</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="💬-常见问题（FAQ）"><a href="#💬-常见问题（FAQ）" class="headerlink" title="💬 常见问题（FAQ）"></a>💬 常见问题（FAQ）</h2><h3 id="Q1-MCP-和-LangChain-Tools-有什么本质区别？"><a href="#Q1-MCP-和-LangChain-Tools-有什么本质区别？" class="headerlink" title="Q1: MCP 和 LangChain Tools 有什么本质区别？"></a>Q1: MCP 和 LangChain Tools 有什么本质区别？</h3><p><strong>A：</strong> 核心区别在于<strong>跨框架复用</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">LangChain Tools：</span><br><span class="line">└─ 只能在 LangChain 生态内使用</span><br><span class="line">   └─ 切换到其他框架需要重写</span><br><span class="line"></span><br><span class="line">MCP：</span><br><span class="line">└─ 协议级别标准化</span><br><span class="line">   └─ 一次开发，所有框架可用</span><br><span class="line">      ├─ Claude Desktop</span><br><span class="line">      ├─ 自研应用</span><br><span class="line">      └─ 未来任何支持 MCP 的应用</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q2-MCP-的性能开销大吗？"><a href="#Q2-MCP-的性能开销大吗？" class="headerlink" title="Q2: MCP 的性能开销大吗？"></a>Q2: MCP 的性能开销大吗？</h3><p><strong>A：</strong> 有一定开销，但通常可接受：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">📊 性能对比：</span><br><span class="line"></span><br><span class="line">直接调用：         ~1ms</span><br><span class="line">LangChain Tools：  ~5ms</span><br><span class="line">MCP (stdio)：      ~10-20ms</span><br><span class="line">MCP (SSE)：        ~20-50ms</span><br><span class="line"></span><br><span class="line">💡 建议：</span><br><span class="line">├─ 高频工具：考虑缓存或批量处理</span><br><span class="line">├─ 低频工具：MCP 开销可忽略</span><br><span class="line">└─ 极低延迟要求：避免使用 MCP</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q3-如何调试-MCP-工具？"><a href="#Q3-如何调试-MCP-工具？" class="headerlink" title="Q3: 如何调试 MCP 工具？"></a>Q3: 如何调试 MCP 工具？</h3><p><strong>A：</strong> 三步调试法：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">1️⃣ 启用 DEBUG 日志</span><br><span class="line">   logging.level.org.springframework.ai.mcp: DEBUG</span><br><span class="line"></span><br><span class="line">2️⃣ 使用 MCP Inspector</span><br><span class="line">   npx @modelcontextprotocol/inspector</span><br><span class="line"></span><br><span class="line">3️⃣ 添加自定义日志</span><br><span class="line">   @Tool(name = &quot;test&quot;)</span><br><span class="line">   public String test() &#123;</span><br><span class="line">       log.info(&quot;Tool called!&quot;);</span><br><span class="line">       return &quot;ok&quot;;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q4-MCP-支持流式响应吗？"><a href="#Q4-MCP-支持流式响应吗？" class="headerlink" title="Q4: MCP 支持流式响应吗？"></a>Q4: MCP 支持流式响应吗？</h3><p><strong>A：</strong> 目前有限支持：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">✅ 支持：</span><br><span class="line">├─ 资源流式读取</span><br><span class="line">└─ 通知流式发送</span><br><span class="line"></span><br><span class="line">⚠️ 限制：</span><br><span class="line">└─ 工具调用本身是请求-响应模式</span><br><span class="line"></span><br><span class="line">💡 替代方案：</span><br><span class="line">└─ 工具返回流ID，客户端再通过资源接口读取</span><br></pre></td></tr></table></figure>
+
+<h3 id="Q5-企业内网可以部署-MCP-吗？"><a href="#Q5-企业内网可以部署-MCP-吗？" class="headerlink" title="Q5: 企业内网可以部署 MCP 吗？"></a>Q5: 企业内网可以部署 MCP 吗？</h3><p><strong>A：</strong> 完全可以，而且推荐：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">✅ 内网部署优势：</span><br><span class="line">├─ 数据不出内网</span><br><span class="line">├─ 延迟更低</span><br><span class="line">└─ 可控性更强</span><br><span class="line"></span><br><span class="line">📋 部署方案：</span><br><span class="line">├─ HTTP 内网代理</span><br><span class="line">├─ VPN + stdio</span><br><span class="line">└─ 私有 MCP Hub</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="✨-总结"><a href="#✨-总结" class="headerlink" title="✨ 总结"></a>✨ 总结</h2><h3 id="🎯-MCP-的价值"><a href="#🎯-MCP-的价值" class="headerlink" title="🎯 MCP 的价值"></a>🎯 MCP 的价值</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">🌟 核心价值：</span><br><span class="line">├─ 📈 生态繁荣：工具共享市场</span><br><span class="line">├─ ⚡️ 提升效率：避免重复造轮子</span><br><span class="line">├─ 🔒 安全标准：统一的安全机制</span><br><span class="line">└─ 🌍 跨平台：语言和框架无关</span><br><span class="line"></span><br><span class="line">⚠️ 注意：</span><br><span class="line">├─ 有学习成本</span><br><span class="line">├─ 有性能开销</span><br><span class="line">└─ 生态还在早期</span><br></pre></td></tr></table></figure>
+
+<h3 id="🚀-下一步行动"><a href="#🚀-下一步行动" class="headerlink" title="🚀 下一步行动"></a>🚀 下一步行动</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">📝 学习路径：</span><br><span class="line">1. ⏱️ 30分钟：阅读官方文档</span><br><span class="line">2. 🛠️ 2小时：完成 Hello World</span><br><span class="line">3. 🏢 1天：实现真实工具</span><br><span class="line">4. 🚀 1周：部署生产环境</span><br><span class="line"></span><br><span class="line">💻 推荐实践：</span><br><span class="line">├─ 从简单工具开始（天气、搜索）</span><br><span class="line">├─ 先用 stdio 模式（更简单）</span><br><span class="line">├─ 充分测试后再上生产</span><br><span class="line">└─ 关注官方社区更新</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="💪-总结"><a href="#💪-总结" class="headerlink" title="💪 总结"></a>💪 总结</h2><p>💻 用 MCP 连接 AI 世界，🔌 让工具像 USB 一样即插即用</p>
+<hr>
+<h3 id="📝-文档信息"><a href="#📝-文档信息" class="headerlink" title="📝 文档信息"></a>📝 文档信息</h3><p>📅 最后更新：2026-04-17 | 👤 作者：MamimiJa Nai | 🏷️ 技术栈：Spring AI 1.0.0-M6</p>
+<hr>
+<h2 id="更新记录"><a href="#更新记录" class="headerlink" title="更新记录"></a>更新记录</h2><table>
+<thead>
+<tr>
+<th>版本</th>
+<th>日期</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>v1.0</td>
+<td>2025-04-24</td>
+<td>初始版本</td>
+</tr>
+<tr>
+<td>v1.1</td>
+<td>2026-04-17</td>
+<td>为 5 个 Mermaid 图表追加 Chiikawa 风格插图（m2c-pipeline 生成）</td>
+</tr>
+</tbody></table>
+</div>
+        </div>
+        
+        <footer class="kratos-entry-footer clearfix">
+            
+            
+            
+                <div class="post-actions text-center clearfix" id="post-actions">
+                
+                    <a class="donate" href="javascript:;" onclick="krOpenDonateModal()"><i class="fa fa-bitcoin"></i> 打赏</a>
+                
+                
+                </div>
+            
+            <div class="footer-tag clearfix">
+                <div class="pull-left">
+                <i class="fa fa-tags"></i>
+                    <a class="tag-none-link" href="/tags/AI%E6%9E%B6%E6%9E%84/" rel="tag">AI架构</a>, <a class="tag-none-link" href="/tags/MCP/" rel="tag">MCP</a>, <a class="tag-none-link" href="/tags/Spring-AI/" rel="tag">Spring AI</a>, <a class="tag-none-link" href="/tags/%E4%BA%92%E6%93%8D%E4%BD%9C%E5%8D%8F%E8%AE%AE/" rel="tag">互操作协议</a>
+                </div>
+                <div class="pull-date">
+                    <time datetime="2026-05-18T05:47:58.760Z" itemprop="dateModified">最后编辑：2026-05-18</time>
+                </div>
+            </div>
+        </footer>
+    </div>
+    
+        <nav class="navigation post-navigation clearfix" role="navigation">
+            
+            <div class="nav-previous clearfix">
+                <a title=" 5W1H思维框架：系统化问题分析与解决方案" href="/2025/04/23/mindset/2025-04-24-5w1h-ai-knowledge-base-methodology/"><i class="fa fa-angle-left"></i> 上一篇</a>
+            </div>
+            
+            
+            <div class="nav-next clearfix">
+                <a title=" 利用 Redis 管道命令提高批量更新缓存效率" href="/2025/05/21/tech/backend/2025-05-22-redis-pipeline-batch-update/">下一篇 <i class="fa fa-angle-right"></i></a>
+            </div>
+            
+        </nav>
+    
+    
+</article>
+
+        
+
+            </section>
+
+            
+                
+
+<section id="kratos-widget-area" class="col-md-4 hidden-xs hidden-sm">
+    <!-- 文章和页面根据splitter来分割，没有的话就从头开始设置为sticky -->
+    
+    
+                <aside id="krw-about" class="widget widget-kratos-about clearfix">
+    <div class="photo-background"></div>
+    <div class="photo-wrapper clearfix">
+        <div class="photo-wrapper-tip text-center">
+            <img class="about-photo" src="/images/theme/Mamimi.JPG" alt="Mamimi" loading="lazy" decoding="auto" />
+        </div>
+    </div>
+    <div class="textwidget">
+        <p class="text-center"></p>
+    </div>
+    <div class="site-meta">
+        <a class="meta-item" href="/archives/">
+            <span class="title">
+                文章
+            </span>
+            <span class="count">
+                75
+            </span>
+        </a>
+        <a class="meta-item" href="/categories/">
+            <span class="title">
+                分类
+            </span>
+            <span class="count">
+                8
+            </span>
+        </a>
+        <a class="meta-item" href="/tags/">
+            <span class="title">
+                标签
+            </span>
+            <span class="count">
+                234
+            </span>
+        </a>
+    </div>
+</aside>
+            
+                    <div class="sticky-area">
+                
+                    <aside id="krw-toc" class="widget widget-kratos-toc clearfix toc-div-class" >
+    <div class="photo-background"></div>
+    <h4 class="widget-title no-after">
+        <i class="fa fa-compass"></i>
+        文章目录
+        <span class="toc-progress-bar" role="progressbar" aria-label="阅读进度："></span>
+    </h4>
+    <div class="textwidget">
+        <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%93%96-3%E5%88%86%E9%92%9F%E9%80%9F%E8%A7%88%E7%89%88"><span class="toc-number">1.</span> <span class="toc-text">📖 3分钟速览版</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%8C-MCP-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">1.1.</span> <span class="toc-text">🔌 MCP 是什么？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%92%8E-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-MCP%EF%BC%9F"><span class="toc-number">1.2.</span> <span class="toc-text">💎 为什么需要 MCP？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.3.</span> <span class="toc-text">🎯 适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E6%B7%B1%E5%BA%A6%E5%89%96%E6%9E%90%E7%89%88"><span class="toc-number">2.</span> <span class="toc-text">🧠 深度剖析版</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-MCP-%E5%8D%8F%E8%AE%AE%E6%B7%B1%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">1. MCP 协议深度解析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-1-1-%E6%A0%B8%E5%BF%83%E6%A6%82%E5%BF%B5"><span class="toc-number">3.1.</span> <span class="toc-text">🎯 1.1 核心概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AE%BE%E8%AE%A1%E5%93%B2%E5%AD%A6"><span class="toc-number">3.1.1.</span> <span class="toc-text">设计哲学</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%B1%BB%E6%AF%94%E7%90%86%E8%A7%A3"><span class="toc-number">3.1.2.</span> <span class="toc-text">类比理解</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8F%97%EF%B8%8F-1-2-%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.2.</span> <span class="toc-text">🏗️ 1.2 架构设计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="toc-number">3.2.1.</span> <span class="toc-text">三层架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%BB%84%E4%BB%B6"><span class="toc-number">3.2.2.</span> <span class="toc-text">核心组件</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%84-1-3-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B"><span class="toc-number">3.3.</span> <span class="toc-text">🔄 1.3 工作流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%E8%AF%B4%E6%98%8E"><span class="toc-number">3.3.1.</span> <span class="toc-text">关键步骤说明</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-MCP-vs-%E5%85%B6%E4%BB%96%E6%96%B9%E6%A1%88"><span class="toc-number">4.</span> <span class="toc-text">2. MCP vs 其他方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%8A-2-1-%E6%96%B9%E6%A1%88%E5%AF%B9%E6%AF%94"><span class="toc-number">4.1.</span> <span class="toc-text">📊 2.1 方案对比</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-2-2-%E9%80%89%E6%8B%A9%E5%BB%BA%E8%AE%AE"><span class="toc-number">4.2.</span> <span class="toc-text">🎯 2.2 选择建议</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-Spring-AI-MCP-%E5%AE%9E%E6%88%98"><span class="toc-number">5.</span> <span class="toc-text">3. Spring AI MCP 实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-3-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-Spring-AI%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">🎯 3.1 为什么选择 Spring AI？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9B%A0%EF%B8%8F-3-2-%E5%BF%AB%E9%80%9F%E5%BC%80%E5%A7%8B"><span class="toc-number">5.2.</span> <span class="toc-text">🛠️ 3.2 快速开始</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-1-%E9%A1%B9%E7%9B%AE%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="toc-number">5.2.1.</span> <span class="toc-text">Step 1: 项目初始化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-2-%E6%B7%BB%E5%8A%A0%E4%BE%9D%E8%B5%96"><span class="toc-number">5.2.2.</span> <span class="toc-text">Step 2: 添加依赖</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-3-%E5%AE%9E%E7%8E%B0%E5%B7%A5%E5%85%B7%E6%9C%8D%E5%8A%A1"><span class="toc-number">5.2.3.</span> <span class="toc-text">Step 3: 实现工具服务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-4-%E9%85%8D%E7%BD%AE-MCP-Server"><span class="toc-number">5.2.4.</span> <span class="toc-text">Step 4: 配置 MCP Server</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-5-application-yml-%E9%85%8D%E7%BD%AE"><span class="toc-number">5.2.5.</span> <span class="toc-text">Step 5: application.yml 配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Step-6-%E6%89%93%E5%8C%85%E4%B8%8E%E8%BF%90%E8%A1%8C"><span class="toc-number">5.2.6.</span> <span class="toc-text">Step 6: 打包与运行</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AE-3-3-%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%9E%E6%8E%A5%E6%B5%8B%E8%AF%95"><span class="toc-number">5.3.</span> <span class="toc-text">🎮 3.3 客户端连接测试</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%80%EF%BC%9ACherry-Studio%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">5.3.1.</span> <span class="toc-text">方法一：Cherry Studio（推荐）</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#1-%E5%AE%89%E8%A3%85-Cherry-Studio"><span class="toc-number">5.3.1.1.</span> <span class="toc-text">1. 安装 Cherry Studio</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#2-%E9%85%8D%E7%BD%AE-MCP-%E6%9C%8D%E5%8A%A1%E5%99%A8"><span class="toc-number">5.3.1.2.</span> <span class="toc-text">2. 配置 MCP 服务器</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#3-%E9%85%8D%E7%BD%AE%E5%8F%82%E6%95%B0"><span class="toc-number">5.3.1.3.</span> <span class="toc-text">3. 配置参数</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#4-%E6%B5%8B%E8%AF%95%E5%B7%A5%E5%85%B7%E8%B0%83%E7%94%A8"><span class="toc-number">5.3.1.4.</span> <span class="toc-text">4. 测试工具调用</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#5-%E9%AA%8C%E8%AF%81%E7%BB%93%E6%9E%9C"><span class="toc-number">5.3.1.5.</span> <span class="toc-text">5. 验证结果</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%BA%8C%EF%BC%9AClaude-Desktop"><span class="toc-number">5.3.2.</span> <span class="toc-text">方法二：Claude Desktop</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%BD%8D%E7%BD%AE"><span class="toc-number">5.3.2.1.</span> <span class="toc-text">配置文件位置</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%85%8D%E7%BD%AE%E5%86%85%E5%AE%B9"><span class="toc-number">5.3.2.2.</span> <span class="toc-text">配置内容</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%AA%8C%E8%AF%81%E6%AD%A5%E9%AA%A4"><span class="toc-number">5.3.2.3.</span> <span class="toc-text">验证步骤</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E4%B8%89%EF%BC%9A%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%B0%83%E8%AF%95"><span class="toc-number">5.3.3.</span> <span class="toc-text">方法三：命令行调试</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">5.3.4.</span> <span class="toc-text">测试检查清单</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9A%80-3-4-%E8%BF%9B%E9%98%B6%EF%BC%9ASSE-%E6%A8%A1%E5%BC%8F%E9%83%A8%E7%BD%B2"><span class="toc-number">5.4.</span> <span class="toc-text">🚀 3.4 进阶：SSE 模式部署</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%AE%E6%94%B9%E9%85%8D%E7%BD%AE"><span class="toc-number">5.4.1.</span> <span class="toc-text">修改配置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%81%A5%E5%BA%B7%E6%A3%80%E6%9F%A5%E7%AB%AF%E7%82%B9"><span class="toc-number">5.4.2.</span> <span class="toc-text">健康检查端点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%A2%E6%88%B7%E7%AB%AF%E8%BF%9E%E6%8E%A5%E9%85%8D%E7%BD%AE"><span class="toc-number">5.4.3.</span> <span class="toc-text">客户端连接配置</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%94%9F%E4%BA%A7%E7%8E%AF%E5%A2%83%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5"><span class="toc-number">6.</span> <span class="toc-text">4. 生产环境最佳实践</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%92-4-1-%E5%AE%89%E5%85%A8%E9%85%8D%E7%BD%AE"><span class="toc-number">6.1.</span> <span class="toc-text">🔒 4.1 安全配置</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%8A-4-2-%E7%9B%91%E6%8E%A7%E4%B8%8E%E5%8F%AF%E8%A7%82%E6%B5%8B%E6%80%A7"><span class="toc-number">6.2.</span> <span class="toc-text">📊 4.2 监控与可观测性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9A%A1-4-3-%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96"><span class="toc-number">6.3.</span> <span class="toc-text">⚡ 4.3 性能优化</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%95%85%E9%9A%9C%E6%8E%92%E6%9F%A5%E6%8C%87%E5%8D%97"><span class="toc-number">7.</span> <span class="toc-text">5. 故障排查指南</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%94%A7-5-1-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98"><span class="toc-number">7.1.</span> <span class="toc-text">🔧 5.1 常见问题</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%981%EF%BC%9A%E5%B7%A5%E5%85%B7%E6%9C%AA%E8%A2%AB%E5%8F%91%E7%8E%B0"><span class="toc-number">7.1.1.</span> <span class="toc-text">问题1：工具未被发现</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%982%EF%BC%9AStdio-%E6%A8%A1%E5%BC%8F%E6%97%A0%E5%93%8D%E5%BA%94"><span class="toc-number">7.1.2.</span> <span class="toc-text">问题2：Stdio 模式无响应</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%983%EF%BC%9ASSE-%E6%A8%A1%E5%BC%8F%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80"><span class="toc-number">7.1.3.</span> <span class="toc-text">问题3：SSE 模式连接断开</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E5%AE%9E%E6%88%98%E6%A1%88%E4%BE%8B"><span class="toc-number">8.</span> <span class="toc-text">6. 实战案例</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8F%A2-%E6%A1%88%E4%BE%8B%EF%BC%9A%E4%BC%81%E4%B8%9A%E7%BA%A7%E7%9F%A5%E8%AF%86%E5%BA%93-MCP-Server"><span class="toc-number">8.1.</span> <span class="toc-text">🏢 案例：企业级知识库 MCP Server</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E8%83%8C%E6%99%AF"><span class="toc-number">8.1.1.</span> <span class="toc-text">需求背景</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="toc-number">8.1.2.</span> <span class="toc-text">实现方案</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%9E%B6%E6%9E%84"><span class="toc-number">8.1.3.</span> <span class="toc-text">部署架构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%88%E6%9E%9C%E5%AF%B9%E6%AF%94"><span class="toc-number">8.1.4.</span> <span class="toc-text">效果对比</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#7-%E5%B7%A5%E5%85%B7%E4%B8%8E%E8%B5%84%E6%BA%90"><span class="toc-number">9.</span> <span class="toc-text">7. 工具与资源</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-MCP-%E6%A3%80%E6%9F%A5%E6%B8%85%E5%8D%95"><span class="toc-number">9.1.</span> <span class="toc-text">✅ MCP 检查清单</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%9C%80%E6%B1%82%E7%A1%AE%E8%AE%A4"><span class="toc-number">9.1.1.</span> <span class="toc-text">需求确认</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%8A%80%E6%9C%AF%E9%80%89%E5%9E%8B"><span class="toc-number">9.1.2.</span> <span class="toc-text">技术选型</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BC%80%E5%8F%91%E5%87%86%E5%A4%87"><span class="toc-number">9.1.3.</span> <span class="toc-text">开发准备</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E9%AA%8C%E8%AF%81"><span class="toc-number">9.1.4.</span> <span class="toc-text">测试验证</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E4%B8%8A%E7%BA%BF"><span class="toc-number">9.1.5.</span> <span class="toc-text">部署上线</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%9A-%E6%8E%A8%E8%8D%90%E8%B5%84%E6%BA%90"><span class="toc-number">9.2.</span> <span class="toc-text">📚 推荐资源</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AC-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%EF%BC%88FAQ%EF%BC%89"><span class="toc-number">10.</span> <span class="toc-text">💬 常见问题（FAQ）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Q1-MCP-%E5%92%8C-LangChain-Tools-%E6%9C%89%E4%BB%80%E4%B9%88%E6%9C%AC%E8%B4%A8%E5%8C%BA%E5%88%AB%EF%BC%9F"><span class="toc-number">10.1.</span> <span class="toc-text">Q1: MCP 和 LangChain Tools 有什么本质区别？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q2-MCP-%E7%9A%84%E6%80%A7%E8%83%BD%E5%BC%80%E9%94%80%E5%A4%A7%E5%90%97%EF%BC%9F"><span class="toc-number">10.2.</span> <span class="toc-text">Q2: MCP 的性能开销大吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q3-%E5%A6%82%E4%BD%95%E8%B0%83%E8%AF%95-MCP-%E5%B7%A5%E5%85%B7%EF%BC%9F"><span class="toc-number">10.3.</span> <span class="toc-text">Q3: 如何调试 MCP 工具？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q4-MCP-%E6%94%AF%E6%8C%81%E6%B5%81%E5%BC%8F%E5%93%8D%E5%BA%94%E5%90%97%EF%BC%9F"><span class="toc-number">10.4.</span> <span class="toc-text">Q4: MCP 支持流式响应吗？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Q5-%E4%BC%81%E4%B8%9A%E5%86%85%E7%BD%91%E5%8F%AF%E4%BB%A5%E9%83%A8%E7%BD%B2-MCP-%E5%90%97%EF%BC%9F"><span class="toc-number">10.5.</span> <span class="toc-text">Q5: 企业内网可以部署 MCP 吗？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%A8-%E6%80%BB%E7%BB%93"><span class="toc-number">11.</span> <span class="toc-text">✨ 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%8E%AF-MCP-%E7%9A%84%E4%BB%B7%E5%80%BC"><span class="toc-number">11.1.</span> <span class="toc-text">🎯 MCP 的价值</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9A%80-%E4%B8%8B%E4%B8%80%E6%AD%A5%E8%A1%8C%E5%8A%A8"><span class="toc-number">11.2.</span> <span class="toc-text">🚀 下一步行动</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%AA-%E6%80%BB%E7%BB%93"><span class="toc-number">12.</span> <span class="toc-text">💪 总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%93%9D-%E6%96%87%E6%A1%A3%E4%BF%A1%E6%81%AF"><span class="toc-number">12.1.</span> <span class="toc-text">📝 文档信息</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9B%B4%E6%96%B0%E8%AE%B0%E5%BD%95"><span class="toc-number">13.</span> <span class="toc-text">更新记录</span></a></li></ol>
+    </div>
+</aside>
+                
+                
+  <aside id="krw-categories" class="widget widget-kratos-categories clearfix">
+    <h4 class="widget-title"><i class="fa fa-folder"></i>分类列表</h4>
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/gaming/">gaming</a><span class="category-list-count">2</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/mindset/">mindset</a><span class="category-list-count">1</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/">tech</a><span class="category-list-count">59</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/ai/">ai</a><span class="category-list-count">17</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/backend/">backend</a><span class="category-list-count">27</span></li><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/">tools</a><span class="category-list-count">15</span><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/tech/tools/tracking/">tracking</a><span class="category-list-count">4</span></li></ul></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/">设计模式</a><span class="category-list-count">12</span></li></ul>
+  </aside>
+
+
+            
+                
+  <aside id="krw-tags" class="widget widget-kratos-tags clearfix">
+    <h4 class="widget-title"><i class="fa fa-tags"></i>标签聚合</h4>
+      <div class="tag-clouds">
+        <a href="/tags/5W1H/" style="font-size: 0.6em;">5W1H</a> <a href="/tags/ADC/" style="font-size: 0.6em;">ADC</a> <a href="/tags/ADK/" style="font-size: 0.6em;">ADK</a> <a href="/tags/AI/" style="font-size: 0.6em;">AI</a> <a href="/tags/AI-Agent/" style="font-size: 0.6em;">AI Agent</a> <a href="/tags/AI-Security/" style="font-size: 0.6em;">AI Security</a> <a href="/tags/AI-%E7%BC%96%E7%A8%8B/" style="font-size: 0.67em;">AI 编程</a> <a href="/tags/AI-Agents/" style="font-size: 0.6em;">AI-Agents</a> <a href="/tags/AI%E6%8E%A2%E7%B4%A2/" style="font-size: 0.6em;">AI探索</a> <a href="/tags/AI%E6%9E%B6%E6%9E%84/" style="font-size: 0.6em;">AI架构</a> <a href="/tags/AOP/" style="font-size: 0.6em;">AOP</a> <a href="/tags/API/" style="font-size: 0.6em;">API</a> <a href="/tags/Agent/" style="font-size: 0.73em;">Agent</a> <a href="/tags/Base64/" style="font-size: 0.6em;">Base64</a> <a href="/tags/CI/" style="font-size: 0.6em;">CI</a> <a href="/tags/CI-CD/" style="font-size: 0.6em;">CI-CD</a> <a href="/tags/CI-CD/" style="font-size: 0.67em;">CI/CD</a> <a href="/tags/CLI/" style="font-size: 0.8em;">CLI</a>
+      </div>
+  </aside>
+
+            
+                
+  <aside id="krw-posts" class="widget widget-kratos-posts">
+  <h4 class="widget-title"><i class="fa fa-file"></i>最新文章</h4>
+  <div class="tab-content">
+      <ul class="list-group">
+        
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/23/tech/ai/2026-04-24-hermes-agent-review/"><i class="fa fa-book"></i> Hermes Agent 深度评测：自带学习循环的开源 AI Agent，能替代 Claude Code CLI 吗？</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-hub-and-spoke-agent-architecture/"><i class="fa fa-book"></i> Hub and Spoke（主控与辐射）架构实战</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/20/tech/ai/2026-04-21-multi-main-agent-architecture/"><i class="fa fa-book"></i> 多主 Agent 架构：避免巨型项目的上下文灾难</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/14/tech/tools/tracking/2026-04-15-gemini-cli-update-tracking/"><i class="fa fa-book"></i> Google Gemini CLI 更新追踪</a>
+            
+          
+        
+          
+          
+            <a class="list-group-item" href="/2026/04/12/tech/tools/tracking/2026-04-13-claude-code-update-tracking/"><i class="fa fa-book"></i> Claude Code 更新追踪</a>
+            
+          
+        
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+          
+            
+      </ul>
+  </div>
+  </aside>
+
+            
+    </div>
+</section>
+            
+
+        
+
+                </div>
+    </div>
+</div>
+
+<footer>
+    <div id="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 footer-list text-center">
+                    <ul class="kratos-social-icons">
+                        
+                    </ul>
+                    <ul class="kratos-copyright">
+                        <div>
+                            <li>&copy; 2026 MamimiJa Nai 版权所有.</li>
+                            <li>本站已运行<span id="kr-since">Loading...</span></li>
+                        </div>
+                        <div>
+                            <li>自豪地使用 <a href="https://github.com/Candinya/Kratos-Rebirth" target="_blank">Kratos:Rebirth</a> 主题</li>
+                            <li>站点由 Mamimi 用 <i class="fa fa-heart" style="color:#d43f57"></i> 搭建</li>
+                        </div>
+                        <!-- 额外的追加注入项 -->
+                        
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="kr-tool text-center">
+            <div class="tool">
+                <!-- 额外的追加注入项 -->
+                
+                
+                    <div class="box search-box">
+                        <a href="/search">
+                            <span class="fa fa-search"></span>
+                        </a>
+                    </div>
+                
+                <div class="box theme-box" id="theme-toggle">
+                    <span class="fa fa-adjust"></span>
+                </div>
+            </div>
+            <div id="gotop-box" class="box gotop-box">
+                <span class="fa fa-chevron-up"></span>
+            </div>
+        </div>
+    </div>
+</footer>
+</div>
+</div>
+
+
+    <div id="kr-donate-modal" class="kr-modal">
+    <div class="kr-modal-bg" onclick="krCloseDonateModal()"></div>
+    <div class="kr-modal-content">
+        <div class="kr-modal-header">
+            <div class="kr-modal-icon">
+                <i class="fa fa-bitcoin"></i>
+            </div>
+            <div class="kr-modal-title">打赏</div>
+            <button class="kr-modal-close" onclick="krCloseDonateModal()">
+                <i class="fa fa-times-circle"></i>
+            </button>
+        </div>
+        <div class="kr-modal-body">
+            <div class="kr-donate-message">求赞助一块小布丁！( ˘ ³˘)♥</div>
+            <div class="kr-donate-qr" id="kr-donate-qr">
+                
+            </div>
+            <div class="kr-donate-platforms">
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #00A0E9;" title="支付宝" onclick="krDonateModalShowPlatformQR('https://qr.alipay.com/fkx10074h80wdlc7rkhh73b', '#00A0E9', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M21.422 15.358c-3.83-1.153-6.055-1.84-6.678-2.062a12.41 12.41 0 0 0 1.32-3.32H12.8V8.872h4v-.68h-4V6.344h-1.536c-.28 0-.312.248-.312.248v1.592H7.2v.68h3.752v1.104H7.88v.616h6.224a10.972 10.972 0 0 1-.888 2.176c-1.408-.464-2.192-.784-3.912-.944-3.256-.312-4.008 1.48-4.128 2.576C5 16.064 6.48 17.424 8.688 17.424s3.68-1.024 5.08-2.72c1.167.558 3.338 1.525 6.514 2.902A9.99 9.99 0 0 1 12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10a9.983 9.983 0 0 1-.578 3.358zm-12.99 1.01c-2.336 0-2.704-1.48-2.584-2.096.12-.616.8-1.416 2.104-1.416 1.496 0 2.832.384 4.44 1.16-1.136 1.48-2.52 2.352-3.96 2.352z"/></g></svg>
+                        </button>
+                    
+                
+                    
+                        <button class="kr-donate-platform-button" style="color: #07C160;" title="微信" onclick="krDonateModalShowPlatformQR('wxp://f2f0UZPu3nG1PA01tt-I5EDw0wx_G5jA-uDkAw8PuRT9VZtUj-T9s0_Cw7IRYUpTLq7Z', '#07C160', this)">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><g><path fill="none" d="M0 0h24v24H0z"/><path fill="currentColor" d="M9.27 14.669a.662.662 0 0 1-.88-.269l-.043-.095-1.818-3.998a.473.473 0 0 1 0-.145.327.327 0 0 1 .335-.328.305.305 0 0 1 .196.066l2.18 1.527a.989.989 0 0 0 .546.167.894.894 0 0 0 .342-.066l10.047-4.5a10.73 10.73 0 0 0-8.171-3.526C6.478 3.502 2 7.232 2 11.87a7.83 7.83 0 0 0 3.46 6.296.662.662 0 0 1 .24.727l-.45 1.701a.945.945 0 0 0-.051.24.327.327 0 0 0 .334.334.414.414 0 0 0 .19-.058l2.18-1.265c.16-.098.343-.151.531-.152.099 0 .197.014.29.043 1.063.3 2.161.452 3.265.45 5.525 0 10.01-3.729 10.01-8.33a7.226 7.226 0 0 0-1.097-3.883L9.35 14.625l-.08.044z"/></g></svg>
+                        </button>
+                    
+                
+            </div>
+        </div>
+    </div>
+</div>
+<script defer src="/js/kr-modal/donate.min.js"></script>
+
+
+
+
+
+<!-- 额外的追加注入项 -->
+
+
+        <script>
+    if (!window.kr) {
+        window.kr = {};
+    }
+    window.kr.notMobile = (!(navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i)));
+    window.kr.siteRoot = "/";
+</script>
+
+
+  <script defer src="/vendors/nprogress@0.2.0/nprogress.js"></script>
+
+
+
+  <script defer src="/vendors/viewerjs@1.11.6/dist/viewer.min.js"></script>
+
+
+<script defer src="/js/kr-core.min.js"></script>
+
+
+  <script defer src="/js/kr-pjax.min.js"></script>
+
+
+<!-- 额外的追加注入项 -->
+
+
+    </body>
+</html>
