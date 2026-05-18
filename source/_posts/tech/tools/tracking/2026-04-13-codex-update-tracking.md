@@ -34,6 +34,64 @@ toc: true
 
 - 明确了自定义 Provider 的显示名称逻辑，解决用户对模型标签的认知困惑。
 
+#### 2026-05 | App Update（App Update）
+
+**信息截止**：2026-05-14 | **最新 Release**：2026-05-14
+
+| 更新 | 日期 | 一句话 |
+|------|------|--------|
+| Work with Codex from anywhere | 2026-05-14 | ChatGPT mobile app 可远程连到一台运行 Codex app 的 Mac，直接复用该主机上的项目、凭证、插件和技能 |
+| Expanded Auto-review documentation | 2026-05-11 | Auto-review 拆成独立文档页，补清 reviewer 生命周期、触发条件、失败行为与沙箱边界 |
+| Codex for Chrome | 2026-05-07 | Chrome 扩展上线，可在后台并行处理多个标签页，同时继续沿用站点授权边界 |
+
+##### 新特性用法
+
+- **手机接力桌面 Codex**：先在主力 Mac 上保持 Codex app 在线，再按
+  Remote Connections 文档把手机端接上。连接后，手机里看到的是主机上的
+  项目、文件、凭证和本地插件，而不是云端复制品。
+- **Auto-review 配置落地**：5 月的文档补全把 Auto-review 的触发条件、
+  sandbox 边界和本地/托管配置拆清了，适合把 review 规则固定进
+  `config.toml` 或团队托管策略里。
+- **Chrome 扩展**：浏览器里的 Codex 现在更适合做登录态页面核对、
+  多标签页并行检查和前端回归确认，不需要把主浏览器完全交给 agent。
+
+##### 关键 fix
+
+- 本批次以能力开放和文档完善为主，无单独标注关键 fix。
+
+#### 2026-05 | 0.129.0 ~ 0.130.0（CLI Stable）
+
+**信息截止**：2026-05-08 | **最新 Release**：0.130.0
+
+| 版本 | 日期 | 一句话 |
+|------|------|--------|
+| `0.130.0` | 2026-05-08 | 插件详情可见 hooks；新增 `codex remote-control`；app-server 支持 thread 分页；Bedrock 可复用 `aws login` 凭证 |
+| `0.129.0` | 2026-05-07 | composer 支持 Vim 模态编辑；resume/fork 选择器改版；`/diff` 感知 workspace；插件共享与市场管理增强 |
+
+##### 新特性用法
+
+- **远程可控 app-server**：如果你要把 Codex 嵌进自有自动化链路，
+  现在可以直接启动：
+
+  ```bash
+  codex remote-control
+  ```
+
+- **插件分享与审计**：`0.130.0` 开始，插件详情页会把 bundled hooks 和
+  share metadata 一起展示出来，团队在安装前就能先看清插件会挂哪些
+  hook、是否可被别人发现。
+- **Bedrock 登录态复用**：如果本机已经执行过 `aws login`，
+  `0.130.0` 可以直接拿这些 profile 凭证做 Bedrock 鉴权，少一层手工
+  token 搬运。
+
+##### 关键 fix
+
+- live app-server 线程现在能热读配置变更，不必每次重启服务。
+- `apply_patch` 之后的 turn diff 统计更准确，部分失败也不会把 diff 弄乱。
+- remote compaction 的 `response.processed` 与 `service_tier` 处理更稳，
+  降低远端压缩链路误报。
+- Windows sandbox 会补齐桌面 runtime cache 访问权限，减少初始化失败。
+
 ---
 
 #### 2026-04 | 0.119.0 ~ 0.121.0
@@ -702,3 +760,4 @@ requires_openai_auth = true
 | v1.7 | 2026-04-24 | 按多发布流规则追加 0.123.0 ~ 0.124.0 CLI Stable 批次，并补记 GPT-5.5、Browser use 与 automatic approval reviews 的 App/Product 更新 |
 | v1.8 | 2026-04-29 | 追加 0.125.0 稳定版与 0.126.0-alpha.1 ~ alpha.11 预发布观察 |
 | v1.9 | 2026-05-06 | tags 收敛（删除 GPT-5.4）、2025-Q3 批次补齐三段式占位、`(无)` 文案统一为「本批次无关键 fix」 |
+| v1.10 | 2026-05-18 | 追踪 2026-05 App 与 CLI 稳定版更新；修正 frontmatter tags |

@@ -4,7 +4,7 @@ title: OpenCode & oh-my-openagent 更新追踪
 date: 2026-04-13 12:00:00 +0800
 categories: [tech, tools, tracking]
 tags: [opencode, oh-my-openagent, CLI, 更新追踪]
-description: 持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。当前追踪至 OpenCode v1.14.x / oh-my-openagent v3.17.x。
+description: 持续追踪 OpenCode 与 oh-my-openagent（原 oh-my-opencode）的版本更新，按季度组织，记录新特性用法与关键修复。当前追踪至 OpenCode v1.15.x / oh-my-openagent v4.1.x。
 toc: true
 ---
 
@@ -106,6 +106,44 @@ toc: true
   metadata/test suite、Claude alias mapping、Bash `allowed_directories`
   参数兼容和 Ralph interleaved thinking 无限循环。
 
+#### 2026-05 | v1.14.45 ~ v1.15.4 / v4.0.0 ~ v4.1.2
+
+**信息截止**：2026-05-17 | **最新 Release**：OpenCode v1.15.4 / oh-my-openagent v4.1.2
+
+| 工具 | 版本 | 日期 | 一句话 |
+|------|------|------|--------|
+| OpenCode | v1.14.45 ~ v1.14.46 | 2026-05-10 | OpenAPI/SDK 查询参数纠偏、legacy session 容错、安全边界补洞 |
+| OpenCode | v1.15.0 ~ v1.15.4 | 2026-05-15 ~ 2026-05-17 | Effect 事件系统、背景 subagent、pinned sessions、项目级事件总线与 LSP 修复一并落地 |
+| oh-my-openagent | v4.0.0 | 2026-05-07 | Team Mode 正式发布，多 agent + tmux 可视化成为一等能力 |
+| oh-my-openagent | v4.1.0 ~ v4.1.2 | 2026-05-13 ~ 2026-05-14 | Boulder 任务跟踪、Electron 兼容与 delegation/continuation 稳定性持续增强 |
+
+##### 新特性用法
+
+- **OpenCode 背景 subagent**：`v1.14.51` 开始引入 experimental background
+  subagents，适合把长任务丢到后台继续跑，同时保留当前前台会话。
+- **Pinned sessions**：`v1.15.1` 把 pinned sessions 和 quick-switch slots
+  做进 TUI，会话多的时候比来回翻 session picker 更省心。
+- **Team Mode**：在 oh-my-openagent 里启用真正的多 agent 编排：
+
+  ```toml
+  [team_mode]
+  enabled = true
+  ```
+
+- **Boulder 工作台**：`v4.1.0` 后可用 `bunx oh-my-opencode boulder`
+  查看 plan task 的进度百分比、耗时和完成状态，适合跟长链路任务。
+
+##### 关键 fix
+
+- OpenCode 修复了 project-scoped bus events、custom LSP refresh 和
+  injected instance 同步漂移问题。
+- OpenCode 修复了旧 session 的负 token 计数、boolean/numeric query 参数
+  与生成 SDK 不一致的问题。
+- oh-my-openagent `v4.1.2` 把 hidden agents 从 delegation discovery 中排除，
+  补上了 delegate-task 的可见性边界。
+- oh-my-openagent `v4.1.x` 持续修补 continuation synthetic 标记、
+  duplicate prompt 注入和 background-agent 唤醒时序问题。
+
 ---
 
 ### Q1（2026-01 ~ 03）
@@ -183,5 +221,6 @@ toc: true
 | v1.0 | 2026-04-13 | 初始版本，建立追踪框架；迁移 Q1 精选内容（v1.1.65~v1.3.17） |
 | v1.1 | 2026-04-13 | 修正格式规范，使用 H5 标题组织批次段落；合并深度分析内容 |
 | v1.2 | 2026-04-29 | 追加 OpenCode v1.4.0 ~ v1.14.29 与 oh-my-openagent v3.16.0 ~ v3.17.6 合并批次 |
-| v1.3 | 2026-04-29 | 回填漏写的更新记录行（补记 v1.2 条目）|
+| v1.3 | 2026-04-29 | 回填漏写的更新记录行（补记 v1.2 条目） |
 | v1.4 | 2026-05-06 | 全量结构对齐：H4 季度批次标题 `2026-Q1` → `2026-01 ~ 03`、深度分析 blockquote 提升为 `##### 深度分析（可选）` 子段、tags 标准化、description 补版本范围 |
+| v1.5 | 2026-05-18 | 追加 2026-05 双工具批次；修正 frontmatter tags |

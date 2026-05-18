@@ -324,10 +324,53 @@ toc: true
 - **原生安装与自动更新**：修复 native install 的 npm autodetect、
   auto-updater、`claude --version` 支持与 `--uninstall` 原生安装脚本路径。
 
+#### 2026-05 | v2.1.128 ~ v2.1.143
+
+**信息截止**：2026-05-15 | **最新 Release**：v2.1.143
+
+| 版本 | 日期 | 一句话 |
+|------|------|--------|
+| `v2.1.143` | 2026-05-15 | 插件依赖强校验、`/plugin` 市场显示上下文成本、`worktree.bgIsolation = "none"` 与 PowerShell 默认策略补强一起落地 |
+| `v2.1.142` | 2026-05-14 | `claude agents` 新增一组后台会话分发参数，Fast mode 默认切到 Opus 4.7 |
+| `v2.1.141` | 2026-05-13 | hooks JSON 新增 `terminalSequence`，`claude agents --cwd` 与 `/feedback` 附近会话打包一起补上 |
+| `v2.1.139` | 2026-05-11 | `claude agents` 研究预览上线，`/goal` 让 Claude 跨 turn 持续推进任务，agent view 开始成型 |
+| `v2.1.128` | 2026-05-06 | `/color` 随机色、`/mcp` 工具计数、`.zip` 插件归档与 channels 控制台鉴权一起补齐 |
+
+##### 新特性用法
+
+- **Agent View + `/goal`**：如果你要把长任务拆成多个后台 session，
+  现在可以先开 `claude agents` 看全局，再配合 `/goal` 让当前会话围着一个
+  完成条件持续推进，而不是每轮都手工提醒。
+- **插件依赖可视化与强校验**：`v2.1.143` 后，禁用某个插件前会先检查
+  是否还有依赖它的已启用插件；启用时则会自动拉起传递依赖，适合团队共用插件栈。
+- **背景会话直接写工作副本**：当 repo 不适合大量 worktree 时，可在
+  `settings.json` 里显式打开：
+
+  ```json
+  {
+    "worktree": {
+      "bgIsolation": "none"
+    }
+  }
+  ```
+
+- **Hook 直达终端通知**：`terminalSequence` 让 hook 可以发桌面通知、
+  改窗口标题或触发 bell，更适合做长任务完成提醒。
+
+##### 关键 fix
+
+- 背景会话在 `/bg`、分离、休眠唤醒之后会更稳定地保留 model、effort、
+  `--mcp-config`、`--settings` 与 `--plugin-dir`。
+- 删除 agent view 会话时，transcript 清理和 worktree 清理逻辑更一致，
+  减少“列表删了但本地残留”的混乱状态。
+- `git worktree remove` 失败后不再回退到 `rm -rf`，避免误删 gitignored
+  或进行中的文件。
+- 修复了损坏的 `.credentials.json`、PowerShell 启动、右键粘贴、
+  stop-hook 死循环和 macOS 受保护目录读取等稳定性问题。
+
 ---
 
 ### Q1（2026-01 ~ 03）
-
 
 #### 2026-03 | v2.1.66 ~ v2.1.87
 
@@ -396,3 +439,4 @@ toc: true
 | v1.5 | 2026-04-24 | 增量追踪至 v2.1.119；新增 Vim 可视模式、自定义主题、Hooks 直调 MCP 工具、`/usage` 合并、Opus 4.7 1M 上下文修正、多平台 `--from-pr`、`prUrlTemplate`/`CLAUDE_CODE_HIDE_CWD` |
 | v1.6 | 2026-04-29 | 增量追踪至 v2.1.122；补记 v2.1.120 resume 崩溃回滚、HTTP/SSE MCP、Bedrock service tier、企业托管策略与 hook/model 元数据 |
 | v1.7 | 2026-05-06 | 全量结构对齐：tags 标准化为 kebab-case、frontmatter 同步至 v4.4 规范、复核占位章节 |
+| v1.8 | 2026-05-18 | 追踪至 v2.1.143；补入 agents、goal、插件依赖与后台会话更新 |
