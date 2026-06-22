@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout hexo branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: hexo
           fetch-depth: 0
